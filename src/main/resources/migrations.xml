@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.liquibase.org/xml/ns/dbchangelog
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+        "
+>
+    <changeSet id="1" author="Teemu Huhtala &lt;teemu.huhtala@jubic.fi&gt;">
+        <createTable tableName="data_connection">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="true" />
+            </column>
+            <column name="type" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="configuration" type="text">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <createTable tableName="data_series">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="true" />
+            </column>
+            <column name="table_name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="type" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="configuration" type="text">
+                <constraints nullable="true" />
+            </column>
+            <column name="deleted_at" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+
+            <column name="data_connection_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_data_series_data_connection_id"
+                        references="data_connection(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="column">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_column_data_series_id"
+                        references="data_series(id)" />
+            </column>
+            <column name="index" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <createTable tableName="worker_definition">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="type" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="params" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="worker_definition_column">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="column_type" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="index" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="definition_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_worker_definition_input_column_worker_definition_id"
+                        references="worker_definition(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="worker">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="token" type="varchar">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="accepted_on" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="last_seen" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="deleted_at" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="definition_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_worker_worker_def_id"
+                        references="worker_definition(id)" />
+            </column>
+        </createTable>
+
+        <createTable tableName="task">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="worker_def_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_task_worker_def_id"
+                        references="worker_definition(id)" />
+            </column>
+            <column name="config" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="cron_trigger" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="task_trigger" type="bigint">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <createTable tableName="task_column_selector">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="column_index" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="column_name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="modifier" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="alias" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_task_column_selector_data_series_id"
+                        references="data_series(id)" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_task_column_selector_task_id"
+                        references="task(id)" />
+            </column>
+            <column name="worker_definition_column_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_task_column_selector_worker_definition_column_id"
+                        references="worker_definition_column(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="task_output_column">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="index" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="alias" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="column_name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_task_output_column_task_id"
+                        references="task(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="invocation">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="invocation_number" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_task_id"
+                        references="task(id)" />
+            </column>
+            <column name="worker_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_worker_id"
+                        references="worker(id)" />
+            </column>
+            <column name="config" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="starting_time" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+            <column name="ending_time" type="timestamp">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+        <addUniqueConstraint
+                columnNames="task_id, invocation_number"
+                tableName="invocation"
+        />
+        <createTable tableName="invocation_column_selector">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="column_index" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="column_name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="modifier" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="alias" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_column_selector_data_series_id"
+                        references="data_series(id)" />
+            </column>
+            <column name="invocation_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_column_selector_invocation_id"
+                        references="invocation(id)" />
+            </column>
+            <column name="worker_definition_column_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_column_selector_worker_definition_column_id"
+                        references="worker_definition_column(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="invocation_output_column">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="index" type="integer">
+                <constraints nullable="false" />
+            </column>
+            <column name="alias" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="column_name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="class" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="format" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="invocation_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_invocation_output_column_invocation_id"
+                        references="invocation(id)" />
+            </column>
+        </createTable>
+        <createTable tableName="detection_result">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="invocation_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_result_invocation_id"
+                        references="invocation(id)" />
+            </column>
+            <column name="starting_time" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="ending_time" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="values" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="classification" type="varchar">
+                <constraints nullable="false" />
+            </column>
+            <column name="probability" type="double precision">
+                <constraints nullable="false" />
+            </column>
+            <column name="delta_max" type="text">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <createTable tableName="series_result">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="invocation_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_result_invocation_id"
+                        references="invocation(id)" />
+            </column>
+            <column name="table_name" type="varchar(512)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="role" type="VARCHAR(255)" defaultValue="USER">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)" defaultValue="">
+                <constraints nullable="false" />
+            </column>
+            <column name="password_hash" type="VARCHAR(255)" defaultValue="">
+                <constraints nullable="false" />
+            </column>
+            <column name="salt" type="VARCHAR(255)" defaultValue="">
+                <constraints nullable="false" />
+            </column>
+            <column name="creation_date" type="TIMESTAMP" defaultValueDate="now()">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="2" author="Quyen Duong &lt;quyen.duong@jubic.fi&gt;">
+        <createTable tableName="external_client">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="token" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_external_client_task_id"
+                        references="task(id)"
+                />
+            </column>
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="3" author="Jani Södergård &lt;jani.sodergard@jubic.fi&gt;">
+        <createTable tableName="series_table">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="table_name" type="varchar(512)">
+                <constraints nullable="false" />
+            </column>
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_series_table_data_series_id"
+                        references="data_series(id)" />
+            </column>
+            <column name="delete_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </createTable>
+
+        <addColumn tableName="task" >
+            <column name="task_type" type="varchar(32)" defaultValue="process">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+
+        <dropNotNullConstraint columnName="worker_def_id" tableName="task"/>
+        <dropNotNullConstraint columnName="worker_definition_column_id" tableName="task_column_selector"/>
+        <dropNotNullConstraint columnName="worker_id" tableName="invocation"/>
+        <dropNotNullConstraint columnName="worker_definition_column_id" tableName="invocation_column_selector"/>
+    </changeSet>
+    <changeSet id="4" author="Jani Södergård &lt;jani.sodergard@jubic.fi&gt;">
+        <addColumn tableName="data_connection" >
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+        <addColumn tableName="worker_definition" >
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+        <addColumn tableName="task" >
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+        <addColumn tableName="invocation" >
+            <column name="deleted_at" type="TIMESTAMP">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="5" author="Jani Södergård &lt;jani.sodergard@jubic.fi&gt;">
+        <addColumn tableName="task" >
+            <column name="additional_params" type="text">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+        <addColumn tableName="invocation" >
+            <column name="additional_params" type="text">
+                <constraints nullable="true" />
+            </column>
+        </addColumn>
+    </changeSet>
+    <changeSet id="6" author="Vilppu Vuorinen &lt;vilppu.vuorinen@jubic.fi&gt;">
+        <sql dbms="postgresql">
+            UPDATE data_connection SET type = 'JDBC' WHERE type = 'ODBC';
+            UPDATE data_series SET type = 'JDBC' WHERE type = 'ODBC';
+        </sql>
+    </changeSet>
+</databaseChangeLog>

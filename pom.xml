@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>quanta</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <name>quanta</name>
+
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <url>https://jcenter.bintray.com/</url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <url>https://jcenter.bintray.com/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+
+    <parent>
+        <groupId>fi.jubic</groupId>
+        <artifactId>snoozy-starter-jooq</artifactId>
+        <version>0.6.2</version>
+    </parent>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>fi.jubic</groupId>
+            <artifactId>easyvalue</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger</artifactId>
+            <version>2.22.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.dagger</groupId>
+            <artifactId>dagger-compiler</artifactId>
+            <version>2.22.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.jubic</groupId>
+            <artifactId>easymapper-jooq</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>fi.jubic</groupId>
+            <artifactId>easymapper-generator-jooq</artifactId>
+            <version>0.3.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+            <version>2.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz-jobs</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+    </dependencies>
+
+    <properties>
+        <snoozy.mainClass>fi.jubic.quanta.App</snoozy.mainClass>
+        <snoozy.jooq.jdbcUrl>jdbc:postgresql://127.0.0.1:5432/quanta</snoozy.jooq.jdbcUrl>
+        <snoozy.jooq.jdbcDriver>org.postgresql.Driver</snoozy.jooq.jdbcDriver>
+        <snoozy.jooq.databaseMetaName>org.jooq.meta.postgres.PostgresDatabase</snoozy.jooq.databaseMetaName>
+        <snoozy.jooq.user>test</snoozy.jooq.user>
+        <snoozy.jooq.password>test</snoozy.jooq.password>
+        <snoozy.jooq.includes>
+            data_connection
+            | data_series
+            | column
+            | worker
+            | worker_definition
+            | worker_definition_column
+            | task
+            | task_column_selector
+            | task_output_column
+            | invocation
+            | invocation_column_selector
+            | invocation_output_column
+            | detection_result
+            | series_result
+            | user
+            | external_client
+            | series_table
+        </snoozy.jooq.includes>
+        <snoozy.jooq.excludes>
+            DATABASECHANGELOG
+            | DATABASECHANGELOGLOCK
+        </snoozy.jooq.excludes>
+        <snoozy.jooq.inputSchema>public</snoozy.jooq.inputSchema>
+        <snoozy.jooq.targetPackage>fi.jubic.quanta.db</snoozy.jooq.targetPackage>
+    </properties>
+</project>

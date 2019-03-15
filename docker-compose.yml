@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  timescale:
+    image: timescale/timescaledb:1.6.0-pg11
+    ports:
+      - 5432:5432
+    volumes:
+      - timescale:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=quanta
+    network_mode: bridge
+    shm_size: 256MB
+volumes:
+  timescale:

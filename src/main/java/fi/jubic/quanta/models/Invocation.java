@@ -1,0 +1,92 @@
+package fi.jubic.quanta.models;
+
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import fi.jubic.easymapper.annotations.EasyId;
+import fi.jubic.easyvalue.EasyValue;
+import fi.jubic.quanta.db.tables.records.InvocationRecord;
+import fi.jubic.quanta.util.Json;
+
+import javax.annotation.Nullable;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static fi.jubic.quanta.db.tables.Invocation.INVOCATION;
+
+@EasyValue
+@JsonDeserialize(builder = Invocation.Builder.class)
+public abstract class Invocation {
+    @EasyId
+    public abstract Long getId();
+
+    public abstract Long getInvocationNumber();
+
+    public abstract InvocationStatus getStatus();
+
+    public abstract Task getTask();
+
+    @Nullable
+    public abstract Worker getWorker();
+
+    public abstract Map<String, Object> getConfig();
+
+    @Nullable
+    public abstract Instant getStartTime();
+
+    @Nullable
+    public abstract Instant getEndTime();
+
+    public abstract List<ColumnSelector> getColumnSelectors();
+
+    public abstract List<OutputColumn> getOutputColumns();
+
+    public abstract List<SeriesResult> getSeriesResults();
+
+    public abstract List<Anomaly> getDetectionResults();
+
+    @Nullable
+    public abstract Instant getDeletedAt();
+
+    @Nullable
+    public abstract Map<String, Parameter> getAdditionalParams();
+
+    public abstract Builder toBuilder();
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder extends EasyValue_Invocation.Builder {
+        @Override
+        public Builder defaults(Builder builder) {
+            return builder
+                    .setWorker(null)
+                    .setColumnSelectors(Collections.emptyList())
+                    .setOutputColumns(Collections.emptyList())
+                    .setConfig(Collections.emptyMap())
+                    .setSeriesResults(Collections.emptyList())
+                    .setDetectionResults(Collections.emptyList())
+                    .setAdditionalParams(Collections.emptyMap());
+        }
+    }
+
+    public static final InvocationRecordMapper<InvocationRecord> mapper
+            = InvocationRecordMapper.builder(INVOCATION)
+            .setIdAccessor(INVOCATION.ID)
+            .setInvocationNumberAccessor(INVOCATION.INVOCATION_NUMBER)
+            .setStatusAccessor(INVOCATION.STATUS, InvocationStatus::name, InvocationStatus::valueOf)
+            .setTaskAccessor(INVOCATION.TASK_ID, Task::getId)
+            .setWorkerAccessor(INVOCATION.WORKER_ID, Worker::getId)
+            .setStartTimeAccessor(INVOCATION.STARTING_TIME, Timestamp::from, Timestamp::toInstant)
+            .setEndTimeAccessor(INVOCATION.ENDING_TIME, Timestamp::from, Timestamp::toInstant)
+            .setConfigAccessor(INVOCATION.CONFIG, Json::writeConfig, Json::extractConfig)
+            .setDeletedAtAccessor(INVOCATION.DELETED_AT, Timestamp::from, Timestamp::toInstant)
+            .setAdditionalParamsAccessor(
+                    INVOCATION.ADDITIONAL_PARAMS,
+                    Parameter::writeParameters,
+                    Parameter::extractParameters
+            )
+            .build();
+}

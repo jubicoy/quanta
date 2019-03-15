@@ -1,0 +1,10 @@
+.idea/
+target/
+*.iml
+**/venv/
+front/.vscode/
+dependency-reduced-pom.xml
+.classpath
+.factorypath
+.project
+.settings/*
