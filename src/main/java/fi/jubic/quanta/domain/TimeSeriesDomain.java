@@ -33,8 +33,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -1018,13 +1016,7 @@ public class TimeSeriesDomain {
 
         return measurement -> Stream
                 .concat(
-                        Stream.of(
-                                ZonedDateTime
-                                        .ofInstant(
-                                                measurement.getTime(),
-                                                ZoneOffset.UTC
-                                        ).format(finalFormatter)
-                        ),
+                        Stream.of(finalFormatter.format(measurement.getTime())),
                         measurement
                                 .getValues()
                                 .values()
@@ -1047,14 +1039,7 @@ public class TimeSeriesDomain {
         );
         return measurement -> Stream
                 .concat(
-                        Stream.of(
-                                ZonedDateTime
-                                        .ofInstant(
-                                                measurement.getTime(),
-                                                ZoneOffset.UTC
-                                        )
-                                        .format(formatter)
-                        ),
+                        Stream.of(formatter.format(measurement.getTime())),
                         measurement.getValues()
                                 .values()
                                 .stream()
