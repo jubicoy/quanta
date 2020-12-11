@@ -1,0 +1,50 @@
+name: Build
+
+on:
+  push:
+    branches: [ '*' ]
+  pull_request:
+    branches: [ '*' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [11]
+        node: ['12']
+    name: JDK ${{ matrix.java }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache .m2/repository
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-m2
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-build-java-${{ env.cache-name}}-${{ matrix.java }}
+          restore-keys: |
+            ${{ runner.os  }}-build-java-${{ env.cache-name }}-${{ matrix.java }}
+            ${{ runner.os  }}-build-java-${{ env.cache-name }}
+            ${{ runner.os  }}-build-java-
+      - name: Cache .npm
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-npm
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-node-${{ env.cache-name}}-${{ matrix.java }}
+          restore-keys: |
+            ${{ runner.os  }}-build-node-${{ env.cache-name }}-${{ matrix.java }}
+            ${{ runner.os  }}-build-node-${{ env.cache-name }}
+            ${{ runner.os  }}-build-node-
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Setup up node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Build with Maven
+        run: mvn -B package
