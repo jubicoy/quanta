@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         java: [11]
-        node: ['12']
+        node: ['14']
     name: JDK ${{ matrix.java }}
     steps:
       - uses: actions/checkout@v2

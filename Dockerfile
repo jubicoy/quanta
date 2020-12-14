@@ -1,6 +1,6 @@
 FROM adoptopenjdk/maven-openjdk8 AS builder
 
-RUN curl -sL https://deb.nodesource.com/setup_13.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
   && apt-get install -y nodejs git \
   && mkdir -p /opt/build/front /opt/build/lib
 
