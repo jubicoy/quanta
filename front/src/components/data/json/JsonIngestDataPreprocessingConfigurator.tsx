@@ -58,7 +58,7 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
         name: 'time',
         type: {
           format: `yyyy-MM-dd`,
-          className: 'java.time.LocalDate',
+          className: 'java.time.Instant',
           nullable: false
         }
       }
