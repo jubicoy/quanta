@@ -3,6 +3,7 @@ package fi.jubic.quanta.external.importer;
 import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -162,7 +163,21 @@ public class Types {
             case "java.time.Instant":
                 Optional<Instant> instant = Optional.ofNullable(format)
                         .map(DateTimeFormatter::ofPattern)
-                        .map(pattern -> LocalDateTime.parse(value, pattern))
+                        .flatMap(pattern -> {
+                            try {
+                                return Optional.of(LocalDateTime.parse(value, pattern));
+                            }
+                            catch (Exception ignored) {
+                            }
+
+                            try {
+                                return Optional.of(LocalDate.parse(value, pattern).atStartOfDay());
+                            }
+                            catch (Exception ignored) {
+                            }
+
+                            return Optional.empty();
+                        })
                         .map(localDateTime -> localDateTime.toInstant(ZoneOffset.UTC));
 
                 if (!instant.isPresent()) {
@@ -214,7 +229,7 @@ public class Types {
     }
 
     private Optional<String> tryInstant() {
-        return getKnownDateTimePatterns()
+        return Stream.concat(getKnownDateTimePatterns(), getKnownDatePatterns())
                 .filter(p -> isParseableInstant.apply(p, value))
                 .findFirst();
     }
@@ -229,6 +244,16 @@ public class Types {
                 .toInstant(ZoneOffset.UTC);
         }
         catch (Exception ignored) {
+        }
+
+        if (instant == null) {
+            try {
+                instant = LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern))
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC);
+            }
+            catch (Exception ignored) {
+            }
         }
 
         return instant != null;
