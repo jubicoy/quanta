@@ -2,8 +2,10 @@ package fi.jubic.quanta.external.importer;
 
 import javax.annotation.Nullable;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.AbstractMap;
 import java.util.List;
@@ -58,8 +60,7 @@ public class Types {
                 String.class,
                 Boolean.class,
                 Double.class,
-                LocalDateTime.class,
-                LocalDate.class,
+                Instant.class,
                 Long.class
         )
                 .collect(Collectors.toList());
@@ -88,21 +89,12 @@ public class Types {
             );
         }
 
-        Optional<String> dateTimePatternOptional = tryDateTime();
+        Optional<String> instantPatternOptional = tryInstant();
 
-        if (dateTimePatternOptional.isPresent()) {
+        if (instantPatternOptional.isPresent()) {
             return new AbstractMap.SimpleImmutableEntry<>(
-                    LocalDateTime.class,
-                    dateTimePatternOptional.get()
-            );
-        }
-
-        Optional<String> datePatternOptional = tryDate();
-
-        if (datePatternOptional.isPresent()) {
-            return new AbstractMap.SimpleImmutableEntry<>(
-                    LocalDate.class,
-                    datePatternOptional.get()
+                    Instant.class,
+                    instantPatternOptional.get()
             );
         }
 
@@ -122,10 +114,8 @@ public class Types {
                 return Optional.of("BIGINT");
             case "java.lang.Double":
                 return Optional.of("DOUBLE PRECISION");
-            case "java.time.LocalDateTime":
+            case "java.time.Instant":
                 return Optional.of("TIMESTAMPTZ");
-            case "java.time.LocalDate":
-                return Optional.of("DATE");
             default:
                 return Optional.empty();
         }
@@ -145,30 +135,12 @@ public class Types {
                 return Long.parseLong(value);
             case "java.lang.Integer":
                 return Integer.parseInt(value);
-            case "java.time.LocalDateTime":
-                LocalDateTime dateTime;
-
-                if (format != null) {
-                    DateTimeFormatter pattern = DateTimeFormatter.ofPattern(format);
-                    dateTime = LocalDateTime.parse(value, pattern);
-                }
-                else {
-                    dateTime = LocalDateTime.parse(value);
-                }
-
-                return dateTime;
-            case "java.time.LocalDate":
-                LocalDate date;
-
-                if (format != null) {
-                    DateTimeFormatter pattern = DateTimeFormatter.ofPattern(format);
-                    date = LocalDate.parse(value, pattern);
-                }
-                else {
-                    date = LocalDate.parse(value);
-                }
-
-                return date;
+            case "java.time.Instant":
+                return Optional.ofNullable(format)
+                        .map(DateTimeFormatter::ofPattern)
+                        .map(pattern -> LocalDateTime.parse(value, pattern))
+                        .map(localDateTime -> localDateTime.toInstant(ZoneOffset.UTC))
+                        .orElseGet(() -> Instant.parse(value));
             default:
                 return value;
         }
@@ -188,36 +160,32 @@ public class Types {
             case "java.lang.Integer":
             case "java.lang.Double":
                 return Optional.of(value);
-            case "java.time.LocalDateTime":
-                Optional<LocalDateTime> dateTime;
+            case "java.time.Instant":
+                Optional<Instant> instant = Optional.ofNullable(format)
+                        .map(DateTimeFormatter::ofPattern)
+                        .flatMap(pattern -> {
+                            try {
+                                return Optional.of(LocalDateTime.parse(value, pattern));
+                            }
+                            catch (Exception ignored) {
+                            }
 
-                if (format != null) {
-                    dateTime = Optional.of(format)
-                            .map(DateTimeFormatter::ofPattern)
-                            .map(f -> LocalDateTime.parse(value, f));
-                }
-                else {
-                    dateTime = Optional.of(value)
-                            .map(LocalDateTime::parse);
+                            try {
+                                return Optional.of(LocalDate.parse(value, pattern).atStartOfDay());
+                            }
+                            catch (Exception ignored) {
+                            }
+
+                            return Optional.empty();
+                        })
+                        .map(localDateTime -> localDateTime.toInstant(ZoneOffset.UTC));
+
+                if (!instant.isPresent()) {
+                    instant = Optional.of(Instant.parse(value));
                 }
 
-                return dateTime.map(Timestamp::valueOf)
+                return instant.map(Timestamp::from)
                         .map(Timestamp::toString)
-                        .map(s -> String.format("'%s'", s));
-            case "java.time.LocalDate":
-                Optional<LocalDate> date;
-
-                if (format != null) {
-                    date = Optional.of(format)
-                            .map(DateTimeFormatter::ofPattern)
-                            .map(f -> LocalDate.parse(value, f));
-                }
-                else {
-                    date = Optional.of(value)
-                            .map(LocalDate::parse);
-                }
-
-                return date
                         .map(s -> String.format("'%s'", s));
             default:
                 return Optional.empty();
@@ -260,43 +228,34 @@ public class Types {
         return l != null;
     }
 
-    private Optional<String> tryDateTime() {
-        return getKnownDateTimePatterns()
-                .filter(p -> isParseableDateTime.apply(p, value))
+    private Optional<String> tryInstant() {
+        return Stream.concat(getKnownDateTimePatterns(), getKnownDatePatterns())
+                .filter(p -> isParseableInstant.apply(p, value))
                 .findFirst();
     }
 
-    private Optional<String> tryDate() {
-        return getKnownDatePatterns()
-                .filter(p -> isParseableDate.apply(p, value))
-                .findFirst();
-    }
-
-    private static BiFunction<String, String, Boolean> isParseableDateTime = (
+    private static BiFunction<String, String, Boolean> isParseableInstant = (
             String pattern,
             String value
     ) -> {
-        LocalDateTime dateTime = null;
+        Instant instant = null;
         try {
-            dateTime = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(pattern));
+            instant = LocalDateTime.parse(value, DateTimeFormatter.ofPattern(pattern))
+                .toInstant(ZoneOffset.UTC);
         }
         catch (Exception ignored) {
         }
 
-        return dateTime != null;
-    };
-
-    private static BiFunction<String, String, Boolean> isParseableDate = (
-            String pattern,
-            String value
-    ) -> {
-        LocalDate date = null;
-        try {
-            date = LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern));
-        }
-        catch (Exception ignored) {
+        if (instant == null) {
+            try {
+                instant = LocalDate.parse(value, DateTimeFormatter.ofPattern(pattern))
+                        .atStartOfDay()
+                        .toInstant(ZoneOffset.UTC);
+            }
+            catch (Exception ignored) {
+            }
         }
 
-        return date != null;
+        return instant != null;
     };
 }

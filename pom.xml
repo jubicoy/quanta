@@ -21,7 +21,6 @@
         </pluginRepository>
     </pluginRepositories>
 
-
     <parent>
         <groupId>fi.jubic</groupId>
         <artifactId>snoozy-starter-jooq</artifactId>

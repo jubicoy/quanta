@@ -37,8 +37,7 @@ import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -228,18 +227,18 @@ public class JdbcImporter implements Importer {
                             break;
                         case "DATE":
                             format = "yyyy-MM-dd";
-                            className = LocalDate.class;
+                            className = Instant.class;
                             break;
                         case "TIME":
                         case "TIMETZ":
                             format = "HH:mm:ss";
-                            className = LocalDateTime.class;
+                            className = Instant.class;
                             break;
                         case "DATETIME":
                         case "TIMESTAMP":
                         case "TIMESTAMPTZ":
                             format = "yyyy-MM-dd HH:mm:ss.nnnnnnnnn";
-                            className = LocalDateTime.class;
+                            className = Instant.class;
                             break;
                         default: break;
                     }

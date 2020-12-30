@@ -171,8 +171,7 @@ export function supportedModifiers (
     ];
   }
   if (inputType.className === 'java.lang.String'
-    || inputType.className === 'java.time.LocalDateTime'
-    || inputType.className === 'java.time.LocalDate') {
+    || inputType.className === 'java.time.Instant') {
     return [
       TIME_SERIES_MODIFIERS.group_by
     ];

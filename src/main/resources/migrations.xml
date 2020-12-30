@@ -518,4 +518,14 @@
             UPDATE data_series SET type = 'JDBC' WHERE type = 'ODBC';
         </sql>
     </changeSet>
+    <changeSet id="7" author="Aleksi Gold &lt;aleksi.gold@jubic.fi&gt;">
+        <sql dbms="postgresql">
+            UPDATE "column" SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+            UPDATE worker_definition_column SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+            UPDATE task_column_selector SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+            UPDATE task_output_column SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+            UPDATE invocation_column_selector SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+            UPDATE invocation_output_column SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
+        </sql>
+    </changeSet>
 </databaseChangeLog>

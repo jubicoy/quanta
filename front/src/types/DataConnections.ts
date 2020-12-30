@@ -87,8 +87,7 @@ export const SupportedColumnClasses = [
   'java.lang.String',
   'java.lang.Boolean',
   'java.lang.Double',
-  'java.time.LocalDateTime',
-  'java.time.LocalDate',
+  'java.time.Instant',
   'java.lang.Long'
 ];
 
