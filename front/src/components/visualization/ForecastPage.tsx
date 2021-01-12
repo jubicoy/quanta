@@ -318,8 +318,6 @@ export default ({
       const groupSelectors = selectedOption.selectors.filter(
         s => s.modifier && s.modifier === TIME_SERIES_MODIFIERS.group_by
       );
-      console.log('group selectors:' + groupSelectors);
-      console.log('Filter: ' + filter);
       if (filter.length > 0) {
         newValue = [
           ...newValue,
@@ -331,7 +329,6 @@ export default ({
           ))
         ];
       }
-      console.log('New value:' + newValue);
       setSelectorValue(newValue);
     }
   }, [

@@ -248,7 +248,6 @@ export const TimeSeriesChart = ({
   const renderTooltip = (props: TooltipProps) => {
     const { active, payload, label } = props;
     if (active && payload && label) {
-      // console.log(payload);
       const classes = tooltipClasses;
       const labelDate = moment.unix(parseInt(label.toString())).format('MMMM Do, YYYY');
       const labelTime = moment.unix(parseInt(label.toString())).format('hh:mm:ss');

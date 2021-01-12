@@ -63,7 +63,6 @@ export const ForecastChart = ({
       return;
     }
     let data: ChartDataPoint[] = [];
-    console.log(timeSeriesQueryResult);
     let keyNumber = -1;
 
     const lines: React.ReactElement[] = [];
@@ -238,7 +237,6 @@ export const ForecastChart = ({
         }, []);
     setChartLines(lines);
     setChartData(data);
-    console.log(data);
   }, [timeSeriesQueryResult, setError]);
 
   const legendRef = React.createRef<HTMLUListElement>();
