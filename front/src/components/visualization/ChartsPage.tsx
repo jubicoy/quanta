@@ -11,7 +11,8 @@ import {
   Icon,
   Paper,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Checkbox
 } from '@material-ui/core';
 import { red, grey } from '@material-ui/core/colors';
 
@@ -190,6 +191,22 @@ const ChartsPage = () => {
   const startDateParam = query.get('startDate');
   const endDateParam = query.get('endDate');
   const selectorsParam = query.get('selectors');
+  const dateQuickSelectorParam = query.get('dateQuickSelector');
+
+  const dateQuickSelectorRanges = {
+    'None': 0,
+    'Last 12 hours': 12,
+    'Last 24 hours': 24,
+    'Last 3 days': 3 * 24,
+    'Last 7 days': 7 * 24,
+    'Last 1 month': 30 * 24,
+    'Last 2 months': 2 * 30 * 24,
+    'Last 3 months': 3 * 30 * 24,
+    'Last 6 months': 6 * 30 * 24,
+    'Last 1 year': 12 * 30 * 24,
+    'Last 2 years': 2 * 12 * 30 * 24,
+    'Last 3 years': 3 * 12 * 30 * 24
+  };
 
   const intervalSeconds = {
     'None': 0,
@@ -223,6 +240,7 @@ const ChartsPage = () => {
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [enableEndDate, setEnableEndDate] = useState<boolean>(false);
 
   const [chartInterval, setChartInterval] = useState<number>(
     Number(query.get('interval')) || intervalSeconds['None']
@@ -241,6 +259,11 @@ const ChartsPage = () => {
   const [endDateInputText, setEndDateInputText] = useState<string>(
     moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
   );
+
+  const [dateQuickSelector, setDateQuickSelector] = useState<number>(
+    dateQuickSelectorParam && (!isNaN(Number(dateQuickSelectorParam)))
+      ? Number.parseInt(dateQuickSelectorParam)
+      : dateQuickSelectorRanges['None']);
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
@@ -276,9 +299,9 @@ const ChartsPage = () => {
       selectors: selectorSelections.map(selector => selector.fullString),
       interval: chartInterval,
       start: moment.utc(startDate).format(API_DATE_FORMAT) + 'Z',
-      end: moment.utc(endDate).format(API_DATE_FORMAT) + 'Z'
+      end: enableEndDate ? moment.utc(endDate).format(API_DATE_FORMAT) + 'Z' : undefined
     }),
-    [selectorSelections, chartInterval, startDate, endDate]
+    [selectorSelections, chartInterval, startDate, endDate, enableEndDate]
   );
 
   const parseQuerySelectorFromString = useCallback(
@@ -736,7 +759,7 @@ const ChartsPage = () => {
   const chart = useMemo(
     () => <TimeSeriesChart
       startDate={startDate}
-      endDate={endDate}
+      endDate={enableEndDate ? endDate : undefined}
       timeSeriesQueryResult={timeSeriesQueryResult}
       setSuccess={setSuccess}
       setError={setError}
@@ -744,6 +767,7 @@ const ChartsPage = () => {
     [
       timeSeriesQueryResult,
       startDate, endDate,
+      enableEndDate,
       setSuccess, setError
     ]);
 
@@ -772,7 +796,8 @@ const ChartsPage = () => {
       label={label}
       type='datetime-local'
       name={name}
-      value={inputState}
+      value={label === 'End' && !enableEndDate ? '' : inputState}
+      disabled={label === 'End' && !enableEndDate}
       onKeyDown={e => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -792,6 +817,20 @@ const ChartsPage = () => {
       InputLabelProps={{
         shrink: true
       }}
+      InputProps={label === 'End'
+        ? {
+          startAdornment: (
+            <Checkbox
+              disabled={false}
+              checked={enableEndDate}
+              color='primary'
+              onChange={(e) => {
+                e.target.checked ? query.set('endDate', endDateInputText) : query.remove('endDate');
+                setEnableEndDate(e.target.checked);
+              }}
+            />
+          )
+        } : {}}
     />);
   };
 
@@ -937,6 +976,27 @@ const ChartsPage = () => {
             {dateTimeInput(
               'End', 'end-date', endDateInputText, setEndDateInputText, endDateRef
             )}
+            <TextField
+              className={classes.toolbarDateInput}
+              variant='outlined'
+              select
+              label='Date Quick Selector'
+              value={dateQuickSelector}
+              onChange={e => {
+                const fromDate = moment.utc(moment().subtract(Number.parseInt(e.target.value), 'hours')).format(INPUT_DATE_FORMAT);
+                setStartDateInputText(fromDate);
+                query.set('startDate', fromDate);
+                setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
+                Number.parseInt(e.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', e.target.value);
+                setDateQuickSelector(Number.parseInt(e.target.value));
+              }}
+            >
+              {
+                Object.entries(dateQuickSelectorRanges).map(pair =>
+                  <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
+                )
+              }
+            </TextField>
             <Button
               className={classes.toolbarSquareButton}
               variant='outlined'

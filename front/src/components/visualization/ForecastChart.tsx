@@ -34,7 +34,7 @@ const MAX_LINES = 30;
 interface ChartProps {
   timeSeriesQueryResult: QueryResult[];
   startDate: Date;
-  endDate: Date;
+  endDate?: Date;
   setSuccess: (heading: string, message: string) => void;
   setError: (heading: string, message: string) => void;
 };
@@ -62,9 +62,8 @@ export const ForecastChart = ({
       setError('Too many different results', 'This is likely a problem with grouping parameters.');
       return;
     }
-
     let data: ChartDataPoint[] = [];
-
+    console.log(timeSeriesQueryResult);
     let keyNumber = -1;
 
     const lines: React.ReactElement[] = [];
@@ -237,9 +236,9 @@ export const ForecastChart = ({
 
           return accum;
         }, []);
-
     setChartLines(lines);
     setChartData(data);
+    console.log(data);
   }, [timeSeriesQueryResult, setError]);
 
   const legendRef = React.createRef<HTMLUListElement>();
@@ -330,7 +329,12 @@ export const ForecastChart = ({
           tickCount={10}
           minTickGap={0}
           interval={'preserveStartEnd'}
-          domain={[moment(startDate).unix(), moment(endDate).unix()]}
+          domain={endDate !== undefined
+            ? [moment(startDate).unix(), moment(endDate).unix()]
+            : (chartData[chartData.length - 1] !== undefined)
+              ? [moment(startDate).unix(), chartData[chartData.length - 1].time]
+              : [moment(startDate).unix(), moment().unix()]
+          }
           padding={{ left: 0, right: 0 }}
         />
         <YAxis

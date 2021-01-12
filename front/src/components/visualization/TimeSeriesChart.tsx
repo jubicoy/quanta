@@ -29,7 +29,7 @@ const MAX_LINES = 10;
 interface ChartProps {
   timeSeriesQueryResult: QueryResult[];
   startDate: Date;
-  endDate: Date;
+  endDate?: Date;
   setSuccess: (heading: string, message: string) => void;
   setError: (heading: string, message: string) => void;
 };
@@ -46,7 +46,7 @@ export const TimeSeriesChart = ({
   const [lineHighlight, setLineHighlight] = useState<number | null>(null);
 
   // Test
-  const [chartData, setChartData] = useState<Record<string, unknown>[]>([]);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 
   const tooltipClasses = tooltipStyles();
 
@@ -188,7 +188,6 @@ export const TimeSeriesChart = ({
     }
 
     setChartLines(lines.slice(0, MAX_LINES));
-
     setChartData(data);
   };
 
@@ -296,7 +295,12 @@ export const TimeSeriesChart = ({
         tickCount={10}
         minTickGap={0}
         interval={'preserveStartEnd'}
-        domain={[moment.utc(startDate).unix(), moment.utc(endDate).unix()]}
+        domain={endDate !== undefined
+          ? [moment(startDate).unix(), moment(endDate).unix()]
+          : (chartData[chartData.length - 1] !== undefined)
+            ? [moment(startDate).unix(), chartData[chartData.length - 1].time]
+            : [moment(startDate).unix(), moment().unix()]
+        }
         padding={{ left: 0, right: 0 }}
       />
       <YAxis

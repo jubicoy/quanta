@@ -19,7 +19,8 @@ import {
   Paper,
   Switch,
   TextField,
-  Typography
+  Typography,
+  Checkbox
 } from '@material-ui/core';
 import clsx from 'clsx';
 import moment from 'moment';
@@ -120,12 +121,28 @@ export default ({
   const startDateParam = query.get('startDate');
   const endDateParam = query.get('endDate');
   const invocationParam = query.get('invocation');
+  const dateQuickSelectorParam = query.get('dateQuickSelector');
 
   // Defaults
   const API_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
   const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
   const DEFAULT_MODIFIER = TIME_SERIES_MODIFIERS.sum;
   const DEFAULT_INTERVAL = 60 * 60 * 24 * 7;
+
+  const dateQuickSelectorRanges = {
+    'None': 0,
+    'Last 12 hours': 12,
+    'Last 24 hours': 24,
+    'Last 3 days': 3 * 24,
+    'Last 7 days': 7 * 24,
+    'Last 1 month': 30 * 24,
+    'Last 2 months': 2 * 30 * 24,
+    'Last 3 months': 3 * 30 * 24,
+    'Last 6 months': 6 * 30 * 24,
+    'Last 1 year': 12 * 30 * 24,
+    'Last 2 years': 2 * 12 * 30 * 24,
+    'Last 3 years': 3 * 12 * 30 * 24
+  };
 
   const dateNow = new Date();
   const startDateDefault = startDateParam && moment.utc(startDateParam, INPUT_DATE_FORMAT, true).isValid()
@@ -143,13 +160,6 @@ export default ({
     ? moment.utc(endDateParam, INPUT_DATE_FORMAT, true).toDate()
     : new Date(dateNow.getFullYear(), dateNow.getMonth() + 1, dateNow.getDate());
 
-  if (!endDateParam || !moment.utc(endDateParam, INPUT_DATE_FORMAT, true).isValid()) {
-    query.set(
-      'endDate',
-      moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
-    );
-  }
-
   // Alert handlers
   const alertContext = useAlerts('FORECAST-CHART');
   const setSuccess = useCallback((heading: string, message: string) => {
@@ -161,6 +171,8 @@ export default ({
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [enableEndDate, setEnableEndDate] = useState<boolean>(false);
+
   // Used for input, no validation
   const [startDateInputText, setStartDateInputText] = useState<string>(
     moment.utc(startDateDefault).format(INPUT_DATE_FORMAT)
@@ -168,6 +180,12 @@ export default ({
   const [endDateInputText, setEndDateInputText] = useState<string>(
     moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
   );
+
+  const [dateQuickSelector, setDateQuickSelector] = useState<number>(
+    dateQuickSelectorParam && (!isNaN(Number(dateQuickSelectorParam)))
+      ? Number.parseInt(dateQuickSelectorParam)
+      : dateQuickSelectorRanges['None']);
+
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
   const [endDate, setEndDate] = useState<Date>(endDateDefault);
@@ -300,6 +318,8 @@ export default ({
       const groupSelectors = selectedOption.selectors.filter(
         s => s.modifier && s.modifier === TIME_SERIES_MODIFIERS.group_by
       );
+      console.log('group selectors:' + groupSelectors);
+      console.log('Filter: ' + filter);
       if (filter.length > 0) {
         newValue = [
           ...newValue,
@@ -311,6 +331,7 @@ export default ({
           ))
         ];
       }
+      console.log('New value:' + newValue);
       setSelectorValue(newValue);
     }
   }, [
@@ -326,9 +347,9 @@ export default ({
       selectors: selectorValue.map(selector => selector.toString()),
       interval: DEFAULT_INTERVAL,
       start: moment.utc(startDate).format(API_DATE_FORMAT) + 'Z',
-      end: moment.utc(endDate).format(API_DATE_FORMAT) + 'Z'
+      end: enableEndDate ? moment.utc(endDate).format(API_DATE_FORMAT) + 'Z' : undefined
     }),
-    [selectorValue, startDate, endDate, DEFAULT_INTERVAL]
+    [selectorValue, startDate, endDate, DEFAULT_INTERVAL, enableEndDate]
   );
 
   const { timeSeriesQueryResult, refresh: refreshQuery } = useQueryTimeSeries(setIsLoading, setError, timeSeriesQuery, true);
@@ -336,7 +357,7 @@ export default ({
   const chart = useMemo(() => (
     <ForecastChart
       startDate={startDate}
-      endDate={endDate}
+      endDate={enableEndDate ? endDate : undefined}
       timeSeriesQueryResult={timeSeriesQueryResult}
       setSuccess={setSuccess}
       setError={setError}
@@ -346,6 +367,7 @@ export default ({
     timeSeriesQueryResult,
     startDate,
     endDate,
+    enableEndDate,
     setError,
     setSuccess
   ]);
@@ -421,34 +443,51 @@ export default ({
     }
 
     return (
-      <TextField
-        className={clsx(classes.toolbarInput)}
-        fullWidth
-        variant='outlined'
-        label={label}
-        type='datetime-local'
-        name={name}
-        value={inputState}
-        onKeyDown={e => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (ref.current) {
-              ref.current.blur();
+      <>
+        <TextField
+          className={clsx(classes.toolbarInput)}
+          fullWidth
+          variant='outlined'
+          label={label}
+          type='datetime-local'
+          name={name}
+          value={label === 'End' && !enableEndDate ? '' : inputState}
+          disabled={label === 'End' && !enableEndDate}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (ref.current) {
+                ref.current.blur();
+              }
             }
-          }
-        }}
-        inputRef={ref}
-        onBlur={() => validateAndSetDate(label === 'Start')}
-        onChange={(e) => {
-          setInputState(e.target.value);
-        }}
-        inputProps={{
-          title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
-        }}
-        InputLabelProps={{
-          shrink: true
-        }}
-      />
+          }}
+          inputRef={ref}
+          onBlur={() => validateAndSetDate(label === 'Start')}
+          onChange={(e) => {
+            setInputState(e.target.value);
+          }}
+          inputProps={{
+            title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
+          }}
+          InputLabelProps={{
+            shrink: true
+          }}
+          InputProps={label === 'End'
+            ? {
+              startAdornment: (
+                <Checkbox
+                  disabled={false}
+                  checked={enableEndDate}
+                  color='primary'
+                  onChange={(e) => {
+                    e.target.checked ? query.set('endDate', endDateInputText) : query.remove('endDate');
+                    setEnableEndDate(e.target.checked);
+                  }}
+                />
+              )
+            } : {}}
+        />
+      </>
     );
   };
 
@@ -477,7 +516,7 @@ export default ({
         <div className={classes.chartToolbar}>
           <div className={clsx(classes.chartToolbarRow, common.bottomMargin)}>
             <Grid container direction='row' spacing={2}>
-              <Grid item xs={6}>
+              <Grid container item xs={4}>
                 <Button
                   className={clsx(classes.toolbarSquareButton, common.leftMargin)}
                   variant='outlined'
@@ -516,11 +555,37 @@ export default ({
                   label='Source'
                 />
               </Grid>
-              <Grid item xs={3}>
-                {dateTimeInput('Start', 'start-date', startDateInputText, setStartDateInputText, startDateRef)}
-              </Grid>
-              <Grid item xs={3}>
-                {dateTimeInput('End', 'end-date', endDateInputText, setEndDateInputText, endDateRef)}
+              <Grid container item xs={8} spacing={2}>
+                <Grid item xs={4}>
+                  {dateTimeInput('Start', 'start-date', startDateInputText, setStartDateInputText, startDateRef)}
+                </Grid>
+                <Grid item xs={4}>
+                  {dateTimeInput('End', 'end-date', endDateInputText, setEndDateInputText, endDateRef)}
+                </Grid>
+                <Grid item xs={4}>
+                  <TextField
+                    className={clsx(classes.toolbarInput)}
+                    fullWidth
+                    variant='outlined'
+                    select
+                    label='Date Quick Selector'
+                    value={dateQuickSelector}
+                    onChange={e => {
+                      const fromDate = moment.utc(moment().subtract(Number.parseInt(e.target.value), 'hours')).format(INPUT_DATE_FORMAT);
+                      setStartDateInputText(fromDate);
+                      query.set('startDate', fromDate);
+                      setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
+                      Number.parseInt(e.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', e.target.value);
+                      setDateQuickSelector(Number.parseInt(e.target.value));
+                    }}
+                  >
+                    {
+                      Object.entries(dateQuickSelectorRanges).map(pair =>
+                        <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
+                      )
+                    }
+                  </TextField>
+                </Grid>
               </Grid>
             </Grid>
           </div>
