@@ -45,8 +45,9 @@ export const TimeSeriesChart = ({
   const [legendHeight, setLegendHeight] = useState<number>(0);
   const [lineHighlight, setLineHighlight] = useState<number | null>(null);
 
-  // Test
+  // State
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [endDateOfData, setEndDateOfData] = useState<number>(moment().unix());
 
   const tooltipClasses = tooltipStyles();
 
@@ -183,11 +184,16 @@ export const TimeSeriesChart = ({
           return accum;
         }, []);
 
+    if (data[data.length - 1] !== undefined) {
+      setEndDateOfData(data[data.length - 1].time);
+    }
+
     if (lines.length > MAX_LINES) {
       setError('Too many lines, colorings will be in-distinguishable.', `Only the first ${MAX_LINES} will be shown.`);
     }
 
     setChartLines(lines.slice(0, MAX_LINES));
+
     setChartData(data);
   };
 
@@ -296,9 +302,7 @@ export const TimeSeriesChart = ({
         interval={'preserveStartEnd'}
         domain={endDate !== undefined
           ? [moment(startDate).unix(), moment(endDate).unix()]
-          : (chartData[chartData.length - 1] !== undefined)
-            ? [moment(startDate).unix(), chartData[chartData.length - 1].time]
-            : [moment(startDate).unix(), moment().unix()]
+          : [moment(startDate).unix(), endDateOfData]
         }
         padding={{ left: 0, right: 0 }}
       />

@@ -54,6 +54,7 @@ export const ForecastChart = ({
   const [chartLines, setChartLines] = useState<React.ReactElement[]>([]);
   const [legendHeight, setLegendHeight] = useState<number>(0);
   const [lineHighlight, setLineHighlight] = useState<string | null>(null);
+  const [endDateOfData, setEndDateOfData] = useState<number>(moment().unix());
 
   useEffect(() => {
     // Map QueryResult[] to chart-compatible data
@@ -235,6 +236,11 @@ export const ForecastChart = ({
 
           return accum;
         }, []);
+
+    if (data[data.length - 1] !== undefined) {
+      setEndDateOfData(data[data.length - 1].time);
+    }
+
     setChartLines(lines);
     setChartData(data);
   }, [timeSeriesQueryResult, setError]);
@@ -329,9 +335,7 @@ export const ForecastChart = ({
           interval={'preserveStartEnd'}
           domain={endDate !== undefined
             ? [moment(startDate).unix(), moment(endDate).unix()]
-            : (chartData[chartData.length - 1] !== undefined)
-              ? [moment(startDate).unix(), chartData[chartData.length - 1].time]
-              : [moment(startDate).unix(), moment().unix()]
+            : [moment(startDate).unix(), endDateOfData]
           }
           padding={{ left: 0, right: 0 }}
         />

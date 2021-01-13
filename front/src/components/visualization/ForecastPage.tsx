@@ -26,7 +26,10 @@ import clsx from 'clsx';
 import moment from 'moment';
 
 import { useAlerts } from '../../alert';
-import { commonStyles } from '../common';
+import {
+  commonStyles,
+  dateQuickSelectorRanges
+} from '../common';
 import {
   useColumns,
   useInvocations,
@@ -129,21 +132,6 @@ export default ({
   const DEFAULT_MODIFIER = TIME_SERIES_MODIFIERS.sum;
   const DEFAULT_INTERVAL = 60 * 60 * 24 * 7;
 
-  const dateQuickSelectorRanges = {
-    'None': 0,
-    'Last 12 hours': 12,
-    'Last 24 hours': 24,
-    'Last 3 days': 3 * 24,
-    'Last 7 days': 7 * 24,
-    'Last 1 month': 30 * 24,
-    'Last 2 months': 2 * 30 * 24,
-    'Last 3 months': 3 * 30 * 24,
-    'Last 6 months': 6 * 30 * 24,
-    'Last 1 year': 12 * 30 * 24,
-    'Last 2 years': 2 * 12 * 30 * 24,
-    'Last 3 years': 3 * 12 * 30 * 24
-  };
-
   const dateNow = new Date();
   const startDateDefault = startDateParam && moment.utc(startDateParam, INPUT_DATE_FORMAT, true).isValid()
     ? moment.utc(startDateParam, INPUT_DATE_FORMAT, true).toDate()
@@ -182,7 +170,7 @@ export default ({
   );
 
   const [dateQuickSelector, setDateQuickSelector] = useState<number>(
-    dateQuickSelectorParam && (!isNaN(Number(dateQuickSelectorParam)))
+    dateQuickSelectorParam && (!isNaN(Number.parseInt(dateQuickSelectorParam)))
       ? Number.parseInt(dateQuickSelectorParam)
       : dateQuickSelectorRanges['None']);
 
@@ -488,6 +476,15 @@ export default ({
     );
   };
 
+  const onChangeDateQuickSelector = (event: { target: { value: string } }) => {
+    const fromDate = moment.utc(moment().subtract(Number.parseInt(event.target.value), 'hours')).format(INPUT_DATE_FORMAT);
+    setStartDateInputText(fromDate);
+    query.set('startDate', fromDate);
+    setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
+    Number.parseInt(event.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', event.target.value);
+    setDateQuickSelector(Number.parseInt(event.target.value));
+  };
+
   // Render
   return (
     <>
@@ -567,14 +564,7 @@ export default ({
                     select
                     label='Date Quick Selector'
                     value={dateQuickSelector}
-                    onChange={e => {
-                      const fromDate = moment.utc(moment().subtract(Number.parseInt(e.target.value), 'hours')).format(INPUT_DATE_FORMAT);
-                      setStartDateInputText(fromDate);
-                      query.set('startDate', fromDate);
-                      setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
-                      Number.parseInt(e.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', e.target.value);
-                      setDateQuickSelector(Number.parseInt(e.target.value));
-                    }}
+                    onChange={(e) => onChangeDateQuickSelector(e)}
                   >
                     {
                       Object.entries(dateQuickSelectorRanges).map(pair =>
