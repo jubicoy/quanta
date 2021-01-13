@@ -6,4 +6,4 @@ export { TableRowItem } from './TableRowItem';
 export { default as WorkerDefColumnTable } from './WorkerDefColumnTable';
 export { default as OutputColumnTable } from './OutputColumnTable';
 export * from './Hexagon';
-export { dateQuickSelectorRanges } from './dateQuickSelectors';
+export { default as DateQuickSelector } from './DateQuickSelector';

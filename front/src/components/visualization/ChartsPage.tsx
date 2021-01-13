@@ -20,7 +20,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import moment from 'moment';
 import Fuse from 'fuse.js';
 
-import { dateQuickSelectorRanges } from '../common';
+import { DateQuickSelector } from '../common';
 import { arrayDistinctBy } from '../../utils';
 import { TimeSeriesChart } from './TimeSeriesChart';
 import {
@@ -192,7 +192,6 @@ const ChartsPage = () => {
   const startDateParam = query.get('startDate');
   const endDateParam = query.get('endDate');
   const selectorsParam = query.get('selectors');
-  const dateQuickSelectorParam = query.get('dateQuickSelector');
 
   const intervalSeconds = {
     'None': 0,
@@ -245,11 +244,6 @@ const ChartsPage = () => {
   const [endDateInputText, setEndDateInputText] = useState<string>(
     moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
   );
-
-  const [dateQuickSelector, setDateQuickSelector] = useState<number>(
-    dateQuickSelectorParam && (!isNaN(Number.parseInt(dateQuickSelectorParam)))
-      ? Number.parseInt(dateQuickSelectorParam)
-      : dateQuickSelectorRanges['None']);
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
@@ -910,15 +904,6 @@ const ChartsPage = () => {
     ]
   );
 
-  const onChangeDateQuickSelector = (event: { target: { value: string } }) => {
-    const fromDate = moment.utc(moment().subtract(Number.parseInt(event.target.value), 'hours')).format(INPUT_DATE_FORMAT);
-    setStartDateInputText(fromDate);
-    query.set('startDate', fromDate);
-    setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
-    Number.parseInt(event.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', event.target.value);
-    setDateQuickSelector(Number.parseInt(event.target.value));
-  };
-
   // Render
   return (
     <>
@@ -971,20 +956,10 @@ const ChartsPage = () => {
             {dateTimeInput(
               'End', 'end-date', endDateInputText, setEndDateInputText, endDateRef
             )}
-            <TextField
-              className={classes.toolbarDateInput}
-              variant='outlined'
-              select
-              label='Date Quick Selector'
-              value={dateQuickSelector}
-              onChange={(e) => onChangeDateQuickSelector(e)}
-            >
-              {
-                Object.entries(dateQuickSelectorRanges).map(pair =>
-                  <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
-                )
-              }
-            </TextField>
+            <DateQuickSelector
+              setStartDate={setStartDate}
+              setStartDateInputText={setStartDateInputText}
+            />
             <Button
               className={classes.toolbarSquareButton}
               variant='outlined'

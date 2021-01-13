@@ -28,7 +28,7 @@ import moment from 'moment';
 import { useAlerts } from '../../alert';
 import {
   commonStyles,
-  dateQuickSelectorRanges
+  DateQuickSelector
 } from '../common';
 import {
   useColumns,
@@ -124,7 +124,6 @@ export default ({
   const startDateParam = query.get('startDate');
   const endDateParam = query.get('endDate');
   const invocationParam = query.get('invocation');
-  const dateQuickSelectorParam = query.get('dateQuickSelector');
 
   // Defaults
   const API_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
@@ -168,11 +167,6 @@ export default ({
   const [endDateInputText, setEndDateInputText] = useState<string>(
     moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
   );
-
-  const [dateQuickSelector, setDateQuickSelector] = useState<number>(
-    dateQuickSelectorParam && (!isNaN(Number.parseInt(dateQuickSelectorParam)))
-      ? Number.parseInt(dateQuickSelectorParam)
-      : dateQuickSelectorRanges['None']);
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
@@ -476,15 +470,6 @@ export default ({
     );
   };
 
-  const onChangeDateQuickSelector = (event: { target: { value: string } }) => {
-    const fromDate = moment.utc(moment().subtract(Number.parseInt(event.target.value), 'hours')).format(INPUT_DATE_FORMAT);
-    setStartDateInputText(fromDate);
-    query.set('startDate', fromDate);
-    setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
-    Number.parseInt(event.target.value) === 0 ? query.remove('dateQuickSelector') : query.set('dateQuickSelector', event.target.value);
-    setDateQuickSelector(Number.parseInt(event.target.value));
-  };
-
   // Render
   return (
     <>
@@ -557,21 +542,11 @@ export default ({
                   {dateTimeInput('End', 'end-date', endDateInputText, setEndDateInputText, endDateRef)}
                 </Grid>
                 <Grid item xs={4}>
-                  <TextField
-                    className={clsx(classes.toolbarInput)}
+                  <DateQuickSelector
                     fullWidth
-                    variant='outlined'
-                    select
-                    label='Date Quick Selector'
-                    value={dateQuickSelector}
-                    onChange={(e) => onChangeDateQuickSelector(e)}
-                  >
-                    {
-                      Object.entries(dateQuickSelectorRanges).map(pair =>
-                        <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
-                      )
-                    }
-                  </TextField>
+                    setStartDate={setStartDate}
+                    setStartDateInputText={setStartDateInputText}
+                  />
                 </Grid>
               </Grid>
             </Grid>
