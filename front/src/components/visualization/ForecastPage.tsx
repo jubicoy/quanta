@@ -158,15 +158,7 @@ export default ({
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [enableEndDate, setEnableEndDate] = useState<boolean>(false);
-
-  // Used for input, no validation
-  const [startDateInputText, setStartDateInputText] = useState<string>(
-    moment.utc(startDateDefault).format(INPUT_DATE_FORMAT)
-  );
-  const [endDateInputText, setEndDateInputText] = useState<string>(
-    moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
-  );
+  const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
@@ -351,53 +343,44 @@ export default ({
     setSuccess
   ]);
 
-  const validateAndSetDate = (isStartDate: boolean): void => {
-    const currentInputText = isStartDate ? startDateInputText : endDateInputText;
-    const currentInputDate = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).toDate();
-    const isValid = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).isValid();
-    const setInput = isStartDate ? setStartDateInputText : setEndDateInputText;
-    const setValue = isStartDate ? setStartDate : setEndDate;
+  const validateAndSetDate = (inputDateAsString: string, isStartDate: boolean): void => {
+    const currentInputDate = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).toDate();
+    const isValid = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).isValid();
     const getDateAsString = (date: Date) => moment.utc(date).format(INPUT_DATE_FORMAT);
+    const setValue = isStartDate ? setStartDate : setEndDate;
 
     if (!isValid
       || currentInputDate < new Date(1970, 0, 0)
       || currentInputDate > new Date(2100, 0, 0)
     ) {
       // Reset to old date if new date isn't valid or within reasonable range
-      setInput(
-        isStartDate
-          ? getDateAsString(startDate)
-          : getDateAsString(endDate)
-      );
+      isStartDate
+        ? setStartDate(startDate)
+        : setEndDate(endDate);
       return;
     }
 
     if (isStartDate) {
       // Swap start/end date when needed
-      if (currentInputDate > endDate) {
+      if (currentInputDate > endDate && enableEndDate) {
         query.set('startDate', getDateAsString(endDate));
-        query.set('endDate', currentInputText);
-        setStartDateInputText(getDateAsString(endDate));
+        query.set('endDate', getDateAsString(currentInputDate));
         setStartDate(endDate);
-        setEndDateInputText(currentInputText);
         setEndDate(currentInputDate);
         return;
       }
     }
     else {
-      if (currentInputDate < startDate) {
+      if (currentInputDate < startDate && enableEndDate) {
         query.set('endDate', getDateAsString(startDate));
-        query.set('startDate', currentInputText);
-        setEndDateInputText(getDateAsString(startDate));
+        query.set('startDate', getDateAsString(currentInputDate));
         setEndDate(startDate);
-        setStartDateInputText(currentInputText);
         setStartDate(currentInputDate);
         return;
       }
     }
 
-    query.set(isStartDate ? 'startDate' : 'endDate', currentInputText);
-    setInput(currentInputText);
+    query.set(isStartDate ? 'startDate' : 'endDate', getDateAsString(currentInputDate));
     setValue(currentInputDate);
   };
 
@@ -408,8 +391,8 @@ export default ({
   const dateTimeInput = (
     label: string,
     name: string,
-    inputState: string,
-    setInputState: React.Dispatch<React.SetStateAction<string>>,
+    inputState: Date,
+    setInputState: React.Dispatch<React.SetStateAction<Date>>,
     ref: React.RefObject<HTMLInputElement>
   ) => {
     const testInput = document.createElement('input');
@@ -430,7 +413,8 @@ export default ({
           label={label}
           type='datetime-local'
           name={name}
-          value={label === 'End' && !enableEndDate ? '' : inputState}
+          value={label === 'End' && !enableEndDate ? '' : moment.utc(inputState).format(INPUT_DATE_FORMAT)
+          }
           disabled={label === 'End' && !enableEndDate}
           onKeyDown={e => {
             if (e.key === 'Enter') {
@@ -441,9 +425,9 @@ export default ({
             }
           }}
           inputRef={ref}
-          onBlur={() => validateAndSetDate(label === 'Start')}
+          onBlur={(e) => validateAndSetDate(e.target.value, label === 'Start')}
           onChange={(e) => {
-            setInputState(e.target.value);
+            setInputState(moment.utc(e.target.value, INPUT_DATE_FORMAT, true).toDate());
           }}
           inputProps={{
             title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
@@ -459,7 +443,9 @@ export default ({
                   checked={enableEndDate}
                   color='primary'
                   onChange={(e) => {
-                    e.target.checked ? query.set('endDate', endDateInputText) : query.remove('endDate');
+                    e.target.checked
+                      ? query.set('endDate', moment.utc(endDate).format(INPUT_DATE_FORMAT))
+                      : query.remove('endDate');
                     setEnableEndDate(e.target.checked);
                   }}
                 />
@@ -536,16 +522,17 @@ export default ({
               </Grid>
               <Grid container item xs={8} spacing={2}>
                 <Grid item xs={4}>
-                  {dateTimeInput('Start', 'start-date', startDateInputText, setStartDateInputText, startDateRef)}
+                  {dateTimeInput('Start', 'start-date', startDate, setStartDate, startDateRef)}
                 </Grid>
                 <Grid item xs={4}>
-                  {dateTimeInput('End', 'end-date', endDateInputText, setEndDateInputText, endDateRef)}
+                  {dateTimeInput('End', 'end-date', endDate, setEndDate, endDateRef)}
                 </Grid>
                 <Grid item xs={4}>
                   <DateQuickSelector
                     fullWidth
+                    endDate={enableEndDate ? endDate : undefined}
+                    startDate={startDate}
                     setStartDate={setStartDate}
-                    setStartDateInputText={setStartDateInputText}
                   />
                 </Grid>
               </Grid>
