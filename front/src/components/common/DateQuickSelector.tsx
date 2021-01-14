@@ -34,12 +34,14 @@ interface Props {
   fullWidth?: boolean;
   endDate?: Date;
   startDate: Date;
-  validateAndSetDate: (dateAsString: string, isStartDate: boolean) => void ;
+  setStartDate: (start: Date) => void ;
 }
 
 const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
 
-const dateQuickSelectorRanges = {
+const DATE_QUICK_SELECTOR_RANGES: {
+  [key: string]: number;
+} = {
   'None': 0,
   'Last 12 hours': 12,
   'Last 24 hours': 24,
@@ -58,23 +60,25 @@ export default ({
   fullWidth,
   endDate,
   startDate,
-  validateAndSetDate
+  setStartDate
 }: Props) => {
   const classes = useStyles();
 
   // States
-  const [dateQuickSelector, setDateQuickSelector] = useState<number>(dateQuickSelectorRanges['None']);
+  const [dateQuickSelector, setDateQuickSelector] = useState<number>(DATE_QUICK_SELECTOR_RANGES['None']);
 
   useEffect(() => {
     const duration = moment.duration(moment(endDate).diff(moment(startDate))).as('hours');
-    const getDateQuickSelector = Object.entries(dateQuickSelectorRanges).reduce((prev, curr) => {
-      return (Math.abs(curr[1] - duration) < Math.abs(prev[1] - duration) ? curr : prev);
-    });
+    let selected = 'None';
+    for (const range in DATE_QUICK_SELECTOR_RANGES) {
+      const rangeDuration = DATE_QUICK_SELECTOR_RANGES[range];
+      if (Math.abs(rangeDuration - duration) / rangeDuration < 0.1) {
+        selected = range;
+        break;
+      }
+    }
 
-    setDateQuickSelector(
-      Math.abs(getDateQuickSelector[1] - duration) > duration * 0.2
-        ? dateQuickSelectorRanges['None']
-        : getDateQuickSelector[1]);
+    setDateQuickSelector(DATE_QUICK_SELECTOR_RANGES[selected]);
   }, [startDate, endDate]);
 
   const onChangeDateQuickSelector = (
@@ -88,11 +92,13 @@ export default ({
         toDate.subtract(
           Number.parseInt(e.target.value),
           'hours'
-        )
+        ),
+        INPUT_DATE_FORMAT,
+        true
       )
-      .format(INPUT_DATE_FORMAT);
+      .toDate();
 
-    validateAndSetDate(fromDate, true);
+    setStartDate(fromDate);
     setDateQuickSelector(Number.parseInt(e.target.value));
   };
 
@@ -107,7 +113,7 @@ export default ({
       onChange={(e) => onChangeDateQuickSelector(e)}
     >
       {
-        Object.entries(dateQuickSelectorRanges).map(pair =>
+        Object.entries(DATE_QUICK_SELECTOR_RANGES).map(pair =>
           <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
         )
       }

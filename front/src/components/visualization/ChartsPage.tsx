@@ -721,6 +721,11 @@ const ChartsPage = () => {
     setValue(currentInputDate);
   };
 
+  const handleSetStartDate = (startDate: Date) => {
+    query.set('startDate', moment.utc(startDate).format(INPUT_DATE_FORMAT));
+    setStartDate(startDate);
+  };
+
   const chart = useMemo(
     () => <TimeSeriesChart
       startDate={startDate}
@@ -947,7 +952,7 @@ const ChartsPage = () => {
             <DateQuickSelector
               endDate={enableEndDate ? endDate : undefined}
               startDate={startDate}
-              validateAndSetDate={validateAndSetDate}
+              setStartDate={handleSetStartDate}
             />
             <Button
               className={classes.toolbarSquareButton}

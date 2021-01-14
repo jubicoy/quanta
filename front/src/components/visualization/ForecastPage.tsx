@@ -384,6 +384,11 @@ export default ({
     setValue(currentInputDate);
   };
 
+  const handleSetStartDate = (startDate: Date) => {
+    query.set('startDate', moment.utc(startDate).format(INPUT_DATE_FORMAT));
+    setStartDate(startDate);
+  };
+
   const startDateRef = React.createRef<HTMLInputElement>();
   const endDateRef = React.createRef<HTMLInputElement>();
   const filterRef = React.createRef<HTMLInputElement>();
@@ -427,6 +432,9 @@ export default ({
           inputRef={ref}
           onBlur={(e) => validateAndSetDate(e.target.value, label === 'Start')}
           onChange={(e) => {
+            label === 'Start'
+              ? query.set('startDate', e.target.value)
+              : query.set('endDate', e.target.value);
             setInputState(moment.utc(e.target.value, INPUT_DATE_FORMAT, true).toDate());
           }}
           inputProps={{
@@ -532,7 +540,7 @@ export default ({
                     fullWidth
                     endDate={enableEndDate ? endDate : undefined}
                     startDate={startDate}
-                    validateAndSetDate={validateAndSetDate}
+                    setStartDate={handleSetStartDate}
                   />
                 </Grid>
               </Grid>
