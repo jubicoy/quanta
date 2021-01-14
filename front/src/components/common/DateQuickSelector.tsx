@@ -8,8 +8,6 @@ import {
 } from '@material-ui/core';
 import moment from 'moment';
 
-import { useQueryParams } from '../../hooks';
-
 const useStyles = makeStyles(() => {
   const height = 46;
   const borderStyle = {
@@ -36,7 +34,7 @@ interface Props {
   fullWidth?: boolean;
   endDate?: Date;
   startDate: Date;
-  setStartDate: (start: Date) => void ;
+  validateAndSetDate: (dateAsString: string, isStartDate: boolean) => void ;
 }
 
 const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
@@ -60,29 +58,42 @@ export default ({
   fullWidth,
   endDate,
   startDate,
-  setStartDate
+  validateAndSetDate
 }: Props) => {
   const classes = useStyles();
-  const query = useQueryParams();
 
   // States
   const [dateQuickSelector, setDateQuickSelector] = useState<number>(dateQuickSelectorRanges['None']);
 
   useEffect(() => {
+    const duration = moment.duration(moment(endDate).diff(moment(startDate))).as('hours');
     const getDateQuickSelector = Object.entries(dateQuickSelectorRanges).reduce((prev, curr) => {
-      const duration = moment.duration(moment(endDate).diff(moment(startDate))).as('hours');
       return (Math.abs(curr[1] - duration) < Math.abs(prev[1] - duration) ? curr : prev);
     });
-    setDateQuickSelector(getDateQuickSelector[1]);
+
+    setDateQuickSelector(
+      Math.abs(getDateQuickSelector[1] - duration) > duration * 0.2
+        ? dateQuickSelectorRanges['None']
+        : getDateQuickSelector[1]);
   }, [startDate, endDate]);
 
-  const onChangeDateQuickSelector = (event: { target: { value: string } }) => {
+  const onChangeDateQuickSelector = (
+    e: React.ChangeEvent<{
+      value: string;
+    }>
+  ) => {
     const toDate = endDate !== undefined ? moment(endDate) : moment();
-    const fromDate = moment.utc(toDate.subtract(Number.parseInt(event.target.value), 'hours'), INPUT_DATE_FORMAT, true).toDate();
-    setStartDate(fromDate);
-    query.set('startDate', moment.utc(fromDate).format(INPUT_DATE_FORMAT));
-    setStartDate(moment.utc(fromDate, INPUT_DATE_FORMAT, true).toDate());
-    setDateQuickSelector(Number.parseInt(event.target.value));
+    const fromDate = moment
+      .utc(
+        toDate.subtract(
+          Number.parseInt(e.target.value),
+          'hours'
+        )
+      )
+      .format(INPUT_DATE_FORMAT);
+
+    validateAndSetDate(fromDate, true);
+    setDateQuickSelector(Number.parseInt(e.target.value));
   };
 
   return (

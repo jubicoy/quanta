@@ -947,7 +947,7 @@ const ChartsPage = () => {
             <DateQuickSelector
               endDate={enableEndDate ? endDate : undefined}
               startDate={startDate}
-              setStartDate={setStartDate}
+              validateAndSetDate={validateAndSetDate}
             />
             <Button
               className={classes.toolbarSquareButton}

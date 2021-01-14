@@ -532,7 +532,7 @@ export default ({
                     fullWidth
                     endDate={enableEndDate ? endDate : undefined}
                     startDate={startDate}
-                    setStartDate={setStartDate}
+                    validateAndSetDate={validateAndSetDate}
                   />
                 </Grid>
               </Grid>
