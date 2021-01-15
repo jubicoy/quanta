@@ -11,7 +11,8 @@ import {
   Icon,
   Paper,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Checkbox
 } from '@material-ui/core';
 import { red, grey } from '@material-ui/core/colors';
 
@@ -19,6 +20,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import moment from 'moment';
 import Fuse from 'fuse.js';
 
+import { DateQuickSelector } from '../common';
 import { arrayDistinctBy } from '../../utils';
 import { TimeSeriesChart } from './TimeSeriesChart';
 import {
@@ -223,6 +225,7 @@ const ChartsPage = () => {
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
 
   const [chartInterval, setChartInterval] = useState<number>(
     Number(query.get('interval')) || intervalSeconds['None']
@@ -235,12 +238,6 @@ const ChartsPage = () => {
   const endDateDefault = endDateParam && moment.utc(endDateParam, INPUT_DATE_FORMAT, true).isValid()
     ? moment.utc(endDateParam, INPUT_DATE_FORMAT, true).toDate()
     : new Date(2021, 0, 0);
-  const [startDateInputText, setStartDateInputText] = useState<string>(
-    moment.utc(startDateDefault).format(INPUT_DATE_FORMAT)
-  );
-  const [endDateInputText, setEndDateInputText] = useState<string>(
-    moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
-  );
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
@@ -276,9 +273,9 @@ const ChartsPage = () => {
       selectors: selectorSelections.map(selector => selector.fullString),
       interval: chartInterval,
       start: moment.utc(startDate).format(API_DATE_FORMAT) + 'Z',
-      end: moment.utc(endDate).format(API_DATE_FORMAT) + 'Z'
+      end: enableEndDate ? moment.utc(endDate).format(API_DATE_FORMAT) + 'Z' : undefined
     }),
-    [selectorSelections, chartInterval, startDate, endDate]
+    [selectorSelections, chartInterval, startDate, endDate, enableEndDate]
   );
 
   const parseQuerySelectorFromString = useCallback(
@@ -683,60 +680,56 @@ const ChartsPage = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRawDataMode]);
 
-  const validateAndSetDate = (isStartDate: boolean): void => {
-    const currentInputText = isStartDate ? startDateInputText : endDateInputText;
-    const currentInputDate = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).toDate();
-    const isValid = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).isValid();
-    const setInput = isStartDate ? setStartDateInputText : setEndDateInputText;
-    const setValue = isStartDate ? setStartDate : setEndDate;
+  const validateAndSetDate = (inputDateAsString: string, isStartDate: boolean): void => {
+    const currentInputDate = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).toDate();
+    const isValid = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).isValid();
     const getDateAsString = (date: Date) => moment.utc(date).format(INPUT_DATE_FORMAT);
+    const setValue = isStartDate ? setStartDate : setEndDate;
 
     if (!isValid
       || currentInputDate < new Date(1970, 0, 0)
       || currentInputDate > new Date(2100, 0, 0)
     ) {
       // Reset to old date if new date isn't valid or within reasonable range
-      setInput(
-        isStartDate
-          ? getDateAsString(startDate)
-          : getDateAsString(endDate)
-      );
+      isStartDate
+        ? setStartDate(startDate)
+        : setEndDate(endDate);
       return;
     }
 
     if (isStartDate) {
       // Swap start/end date when needed
-      if (currentInputDate > endDate) {
+      if (currentInputDate > endDate && enableEndDate) {
         query.set('startDate', getDateAsString(endDate));
-        query.set('endDate', currentInputText);
-        setStartDateInputText(getDateAsString(endDate));
+        query.set('endDate', getDateAsString(currentInputDate));
         setStartDate(endDate);
-        setEndDateInputText(currentInputText);
         setEndDate(currentInputDate);
         return;
       }
     }
     else {
-      if (currentInputDate < startDate) {
+      if (currentInputDate < startDate && enableEndDate) {
         query.set('endDate', getDateAsString(startDate));
-        query.set('startDate', currentInputText);
-        setEndDateInputText(getDateAsString(startDate));
+        query.set('startDate', getDateAsString(currentInputDate));
         setEndDate(startDate);
-        setStartDateInputText(currentInputText);
         setStartDate(currentInputDate);
         return;
       }
     }
 
-    query.set(isStartDate ? 'startDate' : 'endDate', currentInputText);
-    setInput(currentInputText);
+    query.set(isStartDate ? 'startDate' : 'endDate', getDateAsString(currentInputDate));
     setValue(currentInputDate);
+  };
+
+  const handleSetStartDate = (startDate: Date) => {
+    query.set('startDate', moment.utc(startDate).format(INPUT_DATE_FORMAT));
+    setStartDate(startDate);
   };
 
   const chart = useMemo(
     () => <TimeSeriesChart
       startDate={startDate}
-      endDate={endDate}
+      endDate={enableEndDate ? endDate : undefined}
       timeSeriesQueryResult={timeSeriesQueryResult}
       setSuccess={setSuccess}
       setError={setError}
@@ -744,6 +737,7 @@ const ChartsPage = () => {
     [
       timeSeriesQueryResult,
       startDate, endDate,
+      enableEndDate,
       setSuccess, setError
     ]);
 
@@ -753,8 +747,8 @@ const ChartsPage = () => {
   const dateTimeInput = (
     label: string,
     name: string,
-    inputState: string,
-    setInputState: React.Dispatch<React.SetStateAction<string>>,
+    inputState: Date,
+    setInputState: React.Dispatch<React.SetStateAction<Date>>,
     ref: React.RefObject<HTMLInputElement>
   ) => {
     const testInput = document.createElement('input');
@@ -772,7 +766,9 @@ const ChartsPage = () => {
       label={label}
       type='datetime-local'
       name={name}
-      value={inputState}
+      value={label === 'End' && !enableEndDate ? '' : moment.utc(inputState).format(INPUT_DATE_FORMAT)
+      }
+      disabled={label === 'End' && !enableEndDate}
       onKeyDown={e => {
         if (e.key === 'Enter') {
           e.preventDefault();
@@ -782,9 +778,9 @@ const ChartsPage = () => {
         }
       }}
       inputRef={ref}
-      onBlur={() => validateAndSetDate(label === 'Start')}
+      onBlur={(e) => validateAndSetDate(e.target.value, label === 'Start')}
       onChange={(e) => {
-        setInputState(e.target.value);
+        setInputState(moment.utc(e.target.value, INPUT_DATE_FORMAT, true).toDate());
       }}
       inputProps={{
         title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
@@ -792,6 +788,22 @@ const ChartsPage = () => {
       InputLabelProps={{
         shrink: true
       }}
+      InputProps={label === 'End'
+        ? {
+          startAdornment: (
+            <Checkbox
+              disabled={false}
+              checked={enableEndDate}
+              color='primary'
+              onChange={(e) => {
+                e.target.checked
+                  ? query.set('endDate', moment.utc(endDate).format(INPUT_DATE_FORMAT))
+                  : query.remove('endDate');
+                setEnableEndDate(e.target.checked);
+              }}
+            />
+          )
+        } : {}}
     />);
   };
 
@@ -932,11 +944,16 @@ const ChartsPage = () => {
               </TextField>
             </FormControl>
             {dateTimeInput(
-              'Start', 'start-date', startDateInputText, setStartDateInputText, startDateRef
+              'Start', 'start-date', startDate, setStartDate, startDateRef
             )}
             {dateTimeInput(
-              'End', 'end-date', endDateInputText, setEndDateInputText, endDateRef
+              'End', 'end-date', endDate, setEndDate, endDateRef
             )}
+            <DateQuickSelector
+              endDate={enableEndDate ? endDate : undefined}
+              startDate={startDate}
+              setStartDate={handleSetStartDate}
+            />
             <Button
               className={classes.toolbarSquareButton}
               variant='outlined'

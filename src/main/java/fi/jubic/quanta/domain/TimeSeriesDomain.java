@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -1012,7 +1013,7 @@ public class TimeSeriesDomain {
             );
         }
 
-        DateTimeFormatter finalFormatter = formatter;
+        DateTimeFormatter finalFormatter = formatter.withZone(ZoneOffset.UTC);
 
         return measurement -> Stream
                 .concat(

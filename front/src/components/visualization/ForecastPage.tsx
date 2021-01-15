@@ -19,13 +19,17 @@ import {
   Paper,
   Switch,
   TextField,
-  Typography
+  Typography,
+  Checkbox
 } from '@material-ui/core';
 import clsx from 'clsx';
 import moment from 'moment';
 
 import { useAlerts } from '../../alert';
-import { commonStyles } from '../common';
+import {
+  commonStyles,
+  DateQuickSelector
+} from '../common';
 import {
   useColumns,
   useInvocations,
@@ -143,13 +147,6 @@ export default ({
     ? moment.utc(endDateParam, INPUT_DATE_FORMAT, true).toDate()
     : new Date(dateNow.getFullYear(), dateNow.getMonth() + 1, dateNow.getDate());
 
-  if (!endDateParam || !moment.utc(endDateParam, INPUT_DATE_FORMAT, true).isValid()) {
-    query.set(
-      'endDate',
-      moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
-    );
-  }
-
   // Alert handlers
   const alertContext = useAlerts('FORECAST-CHART');
   const setSuccess = useCallback((heading: string, message: string) => {
@@ -161,13 +158,8 @@ export default ({
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // Used for input, no validation
-  const [startDateInputText, setStartDateInputText] = useState<string>(
-    moment.utc(startDateDefault).format(INPUT_DATE_FORMAT)
-  );
-  const [endDateInputText, setEndDateInputText] = useState<string>(
-    moment.utc(endDateDefault).format(INPUT_DATE_FORMAT)
-  );
+  const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
+
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
   const [endDate, setEndDate] = useState<Date>(endDateDefault);
@@ -326,9 +318,9 @@ export default ({
       selectors: selectorValue.map(selector => selector.toString()),
       interval: DEFAULT_INTERVAL,
       start: moment.utc(startDate).format(API_DATE_FORMAT) + 'Z',
-      end: moment.utc(endDate).format(API_DATE_FORMAT) + 'Z'
+      end: enableEndDate ? moment.utc(endDate).format(API_DATE_FORMAT) + 'Z' : undefined
     }),
-    [selectorValue, startDate, endDate, DEFAULT_INTERVAL]
+    [selectorValue, startDate, endDate, DEFAULT_INTERVAL, enableEndDate]
   );
 
   const { timeSeriesQueryResult, refresh: refreshQuery } = useQueryTimeSeries(setIsLoading, setError, timeSeriesQuery, true);
@@ -336,7 +328,7 @@ export default ({
   const chart = useMemo(() => (
     <ForecastChart
       startDate={startDate}
-      endDate={endDate}
+      endDate={enableEndDate ? endDate : undefined}
       timeSeriesQueryResult={timeSeriesQueryResult}
       setSuccess={setSuccess}
       setError={setError}
@@ -346,58 +338,55 @@ export default ({
     timeSeriesQueryResult,
     startDate,
     endDate,
+    enableEndDate,
     setError,
     setSuccess
   ]);
 
-  const validateAndSetDate = (isStartDate: boolean): void => {
-    const currentInputText = isStartDate ? startDateInputText : endDateInputText;
-    const currentInputDate = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).toDate();
-    const isValid = moment.utc(currentInputText, INPUT_DATE_FORMAT, true).isValid();
-    const setInput = isStartDate ? setStartDateInputText : setEndDateInputText;
-    const setValue = isStartDate ? setStartDate : setEndDate;
+  const validateAndSetDate = (inputDateAsString: string, isStartDate: boolean): void => {
+    const currentInputDate = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).toDate();
+    const isValid = moment.utc(inputDateAsString, INPUT_DATE_FORMAT, true).isValid();
     const getDateAsString = (date: Date) => moment.utc(date).format(INPUT_DATE_FORMAT);
+    const setValue = isStartDate ? setStartDate : setEndDate;
 
     if (!isValid
       || currentInputDate < new Date(1970, 0, 0)
       || currentInputDate > new Date(2100, 0, 0)
     ) {
       // Reset to old date if new date isn't valid or within reasonable range
-      setInput(
-        isStartDate
-          ? getDateAsString(startDate)
-          : getDateAsString(endDate)
-      );
+      isStartDate
+        ? setStartDate(startDate)
+        : setEndDate(endDate);
       return;
     }
 
     if (isStartDate) {
       // Swap start/end date when needed
-      if (currentInputDate > endDate) {
+      if (currentInputDate > endDate && enableEndDate) {
         query.set('startDate', getDateAsString(endDate));
-        query.set('endDate', currentInputText);
-        setStartDateInputText(getDateAsString(endDate));
+        query.set('endDate', getDateAsString(currentInputDate));
         setStartDate(endDate);
-        setEndDateInputText(currentInputText);
         setEndDate(currentInputDate);
         return;
       }
     }
     else {
-      if (currentInputDate < startDate) {
+      if (currentInputDate < startDate && enableEndDate) {
         query.set('endDate', getDateAsString(startDate));
-        query.set('startDate', currentInputText);
-        setEndDateInputText(getDateAsString(startDate));
+        query.set('startDate', getDateAsString(currentInputDate));
         setEndDate(startDate);
-        setStartDateInputText(currentInputText);
         setStartDate(currentInputDate);
         return;
       }
     }
 
-    query.set(isStartDate ? 'startDate' : 'endDate', currentInputText);
-    setInput(currentInputText);
+    query.set(isStartDate ? 'startDate' : 'endDate', getDateAsString(currentInputDate));
     setValue(currentInputDate);
+  };
+
+  const handleSetStartDate = (startDate: Date) => {
+    query.set('startDate', moment.utc(startDate).format(INPUT_DATE_FORMAT));
+    setStartDate(startDate);
   };
 
   const startDateRef = React.createRef<HTMLInputElement>();
@@ -407,8 +396,8 @@ export default ({
   const dateTimeInput = (
     label: string,
     name: string,
-    inputState: string,
-    setInputState: React.Dispatch<React.SetStateAction<string>>,
+    inputState: Date,
+    setInputState: React.Dispatch<React.SetStateAction<Date>>,
     ref: React.RefObject<HTMLInputElement>
   ) => {
     const testInput = document.createElement('input');
@@ -421,34 +410,57 @@ export default ({
     }
 
     return (
-      <TextField
-        className={clsx(classes.toolbarInput)}
-        fullWidth
-        variant='outlined'
-        label={label}
-        type='datetime-local'
-        name={name}
-        value={inputState}
-        onKeyDown={e => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            if (ref.current) {
-              ref.current.blur();
-            }
+      <>
+        <TextField
+          className={clsx(classes.toolbarInput)}
+          fullWidth
+          variant='outlined'
+          label={label}
+          type='datetime-local'
+          name={name}
+          value={label === 'End' && !enableEndDate ? '' : moment.utc(inputState).format(INPUT_DATE_FORMAT)
           }
-        }}
-        inputRef={ref}
-        onBlur={() => validateAndSetDate(label === 'Start')}
-        onChange={(e) => {
-          setInputState(e.target.value);
-        }}
-        inputProps={{
-          title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
-        }}
-        InputLabelProps={{
-          shrink: true
-        }}
-      />
+          disabled={label === 'End' && !enableEndDate}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (ref.current) {
+                ref.current.blur();
+              }
+            }
+          }}
+          inputRef={ref}
+          onBlur={(e) => validateAndSetDate(e.target.value, label === 'Start')}
+          onChange={(e) => {
+            label === 'Start'
+              ? query.set('startDate', e.target.value)
+              : query.set('endDate', e.target.value);
+            setInputState(moment.utc(e.target.value, INPUT_DATE_FORMAT, true).toDate());
+          }}
+          inputProps={{
+            title: testInput.type === 'text' ? 'Input date as format: ' + INPUT_DATE_FORMAT : ''
+          }}
+          InputLabelProps={{
+            shrink: true
+          }}
+          InputProps={label === 'End'
+            ? {
+              startAdornment: (
+                <Checkbox
+                  disabled={false}
+                  checked={enableEndDate}
+                  color='primary'
+                  onChange={(e) => {
+                    e.target.checked
+                      ? query.set('endDate', moment.utc(endDate).format(INPUT_DATE_FORMAT))
+                      : query.remove('endDate');
+                    setEnableEndDate(e.target.checked);
+                  }}
+                />
+              )
+            } : {}}
+        />
+      </>
     );
   };
 
@@ -477,7 +489,7 @@ export default ({
         <div className={classes.chartToolbar}>
           <div className={clsx(classes.chartToolbarRow, common.bottomMargin)}>
             <Grid container direction='row' spacing={2}>
-              <Grid item xs={6}>
+              <Grid container item xs={4}>
                 <Button
                   className={clsx(classes.toolbarSquareButton, common.leftMargin)}
                   variant='outlined'
@@ -516,11 +528,21 @@ export default ({
                   label='Source'
                 />
               </Grid>
-              <Grid item xs={3}>
-                {dateTimeInput('Start', 'start-date', startDateInputText, setStartDateInputText, startDateRef)}
-              </Grid>
-              <Grid item xs={3}>
-                {dateTimeInput('End', 'end-date', endDateInputText, setEndDateInputText, endDateRef)}
+              <Grid container item xs={8} spacing={2}>
+                <Grid item xs={4}>
+                  {dateTimeInput('Start', 'start-date', startDate, setStartDate, startDateRef)}
+                </Grid>
+                <Grid item xs={4}>
+                  {dateTimeInput('End', 'end-date', endDate, setEndDate, endDateRef)}
+                </Grid>
+                <Grid item xs={4}>
+                  <DateQuickSelector
+                    fullWidth
+                    endDate={enableEndDate ? endDate : undefined}
+                    startDate={startDate}
+                    setStartDate={handleSetStartDate}
+                  />
+                </Grid>
               </Grid>
             </Grid>
           </div>

@@ -34,7 +34,7 @@ const MAX_LINES = 30;
 interface ChartProps {
   timeSeriesQueryResult: QueryResult[];
   startDate: Date;
-  endDate: Date;
+  endDate?: Date;
   setSuccess: (heading: string, message: string) => void;
   setError: (heading: string, message: string) => void;
 };
@@ -54,6 +54,7 @@ export const ForecastChart = ({
   const [chartLines, setChartLines] = useState<React.ReactElement[]>([]);
   const [legendHeight, setLegendHeight] = useState<number>(0);
   const [lineHighlight, setLineHighlight] = useState<string | null>(null);
+  const [endDateOfData, setEndDateOfData] = useState<number>(moment().unix());
 
   useEffect(() => {
     // Map QueryResult[] to chart-compatible data
@@ -62,9 +63,7 @@ export const ForecastChart = ({
       setError('Too many different results', 'This is likely a problem with grouping parameters.');
       return;
     }
-
     let data: ChartDataPoint[] = [];
-
     let keyNumber = -1;
 
     const lines: React.ReactElement[] = [];
@@ -238,6 +237,10 @@ export const ForecastChart = ({
           return accum;
         }, []);
 
+    if (data[data.length - 1] !== undefined) {
+      setEndDateOfData(data[data.length - 1].time);
+    }
+
     setChartLines(lines);
     setChartData(data);
   }, [timeSeriesQueryResult, setError]);
@@ -330,7 +333,10 @@ export const ForecastChart = ({
           tickCount={10}
           minTickGap={0}
           interval={'preserveStartEnd'}
-          domain={[moment(startDate).unix(), moment(endDate).unix()]}
+          domain={endDate !== undefined
+            ? [moment(startDate).unix(), moment(endDate).unix()]
+            : [moment(startDate).unix(), endDateOfData]
+          }
           padding={{ left: 0, right: 0 }}
         />
         <YAxis

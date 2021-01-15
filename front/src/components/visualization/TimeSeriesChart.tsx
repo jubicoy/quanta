@@ -29,7 +29,7 @@ const MAX_LINES = 10;
 interface ChartProps {
   timeSeriesQueryResult: QueryResult[];
   startDate: Date;
-  endDate: Date;
+  endDate?: Date;
   setSuccess: (heading: string, message: string) => void;
   setError: (heading: string, message: string) => void;
 };
@@ -45,8 +45,9 @@ export const TimeSeriesChart = ({
   const [legendHeight, setLegendHeight] = useState<number>(0);
   const [lineHighlight, setLineHighlight] = useState<number | null>(null);
 
-  // Test
-  const [chartData, setChartData] = useState<Record<string, unknown>[]>([]);
+  // State
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
+  const [endDateOfData, setEndDateOfData] = useState<number>(moment().unix());
 
   const tooltipClasses = tooltipStyles();
 
@@ -183,6 +184,10 @@ export const TimeSeriesChart = ({
           return accum;
         }, []);
 
+    if (data[data.length - 1] !== undefined) {
+      setEndDateOfData(data[data.length - 1].time);
+    }
+
     if (lines.length > MAX_LINES) {
       setError('Too many lines, colorings will be in-distinguishable.', `Only the first ${MAX_LINES} will be shown.`);
     }
@@ -249,7 +254,6 @@ export const TimeSeriesChart = ({
   const renderTooltip = (props: TooltipProps) => {
     const { active, payload, label } = props;
     if (active && payload && label) {
-      // console.log(payload);
       const classes = tooltipClasses;
       const labelDate = moment.unix(parseInt(label.toString())).format('MMMM Do, YYYY');
       const labelTime = moment.unix(parseInt(label.toString())).format('hh:mm:ss');
@@ -296,7 +300,10 @@ export const TimeSeriesChart = ({
         tickCount={10}
         minTickGap={0}
         interval={'preserveStartEnd'}
-        domain={[moment.utc(startDate).unix(), moment.utc(endDate).unix()]}
+        domain={endDate !== undefined
+          ? [moment(startDate).unix(), moment(endDate).unix()]
+          : [moment(startDate).unix(), endDateOfData]
+        }
         padding={{ left: 0, right: 0 }}
       />
       <YAxis
