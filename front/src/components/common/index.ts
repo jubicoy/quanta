@@ -7,3 +7,4 @@ export { default as WorkerDefColumnTable } from './WorkerDefColumnTable';
 export { default as OutputColumnTable } from './OutputColumnTable';
 export * from './Hexagon';
 export { default as DateQuickSelector } from './DateQuickSelector';
+export { default as ChartIntervalSelector } from './ChartIntervalSelector';

@@ -4,8 +4,6 @@ import {
   makeStyles,
   createStyles,
   LinearProgress,
-  FormControl,
-  MenuItem,
   TextField,
   Button,
   Icon,
@@ -20,7 +18,10 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 import moment from 'moment';
 import Fuse from 'fuse.js';
 
-import { DateQuickSelector } from '../common';
+import {
+  DateQuickSelector,
+  ChartIntervalSelector
+} from '../common';
 import { arrayDistinctBy } from '../../utils';
 import { TimeSeriesChart } from './TimeSeriesChart';
 import {
@@ -193,19 +194,6 @@ const ChartsPage = () => {
   const endDateParam = query.get('endDate');
   const selectorsParam = query.get('selectors');
 
-  const intervalSeconds = {
-    'None': 0,
-    '15 minutes': 15 * 60,
-    '1 hour': 60 * 60,
-    '6 hours': 60 * 60 * 6,
-    '12 hours': 60 * 60 * 12,
-    '1 day': 60 * 60 * 24,
-    '3 days': 60 * 60 * 24 * 3,
-    '1 week': 60 * 60 * 24 * 7,
-    '2 week': 60 * 60 * 24 * 7 * 2,
-    '1 month': 60 * 60 * 24 * 30,
-    '3 month': 60 * 60 * 24 * 30 * 3
-  };
   const API_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
   const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
   // Alert handlers
@@ -228,7 +216,7 @@ const ChartsPage = () => {
   const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
 
   const [chartInterval, setChartInterval] = useState<number>(
-    Number(query.get('interval')) || intervalSeconds['None']
+    Number(query.get('interval')) || 0
   );
 
   // Used for input, no validation
@@ -897,6 +885,11 @@ const ChartsPage = () => {
     ]
   );
 
+  const handleSetChartInterval = (interval: string) => {
+    query.set('interval', interval);
+    setChartInterval(Number.parseInt(interval));
+  };
+
   // Render
   return (
     <>
@@ -915,34 +908,10 @@ const ChartsPage = () => {
               labelPlacement='start'
               label='Raw data'
             />
-            <FormControl variant='outlined' disabled={isRawDataMode}>
-              <TextField
-                select
-                variant='outlined'
-                error={intervalError}
-                className={classes.toolbarSelect}
-                label='Interval'
-                id='interval-select'
-                value={chartInterval}
-                onChange={(e) => {
-                  e.target.value === 'None'
-                    ? query.remove('interval')
-                    : query.set('interval', e.target.value as string);
-                  setChartInterval(Number.parseInt(e.target.value));
-                }}
-                InputProps={{
-                  style: {
-                    height: '46px'
-                  }
-                }}
-              >
-                {
-                  Object.entries(intervalSeconds).map(pair =>
-                    <MenuItem key={`menu-item-${pair[1]}`} value={pair[1]}>{pair[0]}</MenuItem>
-                  )
-                }
-              </TextField>
-            </FormControl>
+            <ChartIntervalSelector
+              chartInterval={chartInterval}
+              setChartInterval={handleSetChartInterval}
+              intervalError={intervalError} />
             {dateTimeInput(
               'Start', 'start-date', startDate, setStartDate, startDateRef
             )}

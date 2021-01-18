@@ -28,7 +28,8 @@ import moment from 'moment';
 import { useAlerts } from '../../alert';
 import {
   commonStyles,
-  DateQuickSelector
+  DateQuickSelector,
+  ChartIntervalSelector
 } from '../common';
 import {
   useColumns,
@@ -129,7 +130,6 @@ export default ({
   const API_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:ss';
   const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
   const DEFAULT_MODIFIER = TIME_SERIES_MODIFIERS.sum;
-  const DEFAULT_INTERVAL = 60 * 60 * 24 * 7;
 
   const dateNow = new Date();
   const startDateDefault = startDateParam && moment.utc(startDateParam, INPUT_DATE_FORMAT, true).isValid()
@@ -159,10 +159,18 @@ export default ({
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
+  const [trend, setTrend] = useState<boolean>(
+    query.get('trend') === 'true' || false
+  );
+
+  const [chartInterval, setChartInterval] = useState<number>(
+    Number(query.get('interval')) || 0
+  );
 
   // Used for query, with validation
   const [startDate, setStartDate] = useState<Date>(startDateDefault);
   const [endDate, setEndDate] = useState<Date>(endDateDefault);
+  const [intervalError, setIntervalError] = useState<boolean>(false);
 
   const [invocationOptions, setInvocationOptions] = useState<InvocationOption[]>([]);
   const [selectedInvocation, setSelectedInvocation] = useState<number | 'latest'>(
@@ -175,9 +183,7 @@ export default ({
     query.get('filter') || ''
   );
   const [filter, setFilter] = useState<string>(filterInput);
-  const [grouped, setGrouped] = useState<boolean>(
-    query.get('grouped') === 'true' || false
-  );
+
   const [sourceData, setSourceData] = useState<boolean>(
     query.get('source') === 'true' || false
   );
@@ -287,7 +293,7 @@ export default ({
     const selectedOption = invocationOptions.find(i => i.invocation === selectedInvocation);
     if (selectedOption) {
       let newValue = selectedOption.selectors.filter(s =>
-        grouped || s.modifier === DEFAULT_MODIFIER
+        s.modifier === DEFAULT_MODIFIER
       );
       const groupSelectors = selectedOption.selectors.filter(
         s => s.modifier && s.modifier === TIME_SERIES_MODIFIERS.group_by
@@ -303,27 +309,47 @@ export default ({
           ))
         ];
       }
-      setSelectorValue(newValue);
+
+      if (trend) {
+        setSelectorValue(newValue);
+      }
+      else {
+        setSelectorValue(newValue.filter(v => !v.selector.columnName.includes('trend')));
+      }
     }
   }, [
     invocationOptions,
-    grouped,
     filter,
     selectedInvocation,
+    trend,
     DEFAULT_MODIFIER
   ]);
+
+  const isSelectionsValid: boolean = useMemo(
+    () => {
+      setIntervalError(false);
+
+      let isValid = true;
+      if (chartInterval === 0) {
+        setIntervalError(true);
+        isValid = false;
+      }
+      return isValid;
+    },
+    [chartInterval, setIntervalError]
+  );
 
   const timeSeriesQuery: TimeSeriesQuery = useMemo(
     () => ({
       selectors: selectorValue.map(selector => selector.toString()),
-      interval: DEFAULT_INTERVAL,
+      interval: chartInterval,
       start: moment.utc(startDate).format(API_DATE_FORMAT) + 'Z',
       end: enableEndDate ? moment.utc(endDate).format(API_DATE_FORMAT) + 'Z' : undefined
     }),
-    [selectorValue, startDate, endDate, DEFAULT_INTERVAL, enableEndDate]
+    [selectorValue, startDate, endDate, chartInterval, enableEndDate]
   );
 
-  const { timeSeriesQueryResult, refresh: refreshQuery } = useQueryTimeSeries(setIsLoading, setError, timeSeriesQuery, true);
+  const { timeSeriesQueryResult, refresh: refreshQuery } = useQueryTimeSeries(setIsLoading, setError, timeSeriesQuery, isSelectionsValid);
 
   const chart = useMemo(() => (
     <ForecastChart
@@ -332,6 +358,7 @@ export default ({
       timeSeriesQueryResult={timeSeriesQueryResult}
       setSuccess={setSuccess}
       setError={setError}
+      trend={trend}
     />
   ),
   [
@@ -340,7 +367,8 @@ export default ({
     endDate,
     enableEndDate,
     setError,
-    setSuccess
+    setSuccess,
+    trend
   ]);
 
   const validateAndSetDate = (inputDateAsString: string, isStartDate: boolean): void => {
@@ -389,6 +417,11 @@ export default ({
     setStartDate(startDate);
   };
 
+  const handleSetChartInterval = (interval: string) => {
+    query.set('interval', interval);
+    setChartInterval(Number.parseInt(interval));
+  };
+
   const startDateRef = React.createRef<HTMLInputElement>();
   const endDateRef = React.createRef<HTMLInputElement>();
   const filterRef = React.createRef<HTMLInputElement>();
@@ -418,7 +451,10 @@ export default ({
           label={label}
           type='datetime-local'
           name={name}
-          value={label === 'End' && !enableEndDate ? '' : moment.utc(inputState).format(INPUT_DATE_FORMAT)
+          value={
+            label === 'End' && !enableEndDate
+              ? ''
+              : moment.utc(inputState).format(INPUT_DATE_FORMAT)
           }
           disabled={label === 'End' && !enableEndDate}
           onKeyDown={e => {
@@ -489,7 +525,7 @@ export default ({
         <div className={classes.chartToolbar}>
           <div className={clsx(classes.chartToolbarRow, common.bottomMargin)}>
             <Grid container direction='row' spacing={2}>
-              <Grid container item xs={4}>
+              <Grid container item xs={12}>
                 <Button
                   className={clsx(classes.toolbarSquareButton, common.leftMargin)}
                   variant='outlined'
@@ -497,23 +533,13 @@ export default ({
                 >
                   <Icon>refresh</Icon>
                 </Button>
+                <ChartIntervalSelector
+                  styles={common.leftMargin}
+                  intervalError={intervalError}
+                  chartInterval={chartInterval}
+                  setChartInterval={handleSetChartInterval} />
                 <FormControlLabel
-                  className={clsx(classes.toolbarSwitch, common.leftPadding)}
-                  control={
-                    <Switch
-                      checked={grouped}
-                      color='primary'
-                      onChange={(e) => {
-                        e.target.checked ? query.set('grouped', 'true') : query.remove('grouped');
-                        setGrouped(e.target.checked);
-                      }}
-                    />
-                  }
-                  labelPlacement='start'
-                  label='Group'
-                />
-                <FormControlLabel
-                  className={clsx(classes.toolbarSwitch, common.leftPadding)}
+                  className={clsx(classes.toolbarSwitch, common.leftPadding, common.leftMargin)}
                   control={
                     <Switch
                       checked={sourceData}
@@ -527,8 +553,23 @@ export default ({
                   labelPlacement='start'
                   label='Source'
                 />
+                <FormControlLabel
+                  className={clsx(classes.toolbarSwitch, common.leftPadding, common.leftMargin)}
+                  control={
+                    <Switch
+                      checked={trend}
+                      color='primary'
+                      onChange={(e) => {
+                        e.target.checked ? query.set('trend', 'true') : query.remove('trend');
+                        setTrend(e.target.checked);
+                      }}
+                    />
+                  }
+                  labelPlacement='start'
+                  label='Trend'
+                />
               </Grid>
-              <Grid container item xs={8} spacing={2}>
+              <Grid container item xs={12} spacing={2}>
                 <Grid item xs={4}>
                   {dateTimeInput('Start', 'start-date', startDate, setStartDate, startDateRef)}
                 </Grid>

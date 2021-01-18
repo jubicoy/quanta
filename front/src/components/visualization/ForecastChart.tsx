@@ -14,7 +14,8 @@ import {
   Legend,
   LegendProps,
   Tooltip,
-  TooltipProps
+  TooltipProps,
+  ReferenceLine
 } from 'recharts';
 import moment from 'moment';
 
@@ -37,19 +38,22 @@ interface ChartProps {
   endDate?: Date;
   setSuccess: (heading: string, message: string) => void;
   setError: (heading: string, message: string) => void;
+  trend: boolean;
 };
 
 export const ForecastChart = ({
   timeSeriesQueryResult,
   startDate,
   endDate,
-  setError
+  setError,
+  trend
 }: ChartProps) => {
   // Styles
   const common = commonStyles();
   const tooltip = tooltipStyles();
 
   // States
+  const [isNegative, setIsNegative] = useState<boolean>(false);
   const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
   const [chartLines, setChartLines] = useState<React.ReactElement[]>([]);
   const [legendHeight, setLegendHeight] = useState<number>(0);
@@ -65,6 +69,7 @@ export const ForecastChart = ({
     }
     let data: ChartDataPoint[] = [];
     let keyNumber = -1;
+    let isDataNegative = false;
 
     const lines: React.ReactElement[] = [];
     timeSeriesQueryResult.flatMap((queryResult) => {
@@ -72,32 +77,6 @@ export const ForecastChart = ({
         setError('Query error', 'No measurements found.');
         return;
       }
-
-      const groupingSuffix: string = Object
-        .entries(queryResult.measurements[0].values)
-        .filter(entry => {
-          const match = entry[0].match(QUERY_SELECTOR_REGEX);
-          if (!match) {
-            throw new Error('Illegal data: Measurements has invalid values.');
-          }
-          const agg = match[1];
-          return agg === 'group_by';
-        })
-        .map(entry => {
-          // Check if value entry is grouping or data
-          const key = entry[0];
-          const value = entry[1];
-
-          const keyMatches = key.match(QUERY_SELECTOR_REGEX);
-          if (keyMatches && keyMatches[1] === 'group_by') {
-            return ` -- ${keyMatches[5]} = ${value}`;
-          }
-          return ``;
-        })
-        .reduce((result, current) => {
-          result += current;
-          return result;
-        }, '');
 
       const filterOutGrouping = (entry: [string, unknown]) => {
         const match = entry[0].match(QUERY_SELECTOR_REGEX);
@@ -134,6 +113,10 @@ export const ForecastChart = ({
                 v => v[0].includes(`result_output:${keyMatches[3]}.${keyMatches[4]}.yhat_upper`)
               );
 
+              if (lower && lower[1] < 0) {
+                isDataNegative = true;
+              }
+
               const point: ChartDataPoint = {
                 time: moment(measurement.time).unix()
               };
@@ -162,8 +145,7 @@ export const ForecastChart = ({
 
             lines.push(
               <Area
-                connectNulls
-                name={label + groupingSuffix + 'area'}
+                name={label + '-area'}
                 key={`${label}${keyNumber}-area`}
                 type='linear'
                 dataKey={`${label}${keyNumber}-area`}
@@ -196,8 +178,7 @@ export const ForecastChart = ({
 
           lines.push(
             <Line
-              connectNulls
-              name={label + groupingSuffix}
+              name={label}
               key={`${label}${keyNumber}`}
               type='linear'
               dataKey={`${label}${keyNumber}`}
@@ -241,9 +222,10 @@ export const ForecastChart = ({
       setEndDateOfData(data[data.length - 1].time);
     }
 
+    setIsNegative(isDataNegative);
     setChartLines(lines);
     setChartData(data);
-  }, [timeSeriesQueryResult, setError]);
+  }, [timeSeriesQueryResult, setError, trend]);
 
   const legendRef = React.createRef<HTMLUListElement>();
   const chartGridRef = React.createRef<CartesianGrid>();
@@ -302,16 +284,43 @@ export const ForecastChart = ({
           </div>
           {
             [...payload]
-              .filter(a => typeof (a.value) === 'number')
-              .sort((a, b) => (b.value as number) - (a.value as number))
-              .map((p) => <div key={`key-${p.name}`}>
-                <div
-                  className={classes.contentLegend}
-                  style={{ backgroundColor: p.color }}
-                />
-                <span className={classes.contentName}>{p.name}:</span>
-                <span className={classes.contentValue}>{p.value}</span>
-              </div>)
+              .map((p) => {
+                if (typeof p.value === 'number') {
+                  return (
+                    <div key={`key-${p.name}`}>
+                      <div
+                        className={classes.contentLegend}
+                        style={{ backgroundColor: p.color }}
+                      />
+                      <span className={classes.contentName}>{p.name}:</span>
+                      <span className={classes.contentValue}>{p.value}</span>
+                    </div>
+                  );
+                }
+                else {
+                  return (
+                    <div key={`key-${p.name}-area`}>
+                      <>
+                        <div
+                          className={classes.contentLegend}
+                          style={{ backgroundColor: 'black' }}
+                        />
+                        <span className={classes.contentName}>{p.name} lower:</span>
+                        <span className={classes.contentValue}>{p.value[0]}</span>
+                      </>
+                      <br />
+                      <>
+                        <div
+                          className={classes.contentLegend}
+                          style={{ backgroundColor: 'black' }}
+                        />
+                        <span className={classes.contentName}>{p.name} upper:</span>
+                        <span className={classes.contentValue}>{p.value[1]}</span>
+                      </>
+                    </div>
+                  );
+                };
+              })
           }
         </div>
       );
@@ -343,7 +352,7 @@ export const ForecastChart = ({
           ref={yAxisRef}
           allowDataOverflow
           allowDecimals={false}
-          domain={['auto', 'auto']}
+          domain={isNegative ? ['auto', 'auto'] : [0, 'auto']}
           type='number'
         />
         <CartesianGrid
@@ -358,12 +367,17 @@ export const ForecastChart = ({
         <Tooltip
           content={renderTooltip}
         />
+        <ReferenceLine
+          x={moment().unix()}
+          stroke='red' />
+
         {chartLines.map((line: React.ReactElement) => {
           return React.cloneElement(
             line,
             {
               strokeWidth: (lineHighlight === line.props.name) ? 2 : 1,
-              fillOpacity: (lineHighlight + 'area' === line.props.name) ? 0.4 : 0.2
+              fillOpacity: (lineHighlight + 'area' === line.props.name) ? 0.4 : 0.2,
+              strokeDasharray: (line.props.name.includes('trend')) ? '5 5' : undefined
             }
           );
         })}
