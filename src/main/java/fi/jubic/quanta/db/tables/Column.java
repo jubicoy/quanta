@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Column extends TableImpl<ColumnRecord> {
 
-    private static final long serialVersionUID = 1839152478;
+    private static final long serialVersionUID = 495659093;
 
     /**
      * The reference instance of <code>column</code>

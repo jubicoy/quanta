@@ -53,7 +53,6 @@ public class TaskDomain {
                 .setCronTrigger(newTask.getCronTrigger())
                 .setTaskTrigger(newTask.getTaskTrigger())
                 .setConfig(newTask.getConfig())
-                .setAdditionalParams(newTask.getAdditionalParams())
                 .build();
     }
 
@@ -79,7 +78,6 @@ public class TaskDomain {
                 .setStartTime(null)
                 .setEndTime(null)
                 .setDeletedAt(null)
-                .setAdditionalParams(task.getAdditionalParams())
                 .build();
     }
 
@@ -96,7 +94,6 @@ public class TaskDomain {
                 .setStartTime(null)
                 .setEndTime(null)
                 .setDeletedAt(null)
-                .setAdditionalParams(null)
                 .build();
     }
 

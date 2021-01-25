@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Invocation extends TableImpl<InvocationRecord> {
 
-    private static final long serialVersionUID = -1548666078;
+    private static final long serialVersionUID = -862377788;
 
     /**
      * The reference instance of <code>invocation</code>
@@ -100,11 +100,6 @@ public class Invocation extends TableImpl<InvocationRecord> {
      * The column <code>invocation.deleted_at</code>.
      */
     public final TableField<InvocationRecord, Timestamp> DELETED_AT = createField("deleted_at", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
-
-    /**
-     * The column <code>invocation.additional_params</code>.
-     */
-    public final TableField<InvocationRecord, String> ADDITIONAL_PARAMS = createField("additional_params", org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * Create a <code>invocation</code> table reference

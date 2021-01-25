@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SeriesResultRecord extends UpdatableRecordImpl<SeriesResultRecord> implements Record3<Long, Long, String> {
 
-    private static final long serialVersionUID = 1368426410;
+    private static final long serialVersionUID = 2113651888;
 
     /**
      * Setter for <code>series_result.id</code>.

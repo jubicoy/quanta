@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DataConnection extends TableImpl<DataConnectionRecord> {
 
-    private static final long serialVersionUID = 894835827;
+    private static final long serialVersionUID = -292273494;
 
     /**
      * The reference instance of <code>data_connection</code>

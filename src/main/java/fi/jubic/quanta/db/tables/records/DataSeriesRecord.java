@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DataSeriesRecord extends UpdatableRecordImpl<DataSeriesRecord> implements Record8<Long, String, String, String, String, String, Timestamp, Long> {
 
-    private static final long serialVersionUID = 1910562462;
+    private static final long serialVersionUID = 648369880;
 
     /**
      * Setter for <code>data_series.id</code>.

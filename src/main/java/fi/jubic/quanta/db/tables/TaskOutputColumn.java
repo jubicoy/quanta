@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskOutputColumn extends TableImpl<TaskOutputColumnRecord> {
 
-    private static final long serialVersionUID = 1674139756;
+    private static final long serialVersionUID = -839521309;
 
     /**
      * The reference instance of <code>task_output_column</code>

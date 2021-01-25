@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InvocationColumnSelectorRecord extends UpdatableRecordImpl<InvocationColumnSelectorRecord> implements Record11<Long, Integer, String, String, String, Boolean, String, String, Long, Long, Long> {
 
-    private static final long serialVersionUID = -620225088;
+    private static final long serialVersionUID = 1682269050;
 
     /**
      * Setter for <code>invocation_column_selector.id</code>.

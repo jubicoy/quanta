@@ -47,10 +47,10 @@ public abstract class Invocation {
     public abstract List<Anomaly> getDetectionResults();
 
     @Nullable
-    public abstract Instant getDeletedAt();
+    public abstract List<Parameter> getParameters();
 
     @Nullable
-    public abstract Map<String, Parameter> getAdditionalParams();
+    public abstract Instant getDeletedAt();
 
     public abstract Builder toBuilder();
 
@@ -68,7 +68,7 @@ public abstract class Invocation {
                     .setConfig(Collections.emptyMap())
                     .setSeriesResults(Collections.emptyList())
                     .setDetectionResults(Collections.emptyList())
-                    .setAdditionalParams(Collections.emptyMap());
+                    .setParameters(Collections.emptyList());
         }
     }
 
@@ -83,10 +83,5 @@ public abstract class Invocation {
             .setEndTimeAccessor(INVOCATION.ENDING_TIME, Timestamp::from, Timestamp::toInstant)
             .setConfigAccessor(INVOCATION.CONFIG, Json::writeConfig, Json::extractConfig)
             .setDeletedAtAccessor(INVOCATION.DELETED_AT, Timestamp::from, Timestamp::toInstant)
-            .setAdditionalParamsAccessor(
-                    INVOCATION.ADDITIONAL_PARAMS,
-                    Parameter::writeParameters,
-                    Parameter::extractParameters
-            )
             .build();
 }

@@ -12,15 +12,18 @@ import fi.jubic.quanta.db.tables.ExternalClient;
 import fi.jubic.quanta.db.tables.Invocation;
 import fi.jubic.quanta.db.tables.InvocationColumnSelector;
 import fi.jubic.quanta.db.tables.InvocationOutputColumn;
+import fi.jubic.quanta.db.tables.InvocationParameter;
 import fi.jubic.quanta.db.tables.SeriesResult;
 import fi.jubic.quanta.db.tables.SeriesTable;
 import fi.jubic.quanta.db.tables.Task;
 import fi.jubic.quanta.db.tables.TaskColumnSelector;
 import fi.jubic.quanta.db.tables.TaskOutputColumn;
+import fi.jubic.quanta.db.tables.TaskParameter;
 import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
+import fi.jubic.quanta.db.tables.WorkerParameter;
 
 import javax.annotation.Generated;
 
@@ -79,6 +82,11 @@ public class Tables {
     public static final InvocationOutputColumn INVOCATION_OUTPUT_COLUMN = fi.jubic.quanta.db.tables.InvocationOutputColumn.INVOCATION_OUTPUT_COLUMN;
 
     /**
+     * The table <code>invocation_parameter</code>.
+     */
+    public static final InvocationParameter INVOCATION_PARAMETER = fi.jubic.quanta.db.tables.InvocationParameter.INVOCATION_PARAMETER;
+
+    /**
      * The table <code>series_result</code>.
      */
     public static final SeriesResult SERIES_RESULT = fi.jubic.quanta.db.tables.SeriesResult.SERIES_RESULT;
@@ -104,6 +112,11 @@ public class Tables {
     public static final TaskOutputColumn TASK_OUTPUT_COLUMN = fi.jubic.quanta.db.tables.TaskOutputColumn.TASK_OUTPUT_COLUMN;
 
     /**
+     * The table <code>task_parameter</code>.
+     */
+    public static final TaskParameter TASK_PARAMETER = fi.jubic.quanta.db.tables.TaskParameter.TASK_PARAMETER;
+
+    /**
      * The table <code>user</code>.
      */
     public static final User USER = fi.jubic.quanta.db.tables.User.USER;
@@ -122,4 +135,9 @@ public class Tables {
      * The table <code>worker_definition_column</code>.
      */
     public static final WorkerDefinitionColumn WORKER_DEFINITION_COLUMN = fi.jubic.quanta.db.tables.WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN;
+
+    /**
+     * The table <code>worker_parameter</code>.
+     */
+    public static final WorkerParameter WORKER_PARAMETER = fi.jubic.quanta.db.tables.WorkerParameter.WORKER_PARAMETER;
 }

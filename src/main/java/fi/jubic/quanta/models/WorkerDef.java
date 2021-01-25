@@ -27,7 +27,7 @@ public abstract class WorkerDef {
     public abstract String getDescription();
 
     @Nullable
-    public abstract Map<String, Parameter> getAdditionalParams();
+    public abstract List<WorkerParameter> getParameters();
 
     public abstract List<WorkerDefColumn> getColumns();
 
@@ -44,6 +44,7 @@ public abstract class WorkerDef {
         @Override
         public Builder defaults(Builder builder) {
             return builder
+                    .setParameters(Collections.emptyList())
                     .setColumns(Collections.emptyList());
         }
     }
@@ -54,11 +55,6 @@ public abstract class WorkerDef {
             .setTypeAccessor(WORKER_DEFINITION.TYPE, WorkerType::name, WorkerType::valueOf)
             .setNameAccessor(WORKER_DEFINITION.NAME)
             .setDescriptionAccessor(WORKER_DEFINITION.DESCRIPTION)
-            .setAdditionalParamsAccessor(
-                    WORKER_DEFINITION.PARAMS,
-                    Parameter::writeParameters,
-                    Parameter::extractParameters
-            )
             .setDeletedAtAccessor(
                     WORKER_DEFINITION.DELETED_AT,
                     Timestamp::from,

@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class WorkerDefinitionColumnRecord extends UpdatableRecordImpl<WorkerDefinitionColumnRecord> implements Record9<Long, String, String, String, Boolean, String, Integer, String, Long> {
 
-    private static final long serialVersionUID = -234412849;
+    private static final long serialVersionUID = -1488952363;
 
     /**
      * Setter for <code>worker_definition_column.id</code>.

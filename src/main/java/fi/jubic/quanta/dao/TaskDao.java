@@ -1,14 +1,7 @@
 package fi.jubic.quanta.dao;
 
 import fi.jubic.quanta.exception.ApplicationException;
-import fi.jubic.quanta.models.ColumnSelector;
-import fi.jubic.quanta.models.DataConnection;
-import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.OutputColumn;
-import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.TaskQuery;
-import fi.jubic.quanta.models.WorkerDef;
-import fi.jubic.quanta.models.WorkerDefColumn;
+import fi.jubic.quanta.models.*;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.exception.DataAccessException;
@@ -16,20 +9,12 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
-import static fi.jubic.quanta.db.Tables.DATA_SERIES;
-import static fi.jubic.quanta.db.Tables.TASK;
-import static fi.jubic.quanta.db.Tables.TASK_COLUMN_SELECTOR;
-import static fi.jubic.quanta.db.Tables.TASK_OUTPUT_COLUMN;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
+import static fi.jubic.quanta.db.Tables.*;
 
 public class TaskDao {
     private final org.jooq.Configuration conf;
@@ -95,13 +80,19 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(
+                                        task.getId(),
+                                        transaction
+                                )
+                        )
+                        .setParameters(
+                                getTaskParameters(
                                         task.getId(),
                                         transaction
                                 )
@@ -160,13 +151,19 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(
+                                        task.getId(),
+                                        transaction
+                                )
+                        )
+                        .setParameters(
+                                getTaskParameters(
                                         task.getId(),
                                         transaction
                                 )
@@ -229,11 +226,29 @@ public class TaskDao {
                             .execute();
                 }
 
+                if (task.getParameters() != null) {
+                    DSL.using(transaction)
+                            .batchInsert(
+                                    task.getParameters()
+                                            .stream()
+                                            .map(parameter ->
+                                                    Parameter.taskParameterRecordMapper.write(
+                                                            DSL.using(conf).newRecord(
+                                                                    TASK_PARAMETER
+                                                            ),
+                                                            parameter
+                                                    )
+                                            )
+                                            .peek(record -> record.setTaskId(taskId))
+                                            .collect(Collectors.toList())
+                            )
+                            .execute();
+                }
+
                 return getDetails(taskId, transaction)
                         .orElseThrow(IllegalStateException::new);
             });
-        }
-        catch (DataAccessException exception) {
+        } catch (DataAccessException exception) {
             throw new ApplicationException("Could not create a Task", exception);
         }
     }
@@ -262,8 +277,7 @@ public class TaskDao {
                 return getDetails(id)
                         .orElseThrow(IllegalStateException::new);
             });
-        }
-        catch (DataAccessException exception) {
+        } catch (DataAccessException exception) {
             throw new ApplicationException("Could not update a Task", exception);
         }
     }
@@ -278,5 +292,18 @@ public class TaskDao {
                 .where(TASK_OUTPUT_COLUMN.TASK_ID.eq(taskId))
                 .fetchStream()
                 .collect(OutputColumn.taskOutputColumnMapper);
+    }
+
+    private List<Parameter> getTaskParameters(
+            Long taskId,
+            org.jooq.Configuration transaction
+    ) {
+        return DSL.using(transaction)
+                .select()
+                .from(TASK_PARAMETER)
+                .where(TASK_PARAMETER.TASK_ID.eq(taskId))
+                .fetch()
+                .stream()
+                .collect(Parameter.taskParameterRecordMapper);
     }
 }

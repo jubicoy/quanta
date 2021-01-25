@@ -44,7 +44,7 @@ public abstract class Task {
     public abstract Instant getDeletedAt();
 
     @Nullable
-    public abstract Map<String, Parameter> getAdditionalParams();
+    public abstract List<Parameter> getParameters();
 
     public abstract Builder toBuilder();
 
@@ -60,7 +60,7 @@ public abstract class Task {
                     .setConfig(Collections.emptyMap())
                     .setColumnSelectors(Collections.emptyList())
                     .setOutputColumns(Collections.emptyList())
-                    .setAdditionalParams(Collections.emptyMap());
+                    .setParameters(Collections.emptyList());
         }
     }
 
@@ -73,10 +73,5 @@ public abstract class Task {
             .setTaskTriggerAccessor(TASK.TASK_TRIGGER)
             .setTaskTypeAccessor(TASK.TASK_TYPE, TaskType::toString, TaskType::parse)
             .setDeletedAtAccessor(TASK.DELETED_AT, Timestamp::from, Timestamp::toInstant)
-            .setAdditionalParamsAccessor(
-                    TASK.ADDITIONAL_PARAMS,
-                    Parameter::writeParameters,
-                    Parameter::extractParameters
-            )
             .build();
 }

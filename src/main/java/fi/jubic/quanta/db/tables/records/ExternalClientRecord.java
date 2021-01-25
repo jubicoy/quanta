@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ExternalClientRecord extends UpdatableRecordImpl<ExternalClientRecord> implements Record5<Long, String, String, Long, Timestamp> {
 
-    private static final long serialVersionUID = -1653772416;
+    private static final long serialVersionUID = 1183067654;
 
     /**
      * Setter for <code>external_client.id</code>.

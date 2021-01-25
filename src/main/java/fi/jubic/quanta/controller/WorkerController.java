@@ -4,10 +4,7 @@ import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
 import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.Worker;
-import fi.jubic.quanta.models.WorkerDef;
-import fi.jubic.quanta.models.WorkerDefQuery;
-import fi.jubic.quanta.models.WorkerQuery;
+import fi.jubic.quanta.models.*;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 
@@ -21,7 +18,6 @@ public class WorkerController {
     private final WorkerDomain workerDomain;
     private final WorkerDao workerDao;
     private final WorkerDefDao workerDefDao;
-
     private final Configuration conf;
 
     @Inject
@@ -34,7 +30,6 @@ public class WorkerController {
         this.workerDomain = workerDomain;
         this.workerDao = workerDao;
         this.workerDefDao = workerDefDao;
-
         this.conf = configuration.getJooqConfiguration()
                 .getConfiguration();
     }

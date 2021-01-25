@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskColumnSelectorRecord extends UpdatableRecordImpl<TaskColumnSelectorRecord> implements Record11<Long, Integer, String, String, String, Boolean, String, String, Long, Long, Long> {
 
-    private static final long serialVersionUID = 1574879403;
+    private static final long serialVersionUID = -1549081627;
 
     /**
      * Setter for <code>task_column_selector.id</code>.

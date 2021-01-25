@@ -2,19 +2,7 @@ package fi.jubic.quanta.dao;
 
 import fi.jubic.quanta.db.tables.records.InvocationRecord;
 import fi.jubic.quanta.exception.ApplicationException;
-import fi.jubic.quanta.models.ColumnSelector;
-import fi.jubic.quanta.models.DataConnection;
-import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.Invocation;
-import fi.jubic.quanta.models.InvocationQuery;
-import fi.jubic.quanta.models.InvocationStatus;
-import fi.jubic.quanta.models.OutputColumn;
-import fi.jubic.quanta.models.Pagination;
-import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.TaskType;
-import fi.jubic.quanta.models.Worker;
-import fi.jubic.quanta.models.WorkerDef;
-import fi.jubic.quanta.models.WorkerDefColumn;
+import fi.jubic.quanta.models.*;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.exception.DataAccessException;
@@ -22,11 +10,7 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -34,15 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
-import static fi.jubic.quanta.db.Tables.DATA_SERIES;
-import static fi.jubic.quanta.db.Tables.INVOCATION;
-import static fi.jubic.quanta.db.Tables.INVOCATION_COLUMN_SELECTOR;
-import static fi.jubic.quanta.db.Tables.INVOCATION_OUTPUT_COLUMN;
-import static fi.jubic.quanta.db.Tables.TASK;
-import static fi.jubic.quanta.db.Tables.WORKER;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
+import static fi.jubic.quanta.db.Tables.*;
 
 public class InvocationDao {
     private final org.jooq.Configuration conf;
@@ -141,7 +117,12 @@ public class InvocationDao {
                                         transaction
                                 )
                         )
-
+                        .setParameters(
+                                getInvocationParameters(
+                                        invocation.getId(),
+                                        transaction
+                                )
+                        )
                         .build()
                 )
                 .collect(Collectors.toList())
@@ -206,16 +187,16 @@ public class InvocationDao {
                         .setWorker(
                                 Objects.nonNull(invocation.getWorker())
                                         ? invocation.getWorker()
-                                                .toBuilder()
-                                                .setDefinition(
-                                                        workerDefDao.getDetailsWithTransaction(
-                                                                invocation.getWorker()
-                                                                        .getDefinition()
-                                                                        .getId(),
-                                                                transaction
-                                                        ).orElseThrow(NotFoundException::new)
-                                                )
-                                                .build()
+                                        .toBuilder()
+                                        .setDefinition(
+                                                workerDefDao.getDetailsWithTransaction(
+                                                        invocation.getWorker()
+                                                                .getDefinition()
+                                                                .getId(),
+                                                        transaction
+                                                ).orElseThrow(NotFoundException::new)
+                                        )
+                                        .build()
                                         : null
                         )
                         .setOutputColumns(
@@ -262,8 +243,8 @@ public class InvocationDao {
                                 Invocation.mapper.write(
                                         DSL.using(transaction).newRecord(INVOCATION),
                                         invocation.toBuilder()
-                                        .setInvocationNumber(nextInvocationNumber)
-                                        .build()
+                                                .setInvocationNumber(nextInvocationNumber)
+                                                .build()
                                 )
                         )
                         .returning(INVOCATION.ID)
@@ -311,11 +292,29 @@ public class InvocationDao {
                             .execute();
                 }
 
+                if (invocation.getParameters() != null) {
+                    DSL.using(transaction)
+                            .batchInsert(
+                                    invocation.getParameters()
+                                            .stream()
+                                            .map(parameter ->
+                                                    Parameter.invocationParameterRecordMapper.write(
+                                                            DSL.using(transaction).newRecord(
+                                                                    INVOCATION_PARAMETER
+                                                            ),
+                                                            parameter
+                                                    )
+                                            )
+                                            .peek(record -> record.setInvocationId(invocationId))
+                                            .collect(Collectors.toList())
+                            )
+                            .execute();
+                }
+
                 return getDetails(invocationId, transaction)
                         .orElseThrow(IllegalStateException::new);
             });
-        }
-        catch (DataAccessException exception) {
+        } catch (DataAccessException exception) {
             throw new ApplicationException("Could not store an Invocation", exception);
         }
     }
@@ -408,5 +407,18 @@ public class InvocationDao {
             Function<? super T, ?> keyExtractor) {
         Map<Object, Boolean> seen = new ConcurrentHashMap<>();
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
+    }
+
+    private List<Parameter> getInvocationParameters(
+            Long invocationId,
+            org.jooq.Configuration transaction
+    ) {
+        return DSL.using(transaction)
+                .select()
+                .from(INVOCATION_PARAMETER)
+                .where(INVOCATION_PARAMETER.INVOCATION_ID.eq(invocationId))
+                .fetch()
+                .stream()
+                .collect(Parameter.invocationParameterRecordMapper);
     }
 }

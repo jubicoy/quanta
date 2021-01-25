@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Task extends TableImpl<TaskRecord> {
 
-    private static final long serialVersionUID = -967321328;
+    private static final long serialVersionUID = 1273030990;
 
     /**
      * The reference instance of <code>task</code>
@@ -95,11 +95,6 @@ public class Task extends TableImpl<TaskRecord> {
      * The column <code>task.deleted_at</code>.
      */
     public final TableField<TaskRecord, Timestamp> DELETED_AT = createField("deleted_at", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
-
-    /**
-     * The column <code>task.additional_params</code>.
-     */
-    public final TableField<TaskRecord, String> ADDITIONAL_PARAMS = createField("additional_params", org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * Create a <code>task</code> table reference

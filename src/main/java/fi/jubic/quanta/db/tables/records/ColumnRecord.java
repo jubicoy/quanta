@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ColumnRecord extends UpdatableRecordImpl<ColumnRecord> implements Record7<Long, String, String, String, Boolean, Long, Integer> {
 
-    private static final long serialVersionUID = -326927688;
+    private static final long serialVersionUID = -1713125954;
 
     /**
      * Setter for <code>column.id</code>.

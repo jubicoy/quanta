@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskColumnSelector extends TableImpl<TaskColumnSelectorRecord> {
 
-    private static final long serialVersionUID = -923183079;
+    private static final long serialVersionUID = -191087678;
 
     /**
      * The reference instance of <code>task_column_selector</code>
