@@ -6,8 +6,8 @@ import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.InvocationParameterRecord;
 import fi.jubic.quanta.db.tables.records.TaskParameterRecord;
 
-import static fi.jubic.quanta.db.tables.TaskParameter.TASK_PARAMETER;
 import static fi.jubic.quanta.db.tables.InvocationParameter.INVOCATION_PARAMETER;
+import static fi.jubic.quanta.db.tables.TaskParameter.TASK_PARAMETER;
 
 @EasyValue
 @JsonDeserialize(builder = Parameter.Builder.class)
@@ -40,7 +40,8 @@ public abstract class Parameter {
                     .setValueAccessor(TASK_PARAMETER.VALUE)
                     .build();
 
-    public static final ParameterRecordMapper<InvocationParameterRecord> invocationParameterRecordMapper =
+    public static final ParameterRecordMapper<InvocationParameterRecord>
+            invocationParameterRecordMapper =
             ParameterRecordMapper
                     .builder(INVOCATION_PARAMETER)
                     .setIdAccessor(INVOCATION_PARAMETER.ID)

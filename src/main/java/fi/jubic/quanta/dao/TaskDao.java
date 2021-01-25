@@ -1,7 +1,15 @@
 package fi.jubic.quanta.dao;
 
 import fi.jubic.quanta.exception.ApplicationException;
-import fi.jubic.quanta.models.*;
+import fi.jubic.quanta.models.ColumnSelector;
+import fi.jubic.quanta.models.DataConnection;
+import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.OutputColumn;
+import fi.jubic.quanta.models.Parameter;
+import fi.jubic.quanta.models.Task;
+import fi.jubic.quanta.models.TaskQuery;
+import fi.jubic.quanta.models.WorkerDef;
+import fi.jubic.quanta.models.WorkerDefColumn;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.exception.DataAccessException;
@@ -9,7 +17,9 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -248,7 +258,8 @@ public class TaskDao {
                 return getDetails(taskId, transaction)
                         .orElseThrow(IllegalStateException::new);
             });
-        } catch (DataAccessException exception) {
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not create a Task", exception);
         }
     }
@@ -277,7 +288,8 @@ public class TaskDao {
                 return getDetails(id)
                         .orElseThrow(IllegalStateException::new);
             });
-        } catch (DataAccessException exception) {
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not update a Task", exception);
         }
     }

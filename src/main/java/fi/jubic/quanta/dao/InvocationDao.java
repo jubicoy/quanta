@@ -2,7 +2,20 @@ package fi.jubic.quanta.dao;
 
 import fi.jubic.quanta.db.tables.records.InvocationRecord;
 import fi.jubic.quanta.exception.ApplicationException;
-import fi.jubic.quanta.models.*;
+import fi.jubic.quanta.models.ColumnSelector;
+import fi.jubic.quanta.models.DataConnection;
+import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.Invocation;
+import fi.jubic.quanta.models.InvocationQuery;
+import fi.jubic.quanta.models.InvocationStatus;
+import fi.jubic.quanta.models.OutputColumn;
+import fi.jubic.quanta.models.Pagination;
+import fi.jubic.quanta.models.Parameter;
+import fi.jubic.quanta.models.Task;
+import fi.jubic.quanta.models.TaskType;
+import fi.jubic.quanta.models.Worker;
+import fi.jubic.quanta.models.WorkerDef;
+import fi.jubic.quanta.models.WorkerDefColumn;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.exception.DataAccessException;
@@ -10,7 +23,11 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -18,7 +35,17 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.*;
+import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
+import static fi.jubic.quanta.db.Tables.DATA_SERIES;
+import static fi.jubic.quanta.db.Tables.INVOCATION;
+import static fi.jubic.quanta.db.Tables.INVOCATION_COLUMN_SELECTOR;
+import static fi.jubic.quanta.db.Tables.INVOCATION_OUTPUT_COLUMN;
+import static fi.jubic.quanta.db.Tables.INVOCATION_PARAMETER;
+import static fi.jubic.quanta.db.Tables.TASK;
+import static fi.jubic.quanta.db.Tables.WORKER;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
+
 
 public class InvocationDao {
     private final org.jooq.Configuration conf;
@@ -258,7 +285,9 @@ public class InvocationDao {
                                             .stream()
                                             .map(columnSelector ->
                                                     ColumnSelector.invocationColumnSelectorMapper
-                                                            .write(DSL.using(transaction).newRecord(
+                                                            .write(
+                                                                    DSL.using(transaction)
+                                                                            .newRecord(
                                                                     INVOCATION_COLUMN_SELECTOR
                                                                     ),
                                                                     columnSelector
@@ -298,14 +327,18 @@ public class InvocationDao {
                                     invocation.getParameters()
                                             .stream()
                                             .map(parameter ->
-                                                    Parameter.invocationParameterRecordMapper.write(
+                                                    Parameter
+                                                            .invocationParameterRecordMapper
+                                                            .write(
                                                             DSL.using(transaction).newRecord(
                                                                     INVOCATION_PARAMETER
                                                             ),
                                                             parameter
                                                     )
                                             )
-                                            .peek(record -> record.setInvocationId(invocationId))
+                                            .peek(record ->
+                                                    record.setInvocationId(invocationId)
+                                            )
                                             .collect(Collectors.toList())
                             )
                             .execute();
@@ -314,7 +347,8 @@ public class InvocationDao {
                 return getDetails(invocationId, transaction)
                         .orElseThrow(IllegalStateException::new);
             });
-        } catch (DataAccessException exception) {
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not store an Invocation", exception);
         }
     }

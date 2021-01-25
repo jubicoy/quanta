@@ -4,7 +4,10 @@ import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
 import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.*;
+import fi.jubic.quanta.models.Worker;
+import fi.jubic.quanta.models.WorkerDef;
+import fi.jubic.quanta.models.WorkerDefQuery;
+import fi.jubic.quanta.models.WorkerQuery;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 

@@ -17,7 +17,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.*;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
+import static fi.jubic.quanta.db.Tables.WORKER_PARAMETER;
 
 public class WorkerDefDao {
 
@@ -103,37 +105,40 @@ public class WorkerDefDao {
     ) {
         try {
             return DSL.using(transaction).transactionResult(result -> {
-                Long workerDefId = DSL.using(transaction)
-                        .insertInto(WORKER_DEFINITION)
-                        .set(
-                                WorkerDef.mapper.write(
-                                        DSL.using(transaction).newRecord(WORKER_DEFINITION),
-                                        workerDef
-                                ))
-                        .returning(WORKER_DEFINITION.ID)
-                        .fetchOne()
-                        .getId();
+                        Long workerDefId = DSL.using(transaction)
+                                .insertInto(WORKER_DEFINITION)
+                                .set(
+                                        WorkerDef.mapper.write(
+                                                DSL.using(transaction)
+                                                        .newRecord(WORKER_DEFINITION),
+                                                workerDef
+                                        ))
+                                .returning(WORKER_DEFINITION.ID)
+                                .fetchOne()
+                                .getId();
 
-                DSL.using(result)
-                        .batchInsert(
+                        DSL.using(result).batchInsert(
                                 workerDef.getColumns()
                                         .stream()
                                         .map(column ->
-                                                WorkerDefColumn.workerDefColumnMapper.write(
-                                                        DSL.using(conf).newRecord(
-                                                                WORKER_DEFINITION_COLUMN
-                                                        ),
-                                                        column
-                                                )
+                                                WorkerDefColumn
+                                                        .workerDefColumnMapper
+                                                        .write(
+                                                                DSL.using(conf).newRecord(
+                                                                        WORKER_DEFINITION_COLUMN
+                                                                ),
+                                                                column
+                                                        )
                                         )
-                                        .peek(record -> record.setDefinitionId(workerDefId))
+                                        .peek(record ->
+                                                record.setDefinitionId(workerDefId)
+                                        )
                                         .collect(Collectors.toList())
                         )
-                        .execute();
+                                .execute();
 
-                if (workerDef.getParameters() != null) {
-                    DSL.using(result)
-                            .batchInsert(
+                        if (workerDef.getParameters() != null) {
+                            DSL.using(result).batchInsert(
                                     workerDef.getParameters()
                                             .stream()
                                             .map(
@@ -145,16 +150,21 @@ public class WorkerDefDao {
                                                                     parameter
                                                             )
                                             )
-                                            .peek(record -> record.setWorkerDefinitionId(workerDefId))
+                                            .peek(
+                                                    record -> record
+                                                            .setWorkerDefinitionId(workerDefId)
+                                            )
                                             .collect(Collectors.toList())
                             )
-                            .execute();
-                }
+                                    .execute();
+                        }
 
-                return getDetails(workerDefId, result)
-                        .orElseThrow(IllegalStateException::new);
-            });
-        } catch (DataAccessException exception) {
+                        return getDetails(workerDefId, result)
+                                .orElseThrow(IllegalStateException::new);
+                    }
+            );
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not create a Worker Definition", exception);
         }
     }
@@ -170,19 +180,19 @@ public class WorkerDefDao {
     public Optional<WorkerDef> insert(WorkerDef workerDef) {
         try {
             return DSL.using(conf).transactionResult(transactionResult -> {
-                Long workerDefId = DSL.using(transactionResult)
-                        .insertInto(WORKER_DEFINITION)
-                        .set(
-                                WorkerDef.mapper.write(
-                                        DSL.using(transactionResult).newRecord(WORKER_DEFINITION),
-                                        workerDef
-                                ))
-                        .returning(WORKER_DEFINITION.ID)
-                        .fetchOne()
-                        .getId();
+                        Long workerDefId = DSL.using(transactionResult)
+                                .insertInto(WORKER_DEFINITION)
+                                .set(
+                                        WorkerDef.mapper.write(
+                                                DSL.using(transactionResult)
+                                                        .newRecord(WORKER_DEFINITION),
+                                                workerDef
+                                        ))
+                                .returning(WORKER_DEFINITION.ID)
+                                .fetchOne()
+                                .getId();
 
-                DSL.using(transactionResult)
-                        .batchInsert(
+                        DSL.using(transactionResult).batchInsert(
                                 workerDef.getColumns()
                                         .stream()
                                         .map(inputColumn ->
@@ -196,11 +206,10 @@ public class WorkerDefDao {
                                         .peek(record -> record.setDefinitionId(workerDefId))
                                         .collect(Collectors.toList())
                         )
-                        .execute();
+                                .execute();
 
-                if (workerDef.getParameters() != null) {
-                    DSL.using(transactionResult)
-                            .batchInsert(
+                        if (workerDef.getParameters() != null) {
+                            DSL.using(transactionResult).batchInsert(
                                     workerDef.getParameters()
                                             .stream()
                                             .map(parameter ->
@@ -211,15 +220,19 @@ public class WorkerDefDao {
                                                             parameter
                                                     )
                                             )
-                                            .peek(record -> record.setWorkerDefinitionId(workerDefId))
+                                            .peek(record ->
+                                                    record.setWorkerDefinitionId(workerDefId)
+                                            )
                                             .collect(Collectors.toList())
                             )
-                            .execute();
-                }
+                                    .execute();
+                        }
 
-                return getDetails(workerDefId, transactionResult);
-            });
-        } catch (DataAccessException exception) {
+                        return getDetails(workerDefId, transactionResult);
+                    }
+            );
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not insert a Worker Definition", exception);
         }
     }
@@ -257,23 +270,25 @@ public class WorkerDefDao {
     ) {
         try {
             return DSL.using(conf).transactionResult(transaction -> {
-                WorkerDef workerDef = updater.apply(getDetails(id));
+                        WorkerDef workerDef = updater.apply(getDetails(id));
 
-                DSL.using(conf)
-                        .update(WORKER_DEFINITION)
-                        .set(
-                                WorkerDef.mapper.write(
-                                        DSL.using(conf).newRecord(WORKER_DEFINITION),
-                                        workerDef
+                        DSL.using(conf)
+                                .update(WORKER_DEFINITION)
+                                .set(
+                                        WorkerDef.mapper.write(
+                                                DSL.using(conf).newRecord(WORKER_DEFINITION),
+                                                workerDef
+                                        )
                                 )
-                        )
-                        .where(WORKER_DEFINITION.ID.eq(workerDef.getId()))
-                        .execute();
+                                .where(WORKER_DEFINITION.ID.eq(workerDef.getId()))
+                                .execute();
 
-                return getDetails(id)
-                        .orElseThrow(IllegalStateException::new);
-            });
-        } catch (DataAccessException exception) {
+                        return getDetails(id)
+                                .orElseThrow(IllegalStateException::new);
+                    }
+            );
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not update a Worker Definition", exception);
         }
     }
