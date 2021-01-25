@@ -24,7 +24,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.*;
+import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
+import static fi.jubic.quanta.db.Tables.DATA_SERIES;
+import static fi.jubic.quanta.db.Tables.TASK;
+import static fi.jubic.quanta.db.Tables.TASK_COLUMN_SELECTOR;
+import static fi.jubic.quanta.db.Tables.TASK_OUTPUT_COLUMN;
+import static fi.jubic.quanta.db.Tables.TASK_PARAMETER;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 
 public class TaskDao {
     private final org.jooq.Configuration conf;
