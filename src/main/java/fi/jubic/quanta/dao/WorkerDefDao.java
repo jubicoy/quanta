@@ -11,7 +11,9 @@ import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -47,7 +49,7 @@ public class WorkerDefDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-        return DSL.using(conf).transactionResult(transaction ->
+        List<WorkerDef> workerDefs = DSL.using(conf).transactionResult(transaction ->
                 DSL.using(transaction)
                         .select()
                         .from(WORKER_DEFINITION)
@@ -60,15 +62,9 @@ public class WorkerDefDao {
                                         WorkerDefColumn.workerDefColumnMapper
                                 )
                         )
-                        .stream()
-                        .map(workerDef -> workerDef.toBuilder()
-                                .setParameters(
-                                        getWorkerParameters(workerDef.getId(), transaction)
-                                )
-                                .build()
-                        ).collect(Collectors.toList())
         );
 
+        return getParameters(workerDefs, conf);
     }
 
     public Optional<WorkerDef> getDetails(Long workerDefId) {
@@ -180,19 +176,19 @@ public class WorkerDefDao {
     public Optional<WorkerDef> insert(WorkerDef workerDef) {
         try {
             return DSL.using(conf).transactionResult(transactionResult -> {
-                        Long workerDefId = DSL.using(transactionResult)
-                                .insertInto(WORKER_DEFINITION)
-                                .set(
-                                        WorkerDef.mapper.write(
-                                                DSL.using(transactionResult)
-                                                        .newRecord(WORKER_DEFINITION),
-                                                workerDef
-                                        ))
-                                .returning(WORKER_DEFINITION.ID)
-                                .fetchOne()
-                                .getId();
+                Long workerDefId = DSL.using(transactionResult)
+                        .insertInto(WORKER_DEFINITION)
+                        .set(
+                                WorkerDef.mapper.write(
+                                        DSL.using(transactionResult).newRecord(WORKER_DEFINITION),
+                                        workerDef
+                        ))
+                        .returning(WORKER_DEFINITION.ID)
+                        .fetchOne()
+                        .getId();
 
-                        DSL.using(transactionResult).batchInsert(
+                DSL.using(transactionResult)
+                        .batchInsert(
                                 workerDef.getColumns()
                                         .stream()
                                         .map(inputColumn ->
@@ -206,10 +202,11 @@ public class WorkerDefDao {
                                         .peek(record -> record.setDefinitionId(workerDefId))
                                         .collect(Collectors.toList())
                         )
-                                .execute();
+                        .execute();
 
-                        if (workerDef.getParameters() != null) {
-                            DSL.using(transactionResult).batchInsert(
+                if (workerDef.getParameters() != null) {
+                    DSL.using(transactionResult)
+                            .batchInsert(
                                     workerDef.getParameters()
                                             .stream()
                                             .map(parameter ->
@@ -225,14 +222,12 @@ public class WorkerDefDao {
                                             )
                                             .collect(Collectors.toList())
                             )
-                                    .execute();
-                        }
+                            .execute();
+                }
 
-                        return getDetails(workerDefId, transactionResult);
-                    }
-            );
-        }
-        catch (DataAccessException exception) {
+                return getDetails(workerDefId, transactionResult);
+            });
+        } catch (DataAccessException exception) {
             throw new ApplicationException("Could not insert a Worker Definition", exception);
         }
     }
@@ -241,27 +236,21 @@ public class WorkerDefDao {
             Condition condition,
             org.jooq.Configuration transaction
     ) {
-        return DSL.using(transaction)
-                .select()
-                .from(WORKER_DEFINITION)
-                .leftJoin(WORKER_DEFINITION_COLUMN)
-                .on(WORKER_DEFINITION_COLUMN.DEFINITION_ID.eq(WORKER_DEFINITION.ID))
-                .where(condition)
-                .fetchStream()
-                .collect(WorkerDef.mapper
-                        .collectingWithColumns(
-                                WorkerDefColumn.workerDefColumnMapper
-                        )
-                )
-                .map(workerDef -> workerDef.toBuilder()
-                        .setParameters(
-                                getWorkerParameters(
-                                        workerDef.getId(),
-                                        transaction
-                                )
-                        )
-                        .build()
-                );
+        Optional<WorkerDef> workerDef = DSL.using(transaction)
+                    .select()
+                    .from(WORKER_DEFINITION)
+                    .leftJoin(WORKER_DEFINITION_COLUMN)
+                    .on(WORKER_DEFINITION_COLUMN.DEFINITION_ID.eq(WORKER_DEFINITION.ID))
+                    .where(condition)
+                    .fetchStream()
+                    .collect(WorkerDef.mapper
+                            .collectingWithColumns(
+                                    WorkerDefColumn.workerDefColumnMapper
+                            )
+                    );
+
+        return workerDef.flatMap(def -> getParameters(def, transaction));
+
     }
 
     public WorkerDef update(
@@ -293,16 +282,51 @@ public class WorkerDefDao {
         }
     }
 
-    private List<WorkerParameter> getWorkerParameters(
-            Long workerDefId,
+    private List<WorkerDef> getParameters(
+            List<WorkerDef> workerDefs,
             org.jooq.Configuration transaction
     ) {
-        return DSL.using(transaction)
-                .select()
-                .from(WORKER_PARAMETER)
-                .where(WORKER_PARAMETER.WORKER_DEFINITION_ID.eq(workerDefId))
-                .fetch()
+        Map<Long, List<WorkerParameter>> workerParameters =
+                DSL.using(transaction)
+                        .select()
+                        .from(WORKER_PARAMETER)
+                        .where(WORKER_PARAMETER.WORKER_DEFINITION_ID.in(
+                                workerDefs.stream()
+                                        .map(WorkerDef::getId)
+                                        .collect(Collectors.toList())
+                        ))
+                        .fetch()
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        record ->
+                                                record.into(WORKER_PARAMETER)
+                                                        .getWorkerDefinitionId(),
+                                        WorkerParameter.mapper
+                                )
+                        );
+
+        return workerDefs
                 .stream()
-                .collect(WorkerParameter.mapper);
+                .map(workerDef ->
+                        workerDef.toBuilder()
+                                .setParameters(
+                                        workerParameters.getOrDefault(
+                                                workerDef.getId(),
+                                                Collections.emptyList()
+                                        )
+                                )
+                                .build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    private Optional<WorkerDef> getParameters(
+            WorkerDef workerDef,
+            org.jooq.Configuration transaction) {
+
+        return getParameters(Collections.singletonList(workerDef), transaction)
+                .stream()
+                .findFirst();
     }
 }

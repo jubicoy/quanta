@@ -28,36 +28,38 @@ import {
 import { InvocationStatus } from '../../types';
 
 interface TableProps {
-  params: {
+  parameters: {
     name: string;
     description: string;
     nullable: boolean;
-    condition: string | null;
-    value: string | null;
+    type: string;
+    defaultValue: string | null;
   }[];
 }
 
-const ParamTable = ({ params }: TableProps) => (
+const ParamTable = ({ parameters }: TableProps) => (
   <Table>
     <TableHead>
       <TableRow>
         <TableCell style={{ width: '20%' }}>Name</TableCell>
-        <TableCell style={{ width: '40%' }}>Description</TableCell>
+        <TableCell style={{ width: '20%' }}>Description</TableCell>
+        <TableCell style={{ width: '20%' }}>Type</TableCell>
         <TableCell style={{ width: '20%' }}>Nullable</TableCell>
         <TableCell style={{ width: '20%' }}>Default value</TableCell>
       </TableRow>
     </TableHead>
     <TableBody>
-      {params.map(row => (
+      {parameters.map(row => (
         <TableRow key={row.name}>
           <TableCell>{row.name}</TableCell>
           <TableCell>{row.description}</TableCell>
+          <TableCell>{row.type}</TableCell>
           <TableCell>
             <Icon>
               {row.nullable ? 'check_circle' : 'block_circle'}
             </Icon>
           </TableCell>
-          <TableCell>{row.value}</TableCell>
+          <TableCell>{row.defaultValue}</TableCell>
         </TableRow>
       ))}
     </TableBody>
@@ -95,16 +97,7 @@ export default ({
       <LinearProgress variant='query' />
     );
   }
-  const additionalParams = worker.definition.additionalParams ?? undefined;
-  const paramsList = additionalParams
-    ? Object.keys(additionalParams).map(key => ({
-      name: key,
-      description: additionalParams[key].description,
-      nullable: additionalParams[key].nullable,
-      condition: additionalParams[key].condition ?? null,
-      value: additionalParams[key].value ?? ''
-    }))
-    : [];
+  const parameters = worker.definition.parameters ?? [];
 
   return (
     <>
@@ -155,11 +148,11 @@ export default ({
           </TableBody>
         </Table>
       </Paper>
-      {paramsList.length > 0 && (
+      {parameters.length > 0 && (
         <>
           <T variant='h5'>Parameters</T>
           <Paper className={clsx(common.topMargin, common.bottomMargin)}>
-            <ParamTable params={paramsList} />
+            <ParamTable parameters={parameters} />
           </Paper>
         </>
       )}

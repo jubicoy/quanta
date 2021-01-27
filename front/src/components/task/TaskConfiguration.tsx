@@ -24,7 +24,7 @@ import {
   OutputColumn,
   Task,
   TaskType,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { WorkerDefConfiguration } from './WorkerDefConfiguration';
 
@@ -47,11 +47,11 @@ interface TaskProps {
   dataConnection: DataConnection | null | undefined;
   setTaskColumnSelectors: (columnSelectors: ColumnSelector[]) => void;
   setTaskOutputColumns: (outputColumns: OutputColumn[]) => void;
-  setWorkerDef: (workerDef: WorkerDef | undefined, outputColumns: OutputColumn[], additionalParams?: Record<string, WorkerParameter>) => void;
+  setWorkerDef: (workerDef: WorkerDef | undefined, outputColumns: OutputColumn[]) => void;
   taskType: TaskType;
   setType: (set: TaskType) => void;
-  additionalParams?: Record<string, WorkerParameter>;
-  setAdditionalParams: (additionalParams: Record<string, WorkerParameter>) => void;
+  parameters?: Parameter[];
+  setParameters: (parameters: Parameter[]) => void;
   tasks: Task[] | undefined;
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
@@ -80,8 +80,8 @@ export const TaskConfiguration = ({
   setWorkerDef,
   taskType,
   setType,
-  additionalParams,
-  setAdditionalParams,
+  parameters,
+  setParameters,
   tasks,
   triggersAreValid,
   isCronTriggerValid,
@@ -175,8 +175,8 @@ export const TaskConfiguration = ({
                 setTaskColumnSelectors={setTaskColumnSelectors}
                 setTaskOutputColumns={setTaskOutputColumns}
                 setWorkerDef={setWorkerDef}
-                additionalParams={additionalParams}
-                setAdditionalParams={setAdditionalParams}
+                parameters={parameters}
+                setParameters={setParameters}
                 tasks={tasks}
                 triggersAreValid={triggersAreValid}
                 isCronTriggerValid={isCronTriggerValid}

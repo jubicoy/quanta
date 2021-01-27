@@ -1,8 +1,7 @@
 import {
   Worker,
   WorkerDef,
-  WorkerDefColumn,
-  WorkerParameter
+  WorkerDefColumn
 } from './Worker';
 import {
   DataSeries,
@@ -13,6 +12,12 @@ import { TIME_SERIES_MODIFIERS } from '.';
 export enum TaskType {
   'process' = 'process',
   'sync' = 'sync',
+}
+
+export interface Parameter {
+  id: number;
+  name: string;
+  value: string;
 }
 
 export interface OutputColumn {
@@ -34,7 +39,7 @@ export interface Task {
   taskTrigger: number | null;
   taskType: TaskType;
   deletedAt?: string;
-  additionalParams?: Record<string, WorkerParameter>;
+  parameters?: Parameter[];
 }
 
 export interface TaskQuery {
@@ -87,7 +92,7 @@ export interface Invocation {
   outputColumns: OutputColumn[];
   seriesResults: SeriesResult[];
   deletedAt?: string;
-  additionalParams?: Record<string, WorkerParameter>;
+  parameters?: Parameter[];
 }
 
 export interface OutputColumnWithInvocation extends OutputColumn {

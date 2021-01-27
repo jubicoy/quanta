@@ -33,7 +33,7 @@ import {
   Task,
   InvocationStatus,
   TaskType,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
 
@@ -286,11 +286,10 @@ export default ({
           name
         })}
         workerDef={editTask.workerDef}
-        setWorkerDef={(workerDef, outputColumns, additionalParams) => setEditTask({
+        setWorkerDef={(workerDef, outputColumns) => setEditTask({
           ...editTask,
           workerDef,
-          outputColumns,
-          additionalParams
+          outputColumns
         })}
         cronTrigger={editTask.cronTrigger}
         setCronTrigger={cronTrigger => setEditTask({
@@ -322,10 +321,10 @@ export default ({
           ...editTask,
           taskType
         })}
-        additionalParams={task.additionalParams}
-        setAdditionalParams={(additionalParams: Record<string, WorkerParameter>) => setEditTask({
-          ...task,
-          additionalParams
+        parameters={editTask.parameters}
+        setParameters={(parameters: Parameter[]) => setEditTask({
+          ...editTask,
+          parameters
         })}
         isCronTriggerValid={isCronTriggerValid}
         triggersAreValid={triggersAreValid}

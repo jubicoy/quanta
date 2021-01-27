@@ -36,6 +36,7 @@ import {
   mapWorkerDefOutputColumnWithAlias,
   mapWorkerDefColumnToOutputColumn,
   mapWorkerDefColumnWithAliasToOutputColumn,
+  Parameter,
   WorkerParameter
 } from '../../types';
 
@@ -94,9 +95,9 @@ interface WorkerDefProps {
   dataConnection: DataConnection | null | undefined;
   setTaskColumnSelectors: (columnSelectors: ColumnSelector[]) => void;
   setTaskOutputColumns: (outputColumns: OutputColumn[]) => void;
-  setWorkerDef: (set: WorkerDef, outputColumns: OutputColumn[], additionalParams?: Record<string, WorkerParameter>) => void;
-  additionalParams?: Record<string, WorkerParameter>;
-  setAdditionalParams: (additionalParams: Record<string, WorkerParameter>) => void;
+  setWorkerDef: (set: WorkerDef, outputColumns: OutputColumn[]) => void;
+  parameters?: Parameter[];
+  setParameters: (parameters: Parameter[]) => void;
   tasks: Task[] | undefined;
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
@@ -119,8 +120,8 @@ export const WorkerDefConfiguration = ({
   setTaskColumnSelectors,
   setTaskOutputColumns,
   setWorkerDef,
-  additionalParams,
-  setAdditionalParams,
+  parameters,
+  setParameters,
   tasks,
   triggersAreValid,
   isCronTriggerValid,
@@ -148,15 +149,27 @@ export const WorkerDefConfiguration = ({
     }))
     .filter(c => typeof c.value !== 'object');
 
-  const additionalParamsList = additionalParams
-    ? Object.keys(additionalParams).map(key => ({
-      name: key,
-      description: additionalParams[key].description,
-      nullable: additionalParams[key].nullable,
-      condition: additionalParams[key].condition ?? null,
-      value: additionalParams[key].value ?? ''
-    }))
-    : [];
+  let parametersList: WorkerParameter[] = [];
+
+  if (workerDef) {
+    if (workerDef.parameters) {
+      parametersList = workerDef.parameters;
+    }
+  }
+
+  if (parameters) {
+    parametersList = parametersList.map(parameter => {
+      const taskParameter = parameters.find(p => p.name === parameter.name);
+      if (taskParameter) {
+        return {
+          ...parameter,
+          id: taskParameter.id,
+          defaultValue: taskParameter.value
+        };
+      }
+      return parameter;
+    });
+  }
 
   function getSupportedColumnsForInputColumn (
     dataConnection: DataConnection | null | undefined,
@@ -311,14 +324,42 @@ export const WorkerDefConfiguration = ({
     onConfigChange(newConfig);
   };
 
-  const handleAdditionalParametersValueChange = (
+  const handleParametersValueChange = (
     name: string,
     value: string
   ) => {
-    if (additionalParams) {
-      const updatedAdditionalParams = additionalParams;
-      updatedAdditionalParams[name].value = value;
-      setAdditionalParams(updatedAdditionalParams);
+    if (parameters) {
+      const updatedParameters = parameters.map(parameter => {
+        if (parameter.name === name) {
+          return {
+            ...parameter,
+            value: value
+          };
+        }
+        return parameter;
+      });
+      setParameters(updatedParameters);
+    }
+    else {
+      if (workerDef) {
+        if (workerDef.parameters) {
+          const updatedParameters = workerDef.parameters.map(parameter => {
+            if (parameter.name === name) {
+              return {
+                id: -1,
+                name: parameter.name,
+                value: value
+              };
+            }
+            return {
+              id: -1,
+              name: parameter.name,
+              value: parameter.defaultValue ?? ''
+            };
+          });
+          setParameters(updatedParameters);
+        }
+      }
     }
   };
 
@@ -339,13 +380,12 @@ export const WorkerDefConfiguration = ({
                     type: 'Detect' as WorkerType,
                     name: '',
                     description: '',
-                    additionalParams: null,
+                    parameters: undefined,
                     columns: []
                   },
                   value?.columns.filter(column => column.columnType === 'output')
                     .map(mapWorkerDefColumnToOutputColumn)
-                    .sort((a, b) => a.index - b.index) ?? [],
-                  value?.additionalParams ?? undefined
+                    .sort((a, b) => a.index - b.index) ?? []
                 );
                 setColumnsOnWorkerDefChange(value);
               }}
@@ -520,7 +560,7 @@ export const WorkerDefConfiguration = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {editable ? additionalParamsList.map(param => (
+              {editable ? parametersList.map(param => (
                 <TableRow key={param.name}>
                   <TableCell>{param.name}</TableCell>
                   <TableCell>{param.description}</TableCell>
@@ -532,15 +572,15 @@ export const WorkerDefConfiguration = ({
                   <TableCell>
                     <TextField
                       fullWidth
-                      value={param.value || undefined}
-                      onChange={e => handleAdditionalParametersValueChange(
+                      value={param.defaultValue || undefined}
+                      onChange={e => handleParametersValueChange(
                         param.name,
                         e.target.value
                       )} />
                   </TableCell>
                 </TableRow>
               ))
-                : additionalParamsList.map(param => (
+                : parametersList.map(param => (
                   <TableRow key={param.name}>
                     <TableCell>{param.name}</TableCell>
                     <TableCell>{param.description}</TableCell>
@@ -549,7 +589,7 @@ export const WorkerDefConfiguration = ({
                         {param.nullable ? 'check_circle' : 'block_circle'}
                       </Icon>
                     </TableCell>
-                    <TableCell>{param.value}</TableCell>
+                    <TableCell>{param.defaultValue}</TableCell>
                   </TableRow>
                 ))
               }
@@ -633,20 +673,22 @@ export const WorkerDefConfiguration = ({
           : `${taskTrigger || ''}`}
         tooltip={'Task is launched whenever an Invocation of referred Task is completed'}
       />
-      {configList.map(config => (
-        <TableRowItem
-          key={config.name}
-          title={config.name}
-          value={editable
-            ? (
-              <ConfigInput
-                value={config.value}
-                onChange={(set) => setConfig(config.name, set)}
-              />
-            )
-            : `${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`}
-        />
-      ))}
+      {configList
+        .filter(config => config.name !== 'parameters')
+        .map(config => (
+          <TableRowItem
+            key={config.name}
+            title={config.name}
+            value={editable
+              ? (
+                <ConfigInput
+                  value={config.value}
+                  onChange={(set) => setConfig(config.name, set)}
+                />
+              )
+              : `${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`}
+          />
+        ))}
     </>
   );
 };

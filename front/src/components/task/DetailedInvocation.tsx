@@ -87,7 +87,10 @@ export default ({
               }))
               .filter(c => typeof c.value !== 'object')
               .map(config => (
-                <TableRowItem title={config.name} value={`${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`} />
+                <TableRowItem
+                  key={config.name}
+                  title={config.name}
+                  value={`${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`} />
               ))}
             {
               invocation.worker && (
@@ -112,11 +115,7 @@ export default ({
             }
             <TableRowItem title={'Additional Parameters'} value={null} />
             {
-              invocation.additionalParams && Object.keys(invocation.additionalParams)
-                .map(key => ({
-                  name: key,
-                  value: invocation.additionalParams?.[key].value
-                }))
+              invocation.parameters && invocation.parameters
                 .map(workerParameter => (
                   <TableRowItem
                     title={workerParameter.name}

@@ -24,6 +24,7 @@ import org.jooq.impl.DSL;
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
 import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -82,78 +83,75 @@ public class InvocationDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-        return DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
-                .select()
-                .from(INVOCATION)
-                .leftJoin(TASK)
-                .on(INVOCATION.TASK_ID.eq(TASK.ID))
-                .leftJoin(WORKER)
-                .on(INVOCATION.WORKER_ID.eq(WORKER.ID))
-                .leftJoin(WORKER_DEFINITION)
-                .on(WORKER.DEFINITION_ID.eq(WORKER_DEFINITION.ID))
-                .leftJoin(INVOCATION_COLUMN_SELECTOR)
-                .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
-                .leftJoin(WORKER_DEFINITION_COLUMN)
-                .on(INVOCATION_COLUMN_SELECTOR.WORKER_DEFINITION_COLUMN_ID
-                        .eq(WORKER_DEFINITION_COLUMN.ID)
-                )
-                .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .where(condition)
-                .limit(pagination.getLimit().orElse(10000))
-                .offset(pagination.getOffset().orElse(0))
-                .fetchStream()
-                .collect(
-                        Invocation.mapper
-                                .withTask(Task.mapper.withWorkerDef(
-                                        WorkerDef.mapper
-                                        )
-                                )
-                                .withWorker(Worker.mapper.withDefinition(
-                                        WorkerDef.mapper
-                                        )
-                                )
-                                .collectingManyWithColumnSelectors(
-                                        ColumnSelector.invocationColumnSelectorMapper
-                                                .withSeries(DataSeries.mapper)
-                                                .withWorkerDefColumn(
-                                                        WorkerDefColumn.workerDefColumnMapper
+        List<Invocation> invocations = DSL.using(conf).transactionResult(transaction ->
+                DSL.using(transaction)
+                        .select()
+                        .from(INVOCATION)
+                        .leftJoin(TASK)
+                        .on(INVOCATION.TASK_ID.eq(TASK.ID))
+                        .leftJoin(WORKER)
+                        .on(INVOCATION.WORKER_ID.eq(WORKER.ID))
+                        .leftJoin(WORKER_DEFINITION)
+                        .on(WORKER.DEFINITION_ID.eq(WORKER_DEFINITION.ID))
+                        .leftJoin(INVOCATION_COLUMN_SELECTOR)
+                        .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
+                        .leftJoin(WORKER_DEFINITION_COLUMN)
+                        .on(INVOCATION_COLUMN_SELECTOR.WORKER_DEFINITION_COLUMN_ID
+                                .eq(WORKER_DEFINITION_COLUMN.ID)
+                        )
+                        .leftJoin(DATA_SERIES)
+                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                        .where(condition)
+                        .limit(pagination.getLimit().orElse(10000))
+                        .offset(pagination.getOffset().orElse(0))
+                        .fetchStream()
+                        .collect(
+                                Invocation.mapper
+                                        .withTask(Task.mapper.withWorkerDef(
+                                                WorkerDef.mapper
                                                 )
-                                )
-                )
-                .stream()
-                .map(invocation -> invocation.toBuilder()
-                        .setWorker(
-                                Objects.nonNull(invocation.getWorker())
-                                        ? invocation.getWorker()
-                                        .toBuilder()
-                                        .setDefinition(
-                                                workerDefDao.getDetailsWithTransaction(
-                                                        invocation.getWorker()
-                                                                .getDefinition()
-                                                                .getId(),
-                                                        transaction
-                                                ).orElseThrow(NotFoundException::new)
                                         )
-                                        .build()
-                                        : null
+                                        .withWorker(Worker.mapper.withDefinition(
+                                                WorkerDef.mapper
+                                                )
+                                        )
+                                        .collectingManyWithColumnSelectors(
+                                                ColumnSelector.invocationColumnSelectorMapper
+                                                        .withSeries(DataSeries.mapper)
+                                                        .withWorkerDefColumn(
+                                                                WorkerDefColumn.workerDefColumnMapper
+                                                        )
+                                        )
                         )
-                        .setOutputColumns(
-                                getInvocationOutputColumns(
-                                        invocation.getId(),
-                                        transaction
+                        .stream()
+                        .map(invocation -> invocation.toBuilder()
+                                .setWorker(
+                                        Objects.nonNull(invocation.getWorker())
+                                                ? invocation.getWorker()
+                                                .toBuilder()
+                                                .setDefinition(
+                                                        workerDefDao.getDetailsWithTransaction(
+                                                                invocation.getWorker()
+                                                                        .getDefinition()
+                                                                        .getId(),
+                                                                transaction
+                                                        ).orElseThrow(NotFoundException::new)
+                                                )
+                                                .build()
+                                                : null
                                 )
-                        )
-                        .setParameters(
-                                getInvocationParameters(
-                                        invocation.getId(),
-                                        transaction
+                                .setOutputColumns(
+                                        getInvocationOutputColumns(
+                                                invocation.getId(),
+                                                transaction
+                                        )
                                 )
+                                .build()
                         )
-                        .build()
-                )
-                .collect(Collectors.toList())
+                        .collect(Collectors.toList())
         );
+
+        return getParameters(invocations, conf);
     }
 
     public Optional<Invocation> getDetails(Long id) {
@@ -175,7 +173,7 @@ public class InvocationDao {
             Condition condition,
             Configuration transaction
     ) {
-        return DSL.using(transaction)
+        Optional<Invocation> invocationResult = DSL.using(transaction)
                 .select()
                 .from(INVOCATION)
                 .leftJoin(TASK)
@@ -234,6 +232,8 @@ public class InvocationDao {
                         )
                         .build()
                 );
+
+        return invocationResult.flatMap(invocation -> getParameters(invocation, transaction));
     }
 
     public Long getLatestCompleteInvocationNumber(Long taskId) {
@@ -285,9 +285,7 @@ public class InvocationDao {
                                             .stream()
                                             .map(columnSelector ->
                                                     ColumnSelector.invocationColumnSelectorMapper
-                                                            .write(
-                                                                    DSL.using(transaction)
-                                                                            .newRecord(
+                                                            .write(DSL.using(transaction).newRecord(
                                                                     INVOCATION_COLUMN_SELECTOR
                                                                     ),
                                                                     columnSelector
@@ -328,8 +326,7 @@ public class InvocationDao {
                                             .stream()
                                             .map(parameter ->
                                                     Parameter
-                                                            .invocationParameterRecordMapper
-                                                            .write(
+                                                            .invocationParameterRecordMapper.write(
                                                             DSL.using(transaction).newRecord(
                                                                     INVOCATION_PARAMETER
                                                             ),
@@ -443,16 +440,52 @@ public class InvocationDao {
         return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 
-    private List<Parameter> getInvocationParameters(
-            Long invocationId,
+    private List<Invocation> getParameters(
+            List<Invocation> invocations,
             org.jooq.Configuration transaction
     ) {
-        return DSL.using(transaction)
-                .select()
-                .from(INVOCATION_PARAMETER)
-                .where(INVOCATION_PARAMETER.INVOCATION_ID.eq(invocationId))
-                .fetch()
+        Map<Long, List<Parameter>> parameters =
+                DSL.using(transaction)
+                        .select()
+                        .from(INVOCATION_PARAMETER)
+                        .where(INVOCATION_PARAMETER.INVOCATION_ID.in(
+                                invocations.stream()
+                                        .map(Invocation::getId)
+                                        .collect(Collectors.toList())
+                        ))
+                        .fetch()
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        record ->
+                                                record.into(INVOCATION_PARAMETER)
+                                                        .getInvocationId(),
+                                        Parameter.invocationParameterRecordMapper
+                                )
+                        );
+
+        return invocations
                 .stream()
-                .collect(Parameter.invocationParameterRecordMapper);
+                .map(invocation ->
+                        invocation.toBuilder()
+                                .setParameters(
+                                        parameters.getOrDefault(
+                                                invocation.getId(),
+                                                Collections.emptyList()
+                                        )
+                                )
+                                .build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    private Optional<Invocation> getParameters(
+            Invocation invocation,
+            org.jooq.Configuration transaction
+    ) {
+
+        return getParameters(Collections.singletonList(invocation), transaction)
+                .stream()
+                .findFirst();
     }
 }

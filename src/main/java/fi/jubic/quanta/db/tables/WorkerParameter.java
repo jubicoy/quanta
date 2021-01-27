@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class WorkerParameter extends TableImpl<WorkerParameterRecord> {
 
-    private static final long serialVersionUID = -792034064;
+    private static final long serialVersionUID = -668153759;
 
     /**
      * The reference instance of <code>worker_parameter</code>
@@ -78,7 +78,12 @@ public class WorkerParameter extends TableImpl<WorkerParameterRecord> {
     /**
      * The column <code>worker_parameter.default_value</code>.
      */
-    public final TableField<WorkerParameterRecord, String> DEFAULT_VALUE = createField("default_value", org.jooq.impl.SQLDataType.CLOB, this, "");
+    public final TableField<WorkerParameterRecord, String> DEFAULT_VALUE = createField("default_value", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
+
+    /**
+     * The column <code>worker_parameter.nullable</code>.
+     */
+    public final TableField<WorkerParameterRecord, Boolean> NULLABLE = createField("nullable", org.jooq.impl.SQLDataType.BOOLEAN.nullable(false).defaultValue(org.jooq.impl.DSL.field("false", org.jooq.impl.SQLDataType.BOOLEAN)), this, "");
 
     /**
      * The column <code>worker_parameter.worker_definition_id</code>.

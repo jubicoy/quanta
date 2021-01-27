@@ -542,8 +542,11 @@
             <column name="type" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="default_value" type="text">
+            <column name="default_value" type="varchar(255)">
                 <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
             </column>
             <column name="worker_definition_id" type="bigint">
                 <constraints
@@ -561,7 +564,7 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="value" type="text">
+            <column name="value" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
             <column name="task_id" type="bigint">
@@ -580,7 +583,7 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="value" type="text">
+            <column name="value" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
             <column name="invocation_id" type="bigint">

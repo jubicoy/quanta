@@ -35,7 +35,7 @@ import {
   DataSeries,
   TaskType,
   ColumnSelector,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
 
@@ -47,7 +47,7 @@ const initialTask = {
     type: 'Detect' as WorkerType,
     name: '',
     description: '',
-    additionalParams: null,
+    parameters: undefined,
     columns: []
   },
   config: {
@@ -58,7 +58,7 @@ const initialTask = {
   cronTrigger: null,
   taskTrigger: null,
   taskType: TaskType.process,
-  additionalParams: undefined
+  parameters: undefined
 };
 
 interface Props {
@@ -401,11 +401,10 @@ export default ({
         name={task.name}
         setName={name => handleTaskNameChange(name)}
         workerDef={task.workerDef}
-        setWorkerDef={(workerDef, outputColumns, additionalParams) => setTask({
+        setWorkerDef={(workerDef, outputColumns) => setTask({
           ...task,
           workerDef,
           outputColumns,
-          additionalParams,
           columnSelectors: []
         })}
         cronTrigger={task.cronTrigger}
@@ -437,10 +436,10 @@ export default ({
           ...task,
           taskType
         })}
-        additionalParams={task.additionalParams}
-        setAdditionalParams={(additionalParams: Record<string, WorkerParameter>) => setTask({
+        parameters={task.parameters}
+        setParameters={(parameters: Parameter[]) => setTask({
           ...task,
-          additionalParams
+          parameters
         })}
         tasks={tasks}
         triggersAreValid={triggersAreValid}

@@ -53,6 +53,7 @@ public class TaskDomain {
                 .setCronTrigger(newTask.getCronTrigger())
                 .setTaskTrigger(newTask.getTaskTrigger())
                 .setConfig(newTask.getConfig())
+                .setParameters(newTask.getParameters())
                 .build();
     }
 
@@ -74,6 +75,7 @@ public class TaskDomain {
                 .setConfig(task.getConfig())
                 .setColumnSelectors(task.getColumnSelectors())
                 .setOutputColumns(task.getOutputColumns())
+                .setParameters(task.getParameters())
                 .setStatus(InvocationStatus.Pending)
                 .setStartTime(null)
                 .setEndTime(null)

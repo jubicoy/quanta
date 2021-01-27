@@ -21,8 +21,10 @@ public abstract class WorkerParameter {
 
     public abstract String getType();
 
+    public abstract boolean getNullable();
+
     @Nullable
-    public abstract String getValue();
+    public abstract String getDefaultValue();
 
     public abstract WorkerParameter.Builder toBuilder();
 
@@ -44,6 +46,7 @@ public abstract class WorkerParameter {
                     .setNameAccessor(WORKER_PARAMETER.NAME)
                     .setDescriptionAccessor(WORKER_PARAMETER.DESCRIPTION)
                     .setTypeAccessor(WORKER_PARAMETER.TYPE)
-                    .setValueAccessor(WORKER_PARAMETER.DEFAULT_VALUE)
+                    .setDefaultValueAccessor(WORKER_PARAMETER.DEFAULT_VALUE)
+                    .setNullableAccessor(WORKER_PARAMETER.NULLABLE)
                     .build();
 }

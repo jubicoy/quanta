@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskParameter extends TableImpl<TaskParameterRecord> {
 
-    private static final long serialVersionUID = 175867753;
+    private static final long serialVersionUID = -1851495825;
 
     /**
      * The reference instance of <code>task_parameter</code>
@@ -68,7 +68,7 @@ public class TaskParameter extends TableImpl<TaskParameterRecord> {
     /**
      * The column <code>task_parameter.value</code>.
      */
-    public final TableField<TaskParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<TaskParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
 
     /**
      * The column <code>task_parameter.task_id</code>.
