@@ -4,14 +4,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.InvocationRecord;
-import fi.jubic.quanta.util.Json;
 
 import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static fi.jubic.quanta.db.tables.Invocation.INVOCATION;
 
@@ -29,8 +27,6 @@ public abstract class Invocation {
 
     @Nullable
     public abstract Worker getWorker();
-
-    public abstract Map<String, Object> getConfig();
 
     @Nullable
     public abstract Instant getStartTime();
@@ -65,10 +61,8 @@ public abstract class Invocation {
                     .setWorker(null)
                     .setColumnSelectors(Collections.emptyList())
                     .setOutputColumns(Collections.emptyList())
-                    .setConfig(Collections.emptyMap())
                     .setSeriesResults(Collections.emptyList())
-                    .setDetectionResults(Collections.emptyList())
-                    .setParameters(Collections.emptyList());
+                    .setDetectionResults(Collections.emptyList());
         }
     }
 
@@ -81,7 +75,6 @@ public abstract class Invocation {
             .setWorkerAccessor(INVOCATION.WORKER_ID, Worker::getId)
             .setStartTimeAccessor(INVOCATION.STARTING_TIME, Timestamp::from, Timestamp::toInstant)
             .setEndTimeAccessor(INVOCATION.ENDING_TIME, Timestamp::from, Timestamp::toInstant)
-            .setConfigAccessor(INVOCATION.CONFIG, Json::writeConfig, Json::extractConfig)
             .setDeletedAtAccessor(INVOCATION.DELETED_AT, Timestamp::from, Timestamp::toInstant)
             .build();
 }

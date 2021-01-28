@@ -27,7 +27,8 @@ import {
   useRouter,
   useTasks,
   useNameCheck,
-  useCronValidation
+  useCronValidation,
+  useMultipleParametersValidation
 } from '../../hooks';
 import {
   Task,
@@ -87,6 +88,18 @@ export default ({
     nameArray
   );
 
+  const { parametersIsValid: parametersValidation, helperTexts: parametersHelperTexts } = useMultipleParametersValidation(
+    editTask ? editTask.parameters : undefined,
+    editTask ? editTask.workerDef?.parameters : undefined
+  );
+
+  const areAllParametersValid = useMemo(
+    () => {
+      return parametersValidation.every(parameterValid => parameterValid);
+    },
+    [parametersValidation]
+  );
+
   const { isCronTriggerValid, cronHelperText } = useCronValidation(
     editTask?.cronTrigger ?? ''
   );
@@ -95,7 +108,8 @@ export default ({
     return editTask?.name !== ''
     && nameIsValid
     && triggersAreValid
-    && isCronTriggerValid;
+    && isCronTriggerValid
+    && areAllParametersValid;
   };
 
   useEffect(
@@ -301,11 +315,6 @@ export default ({
           ...editTask,
           taskTrigger
         })}
-        configurations={editTask.config}
-        onConfigChange={config => setEditTask({
-          ...editTask,
-          config
-        })}
         dataConnection={dataConnection}
         setTaskColumnSelectors={columnSelectors => setEditTask({
           ...editTask,
@@ -322,10 +331,12 @@ export default ({
           taskType
         })}
         parameters={editTask.parameters}
-        setParameters={(parameters: Parameter[]) => setEditTask({
+        setParameters={(parameters?: Parameter[]) => setEditTask({
           ...editTask,
           parameters
         })}
+        parametersIsValid={parametersValidation}
+        parametersHelperTexts={parametersHelperTexts}
         isCronTriggerValid={isCronTriggerValid}
         triggersAreValid={triggersAreValid}
         cronHelperText={cronHelperText}

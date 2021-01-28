@@ -26,7 +26,8 @@ import {
   useTasks,
   useNameCheck,
   useMultipleNamesCheck,
-  useCronValidation
+  useCronValidation,
+  useMultipleParametersValidation
 } from '../../hooks';
 import { useAlerts } from '../../alert';
 import {
@@ -49,9 +50,6 @@ const initialTask = {
     description: '',
     parameters: undefined,
     columns: []
-  },
-  config: {
-    interval: 3600
   },
   columnSelectors: [],
   outputColumns: [],
@@ -228,6 +226,22 @@ export default ({
     },
     [aliasesIsValid]
   );
+
+  const {
+    parametersIsValid: parametersValidation,
+    helperTexts: parametersHelperTexts
+  } = useMultipleParametersValidation(
+    task.parameters,
+    task.workerDef?.parameters
+  );
+
+  const areAllParametersValid = useMemo(
+    () => {
+      return parametersValidation.every(parameterValid => parameterValid);
+    },
+    [parametersValidation]
+  );
+
   const validateTask = (): boolean => {
     switch (task.taskType) {
       case TaskType.process:
@@ -236,6 +250,7 @@ export default ({
           && task.name !== ''
           && nameIsValid
           && areAllAliasesValid
+          && areAllParametersValid
           && triggersAreValid
           && isCronTriggerValid;
       case TaskType.sync:
@@ -417,11 +432,6 @@ export default ({
           ...task,
           taskTrigger
         })}
-        configurations={task.config}
-        onConfigChange={config => setTask({
-          ...task,
-          config
-        })}
         dataConnection={dataConnection}
         setTaskColumnSelectors={columnSelectors => setTask({
           ...task,
@@ -437,10 +447,12 @@ export default ({
           taskType
         })}
         parameters={task.parameters}
-        setParameters={(parameters: Parameter[]) => setTask({
+        setParameters={(parameters?: Parameter[]) => setTask({
           ...task,
           parameters
         })}
+        parametersIsValid={parametersValidation}
+        parametersHelperTexts={parametersHelperTexts}
         tasks={tasks}
         triggersAreValid={triggersAreValid}
         isCronTriggerValid={isCronTriggerValid}

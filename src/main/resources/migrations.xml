@@ -565,7 +565,7 @@
                 <constraints nullable="false" />
             </column>
             <column name="value" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="task_id" type="bigint">
                 <constraints
@@ -584,7 +584,7 @@
                 <constraints nullable="false" />
             </column>
             <column name="value" type="varchar(255)">
-                <constraints nullable="false" />
+                <constraints nullable="true" />
             </column>
             <column name="invocation_id" type="bigint">
                 <constraints
@@ -595,5 +595,7 @@
             </column>
         </createTable>
         <dropColumn tableName="invocation" columnName="additional_params" />
+        <dropColumn tableName="task" columnName="config" />
+        <dropColumn tableName="invocation" columnName="config" />
     </changeSet>
 </databaseChangeLog>

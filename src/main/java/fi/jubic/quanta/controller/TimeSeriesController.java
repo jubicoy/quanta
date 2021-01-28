@@ -452,36 +452,6 @@ public class TimeSeriesController {
                 .withFilters(Collections.emptyList());
         TimeSeriesQuery[] finalTimeSeriesQuery = {timeSeriesQuery};
 
-        invocation.getConfig()
-                .entrySet()
-                .stream()
-                .filter(config -> config.getValue() != null)
-                .forEach(config -> {
-                    switch (config.getKey()) {
-                        case "interval":
-                            Integer interval = (Integer) config.getValue();
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0]
-                                    .withIntervalSeconds(
-                                            Long.valueOf(interval)
-                                    );
-                            break;
-                        case "start":
-                            Instant start = Instant.parse(config.getValue().toString());
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0].withStart(
-                                    start
-                            );
-                            break;
-                        case "end":
-                            Instant end = Instant.parse(config.getValue().toString());
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0].withEnd(
-                                    end
-                            );
-                            break;
-                        default:
-                            break;
-                    }
-                });
-
         return selections
                 .stream()
                 .flatMap(selection ->
@@ -519,36 +489,6 @@ public class TimeSeriesController {
                 .withIntervalSeconds(60 * 60 * 24 * 7L)
                 .withFilters(Collections.emptyList());
         TimeSeriesQuery[] finalTimeSeriesQuery = {timeSeriesQuery};
-
-        invocation.getConfig()
-                .entrySet()
-                .stream()
-                .filter(config -> config.getValue() != null)
-                .forEach(config -> {
-                    switch (config.getKey()) {
-                        case "interval":
-                            Integer interval = (Integer) config.getValue();
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0]
-                                    .withIntervalSeconds(
-                                            Long.valueOf(interval)
-                                    );
-                            break;
-                        case "start":
-                            Instant start = Instant.parse(config.getValue().toString());
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0].withStart(
-                                    start
-                            );
-                            break;
-                        case "end":
-                            Instant end = Instant.parse(config.getValue().toString());
-                            finalTimeSeriesQuery[0] = finalTimeSeriesQuery[0].withEnd(
-                                    end
-                            );
-                            break;
-                        default:
-                            break;
-                    }
-                });
 
         return selections
                 .stream()

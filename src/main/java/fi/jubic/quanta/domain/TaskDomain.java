@@ -52,7 +52,6 @@ public class TaskDomain {
                 .setName(newTask.getName())
                 .setCronTrigger(newTask.getCronTrigger())
                 .setTaskTrigger(newTask.getTaskTrigger())
-                .setConfig(newTask.getConfig())
                 .setParameters(newTask.getParameters())
                 .build();
     }
@@ -72,7 +71,6 @@ public class TaskDomain {
                 .setInvocationNumber(0L)
                 .setTask(task)
                 .setWorker(worker)
-                .setConfig(task.getConfig())
                 .setColumnSelectors(task.getColumnSelectors())
                 .setOutputColumns(task.getOutputColumns())
                 .setParameters(task.getParameters())
@@ -89,9 +87,9 @@ public class TaskDomain {
                 .setInvocationNumber(0L)
                 .setTask(task)
                 .setWorker(null)
-                .setConfig(task.getConfig())
                 .setColumnSelectors(task.getColumnSelectors())
                 .setOutputColumns(task.getOutputColumns())
+                .setParameters(task.getParameters())
                 .setStatus(InvocationStatus.Pending)
                 .setStartTime(null)
                 .setEndTime(null)

@@ -80,18 +80,6 @@ export default ({
             </TableRow>
             <TableRowItem title='Cron Trigger' value={invocation.task.cronTrigger || ''} />
             <TableRowItem title='Task Trigger' value={invocation.task.taskTrigger || ''} />
-            {Object.keys(invocation.task.config)
-              .map(key => ({
-                name: key,
-                value: invocation.task.config[key]
-              }))
-              .filter(c => typeof c.value !== 'object')
-              .map(config => (
-                <TableRowItem
-                  key={config.name}
-                  title={config.name}
-                  value={`${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`} />
-              ))}
             {
               invocation.worker && (
                 <>
@@ -113,7 +101,7 @@ export default ({
                 </>
               )
             }
-            <TableRowItem title={'Additional Parameters'} value={null} />
+            <TableRowItem title={'Parameters'} value={null} />
             {
               invocation.parameters && invocation.parameters
                 .map(workerParameter => (

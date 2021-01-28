@@ -6,15 +6,12 @@ import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Parameter;
 
 import java.util.List;
-import java.util.Map;
 
 @EasyValue
 @JsonDeserialize(builder = InvocationResponse.Builder.class)
 public abstract class InvocationResponse {
 
     public abstract Long getInvocationId();
-
-    public abstract Map<String, Object> getConfig();
 
     public abstract List<Parameter> getParameters();
 
@@ -31,7 +28,6 @@ public abstract class InvocationResponse {
     public static InvocationResponse of(Invocation invocation) {
         return InvocationResponse.builder()
                 .setInvocationId(invocation.getId())
-                .setConfig(invocation.getConfig())
                 .setParameters(invocation.getParameters())
                 .build();
     }

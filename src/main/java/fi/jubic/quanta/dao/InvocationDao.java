@@ -270,8 +270,8 @@ public class InvocationDao {
                                 Invocation.mapper.write(
                                         DSL.using(transaction).newRecord(INVOCATION),
                                         invocation.toBuilder()
-                                                .setInvocationNumber(nextInvocationNumber)
-                                                .build()
+                                        .setInvocationNumber(nextInvocationNumber)
+                                        .build()
                                 )
                         )
                         .returning(INVOCATION.ID)

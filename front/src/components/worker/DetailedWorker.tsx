@@ -97,7 +97,7 @@ export default ({
       <LinearProgress variant='query' />
     );
   }
-  const parameters = worker.definition.parameters ?? [];
+  const parameters = worker.definition.parameters || [];
 
   return (
     <>

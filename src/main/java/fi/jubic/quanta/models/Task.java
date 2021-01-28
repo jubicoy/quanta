@@ -4,14 +4,12 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
-import fi.jubic.quanta.util.Json;
 
 import javax.annotation.Nullable;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static fi.jubic.quanta.db.tables.Task.TASK;
 
@@ -25,8 +23,6 @@ public abstract class Task {
 
     @Nullable
     public abstract WorkerDef getWorkerDef();
-
-    public abstract Map<String, Object> getConfig();
 
     public abstract List<ColumnSelector> getColumnSelectors();
 
@@ -57,10 +53,8 @@ public abstract class Task {
         public Builder defaults(Builder builder) {
             return builder
                     .setWorkerDef(null)
-                    .setConfig(Collections.emptyMap())
                     .setColumnSelectors(Collections.emptyList())
-                    .setOutputColumns(Collections.emptyList())
-                    .setParameters(Collections.emptyList());
+                    .setOutputColumns(Collections.emptyList());
         }
     }
 
@@ -68,7 +62,6 @@ public abstract class Task {
             .setIdAccessor(TASK.ID)
             .setNameAccessor(TASK.NAME)
             .setWorkerDefAccessor(TASK.WORKER_DEF_ID, WorkerDef::getId)
-            .setConfigAccessor(TASK.CONFIG, Json::writeConfig, Json::extractConfig)
             .setCronTriggerAccessor(TASK.CRON_TRIGGER)
             .setTaskTriggerAccessor(TASK.TASK_TRIGGER)
             .setTaskTypeAccessor(TASK.TASK_TYPE, TaskType::toString, TaskType::parse)

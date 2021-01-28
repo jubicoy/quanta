@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Task extends TableImpl<TaskRecord> {
 
-    private static final long serialVersionUID = 1273030990;
+    private static final long serialVersionUID = 347985506;
 
     /**
      * The reference instance of <code>task</code>
@@ -70,11 +70,6 @@ public class Task extends TableImpl<TaskRecord> {
      * The column <code>task.worker_def_id</code>.
      */
     public final TableField<TaskRecord, Long> WORKER_DEF_ID = createField("worker_def_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
-
-    /**
-     * The column <code>task.config</code>.
-     */
-    public final TableField<TaskRecord, String> CONFIG = createField("config", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>task.cron_trigger</code>.

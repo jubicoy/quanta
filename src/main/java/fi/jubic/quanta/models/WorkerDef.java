@@ -10,7 +10,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static fi.jubic.quanta.db.tables.WorkerDefinition.WORKER_DEFINITION;
 
@@ -44,7 +43,6 @@ public abstract class WorkerDef {
         @Override
         public Builder defaults(Builder builder) {
             return builder
-                    .setParameters(Collections.emptyList())
                     .setColumns(Collections.emptyList());
         }
     }

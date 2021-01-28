@@ -105,32 +105,28 @@ public class WorkerDefDao {
                                 .insertInto(WORKER_DEFINITION)
                                 .set(
                                         WorkerDef.mapper.write(
-                                                DSL.using(transaction)
-                                                        .newRecord(WORKER_DEFINITION),
-                                                workerDef
-                                        ))
+                                        DSL.using(transaction).newRecord(WORKER_DEFINITION),
+                                        workerDef
+                                ))
                                 .returning(WORKER_DEFINITION.ID)
                                 .fetchOne()
                                 .getId();
 
-                        DSL.using(result).batchInsert(
-                                workerDef.getColumns()
-                                        .stream()
-                                        .map(column ->
-                                                WorkerDefColumn
-                                                        .workerDefColumnMapper
-                                                        .write(
+                        DSL.using(result)
+                                .batchInsert(
+                                        workerDef.getColumns()
+                                                .stream()
+                                                .map(column ->
+                                                        WorkerDefColumn.workerDefColumnMapper.write(
                                                                 DSL.using(conf).newRecord(
                                                                         WORKER_DEFINITION_COLUMN
                                                                 ),
                                                                 column
                                                         )
                                         )
-                                        .peek(record ->
-                                                record.setDefinitionId(workerDefId)
-                                        )
+                                        .peek(record -> record.setDefinitionId(workerDefId))
                                         .collect(Collectors.toList())
-                        )
+                                )
                                 .execute();
 
                         if (workerDef.getParameters() != null) {
@@ -259,18 +255,18 @@ public class WorkerDefDao {
     ) {
         try {
             return DSL.using(conf).transactionResult(transaction -> {
-                        WorkerDef workerDef = updater.apply(getDetails(id));
+                WorkerDef workerDef = updater.apply(getDetails(id));
 
-                        DSL.using(conf)
-                                .update(WORKER_DEFINITION)
-                                .set(
-                                        WorkerDef.mapper.write(
-                                                DSL.using(conf).newRecord(WORKER_DEFINITION),
-                                                workerDef
-                                        )
+                DSL.using(conf)
+                        .update(WORKER_DEFINITION)
+                        .set(
+                                WorkerDef.mapper.write(
+                                        DSL.using(conf).newRecord(WORKER_DEFINITION),
+                                        workerDef
                                 )
-                                .where(WORKER_DEFINITION.ID.eq(workerDef.getId()))
-                                .execute();
+                        )
+                        .where(WORKER_DEFINITION.ID.eq(workerDef.getId()))
+                        .execute();
 
                         return getDetails(id)
                                 .orElseThrow(IllegalStateException::new);

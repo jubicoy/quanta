@@ -27,9 +27,8 @@ export const useTask = (
     (updatedTask: Task) => {
       client.updateTask(updatedTask)
         .then(setTask);
-      refresh();
     },
-    [refresh]
+    []
   );
 
   const invoke = useCallback(

@@ -17,7 +17,7 @@ export enum TaskType {
 export interface Parameter {
   id: number;
   name: string;
-  value: string;
+  value: string | null;
 }
 
 export interface OutputColumn {
@@ -32,7 +32,6 @@ export interface Task {
   id: number;
   name: string;
   workerDef?: WorkerDef;
-  config: Record<string, string | number | boolean>;
   columnSelectors: ColumnSelector[];
   outputColumns: OutputColumn[];
   cronTrigger: string | null;
@@ -85,7 +84,6 @@ export interface Invocation {
   status: InvocationStatus;
   task: Task;
   worker?: Worker;
-  config: Record<string, string | number | boolean>;
   startTime: number | null;
   endTime: number | null;
   columnSelectors: ColumnSelector[];

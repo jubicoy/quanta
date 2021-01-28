@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Invocation extends TableImpl<InvocationRecord> {
 
-    private static final long serialVersionUID = -862377788;
+    private static final long serialVersionUID = -1864161336;
 
     /**
      * The reference instance of <code>invocation</code>
@@ -80,11 +80,6 @@ public class Invocation extends TableImpl<InvocationRecord> {
      * The column <code>invocation.worker_id</code>.
      */
     public final TableField<InvocationRecord, Long> WORKER_ID = createField("worker_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
-
-    /**
-     * The column <code>invocation.config</code>.
-     */
-    public final TableField<InvocationRecord, String> CONFIG = createField("config", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>invocation.starting_time</code>.

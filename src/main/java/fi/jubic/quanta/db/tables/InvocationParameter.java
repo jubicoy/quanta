@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InvocationParameter extends TableImpl<InvocationParameterRecord> {
 
-    private static final long serialVersionUID = -965967230;
+    private static final long serialVersionUID = 1964969251;
 
     /**
      * The reference instance of <code>invocation_parameter</code>
@@ -68,7 +68,7 @@ public class InvocationParameter extends TableImpl<InvocationParameterRecord> {
     /**
      * The column <code>invocation_parameter.value</code>.
      */
-    public final TableField<InvocationParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.VARCHAR(255).nullable(false), this, "");
+    public final TableField<InvocationParameterRecord, String> VALUE = createField("value", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
 
     /**
      * The column <code>invocation_parameter.invocation_id</code>.

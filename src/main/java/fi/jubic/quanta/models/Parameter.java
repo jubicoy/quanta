@@ -6,6 +6,8 @@ import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.InvocationParameterRecord;
 import fi.jubic.quanta.db.tables.records.TaskParameterRecord;
 
+import javax.annotation.Nullable;
+
 import static fi.jubic.quanta.db.tables.InvocationParameter.INVOCATION_PARAMETER;
 import static fi.jubic.quanta.db.tables.TaskParameter.TASK_PARAMETER;
 
@@ -17,6 +19,7 @@ public abstract class Parameter {
 
     public abstract String getName();
 
+    @Nullable
     public abstract String getValue();
 
     public abstract Builder toBuilder();
