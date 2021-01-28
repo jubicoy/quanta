@@ -223,7 +223,8 @@ public class WorkerDefDao {
 
                 return getDetails(workerDefId, transactionResult);
             });
-        } catch (DataAccessException exception) {
+        }
+        catch (DataAccessException exception) {
             throw new ApplicationException("Could not insert a Worker Definition", exception);
         }
     }

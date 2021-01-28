@@ -23,8 +23,8 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
-import java.util.Comparator;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -119,7 +119,8 @@ public class InvocationDao {
                                                 ColumnSelector.invocationColumnSelectorMapper
                                                         .withSeries(DataSeries.mapper)
                                                         .withWorkerDefColumn(
-                                                                WorkerDefColumn.workerDefColumnMapper
+                                                                WorkerDefColumn
+                                                                        .workerDefColumnMapper
                                                         )
                                         )
                         )
