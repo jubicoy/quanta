@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InvocationOutputColumn extends TableImpl<InvocationOutputColumnRecord> {
 
-    private static final long serialVersionUID = 644405175;
+    private static final long serialVersionUID = 1059582190;
 
     /**
      * The reference instance of <code>invocation_output_column</code>

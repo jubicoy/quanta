@@ -21,6 +21,7 @@ import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
+import fi.jubic.quanta.db.tables.WorkerParameter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,7 +47,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = 455233757;
+    private static final long serialVersionUID = -1248376093;
 
     /**
      * The reference instance of <code></code>
@@ -139,6 +140,11 @@ public class DefaultSchema extends SchemaImpl {
     public final WorkerDefinitionColumn WORKER_DEFINITION_COLUMN = fi.jubic.quanta.db.tables.WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN;
 
     /**
+     * The table <code>worker_parameter</code>.
+     */
+    public final WorkerParameter WORKER_PARAMETER = fi.jubic.quanta.db.tables.WorkerParameter.WORKER_PARAMETER;
+
+    /**
      * No further instances allowed
      */
     private DefaultSchema() {
@@ -179,6 +185,7 @@ public class DefaultSchema extends SchemaImpl {
             User.USER,
             Worker.WORKER,
             WorkerDefinition.WORKER_DEFINITION,
-            WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN);
+            WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN,
+            WorkerParameter.WORKER_PARAMETER);
     }
 }

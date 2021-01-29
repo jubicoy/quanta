@@ -10,7 +10,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static fi.jubic.quanta.db.tables.WorkerDefinition.WORKER_DEFINITION;
 
@@ -27,7 +26,7 @@ public abstract class WorkerDef {
     public abstract String getDescription();
 
     @Nullable
-    public abstract Map<String, Parameter> getAdditionalParams();
+    public abstract List<WorkerParameter> getParameters();
 
     public abstract List<WorkerDefColumn> getColumns();
 
@@ -54,11 +53,6 @@ public abstract class WorkerDef {
             .setTypeAccessor(WORKER_DEFINITION.TYPE, WorkerType::name, WorkerType::valueOf)
             .setNameAccessor(WORKER_DEFINITION.NAME)
             .setDescriptionAccessor(WORKER_DEFINITION.DESCRIPTION)
-            .setAdditionalParamsAccessor(
-                    WORKER_DEFINITION.PARAMS,
-                    Parameter::writeParameters,
-                    Parameter::extractParameters
-            )
             .setDeletedAtAccessor(
                     WORKER_DEFINITION.DELETED_AT,
                     Timestamp::from,

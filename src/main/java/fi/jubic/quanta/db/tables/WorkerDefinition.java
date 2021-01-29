@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class WorkerDefinition extends TableImpl<WorkerDefinitionRecord> {
 
-    private static final long serialVersionUID = -785463598;
+    private static final long serialVersionUID = 27465838;
 
     /**
      * The reference instance of <code>worker_definition</code>
@@ -75,11 +75,6 @@ public class WorkerDefinition extends TableImpl<WorkerDefinitionRecord> {
      * The column <code>worker_definition.description</code>.
      */
     public final TableField<WorkerDefinitionRecord, String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>worker_definition.params</code>.
-     */
-    public final TableField<WorkerDefinitionRecord, String> PARAMS = createField("params", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
 
     /**
      * The column <code>worker_definition.deleted_at</code>.

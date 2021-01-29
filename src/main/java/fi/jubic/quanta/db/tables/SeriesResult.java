@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class SeriesResult extends TableImpl<SeriesResultRecord> {
 
-    private static final long serialVersionUID = 996710461;
+    private static final long serialVersionUID = 1145012532;
 
     /**
      * The reference instance of <code>series_result</code>

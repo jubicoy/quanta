@@ -81,6 +81,7 @@ public class WorkerDomain {
             workerDef = worker.getDefinition()
                     .toBuilder()
                     .setId(0L)
+                    .setParameters(worker.getDefinition().getParameters())
                     .build();
         }
 

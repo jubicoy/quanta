@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InvocationOutputColumnRecord extends UpdatableRecordImpl<InvocationOutputColumnRecord> implements Record8<Long, Integer, String, String, String, String, Boolean, Long> {
 
-    private static final long serialVersionUID = -1454702007;
+    private static final long serialVersionUID = -303896497;
 
     /**
      * Setter for <code>invocation_output_column.id</code>.

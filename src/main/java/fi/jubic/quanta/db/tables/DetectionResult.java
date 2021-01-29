@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DetectionResult extends TableImpl<DetectionResultRecord> {
 
-    private static final long serialVersionUID = -942844779;
+    private static final long serialVersionUID = -1824311426;
 
     /**
      * The reference instance of <code>detection_result</code>
