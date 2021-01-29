@@ -557,5 +557,45 @@
             </column>
         </createTable>
         <dropColumn tableName="worker_definition" columnName="params" />
+        <createTable tableName="task_parameter">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="fk_task_parameter_task_id"
+                    references="task(id)"
+                />
+            </column>
+        </createTable>
+        <dropColumn tableName="task" columnName="additional_params" />
+        <createTable tableName="invocation_parameter">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="invocation_id" type="bigint">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="fk_invocation_parameter"
+                    references="invocation(id)"
+                />
+            </column>
+        </createTable>
+        <dropColumn tableName="invocation" columnName="additional_params" />
+        <dropColumn tableName="task" columnName="config" />
+        <dropColumn tableName="invocation" columnName="config" />
     </changeSet>
 </databaseChangeLog>

@@ -1,10 +1,12 @@
 package fi.jubic.quanta.dao;
 
+import fi.jubic.quanta.db.tables.records.TaskParameterRecord;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.OutputColumn;
+import fi.jubic.quanta.models.Parameter;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.WorkerDef;
@@ -16,7 +18,9 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.ws.rs.NotFoundException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
@@ -28,6 +32,7 @@ import static fi.jubic.quanta.db.Tables.DATA_SERIES;
 import static fi.jubic.quanta.db.Tables.TASK;
 import static fi.jubic.quanta.db.Tables.TASK_COLUMN_SELECTOR;
 import static fi.jubic.quanta.db.Tables.TASK_OUTPUT_COLUMN;
+import static fi.jubic.quanta.db.Tables.TASK_PARAMETER;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 
@@ -59,7 +64,7 @@ public class TaskDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-        return DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
+        List<Task> tasks = DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
                 .select()
                 .from(TASK)
                 .leftJoin(WORKER_DEFINITION)
@@ -110,6 +115,8 @@ public class TaskDao {
                 )
                 .collect(Collectors.toList())
         );
+
+        return getParameters(tasks, conf);
     }
 
     public Optional<Task> getDetails(Long id) {
@@ -125,7 +132,7 @@ public class TaskDao {
     }
 
     private Optional<Task> getDetails(Condition condition, Configuration transaction) {
-        return DSL.using(transaction)
+        Optional<Task> taskResult = DSL.using(transaction)
                 .select()
                 .from(TASK)
                 .leftJoin(WORKER_DEFINITION)
@@ -173,6 +180,8 @@ public class TaskDao {
                         )
                         .build()
                 );
+
+        return taskResult.flatMap(task -> getParameters(task, transaction));
     }
 
 
@@ -229,6 +238,25 @@ public class TaskDao {
                             .execute();
                 }
 
+                if (task.getParameters() != null) {
+                    DSL.using(transaction)
+                            .batchInsert(
+                                    task.getParameters()
+                                            .stream()
+                                            .map(parameter ->
+                                                    Parameter.taskParameterRecordMapper.write(
+                                                            DSL.using(conf).newRecord(
+                                                                    TASK_PARAMETER
+                                                            ),
+                                                            parameter
+                                                    )
+                                            )
+                                            .peek(record -> record.setTaskId(taskId))
+                                            .collect(Collectors.toList())
+                            )
+                            .execute();
+                }
+
                 return getDetails(taskId, transaction)
                         .orElseThrow(IllegalStateException::new);
             });
@@ -257,6 +285,22 @@ public class TaskDao {
                         .where(TASK.ID.eq(task.getId()))
                         .execute();
 
+                if (task.getParameters() != null) {
+                    task.getParameters()
+                            .forEach(parameter -> {
+                                TaskParameterRecord record = DSL.using(conf)
+                                        .select()
+                                        .from(TASK_PARAMETER)
+                                        .where(TASK_PARAMETER.ID.eq(parameter.getId()))
+                                        .fetchOneInto(TASK_PARAMETER);
+
+                                Parameter.taskParameterRecordMapper.write(
+                                        record,
+                                        parameter
+                                ).update();
+                            });
+                }
+
                 // TODO: Update columns if necessary
 
                 return getDetails(id)
@@ -278,5 +322,54 @@ public class TaskDao {
                 .where(TASK_OUTPUT_COLUMN.TASK_ID.eq(taskId))
                 .fetchStream()
                 .collect(OutputColumn.taskOutputColumnMapper);
+    }
+
+    private List<Task> getParameters(
+            List<Task> tasks,
+            org.jooq.Configuration transaction
+    ) {
+        Map<Long, List<Parameter>> parameters =
+                DSL.using(transaction)
+                        .select()
+                        .from(TASK_PARAMETER)
+                        .where(TASK_PARAMETER.TASK_ID.in(
+                                tasks.stream()
+                                        .map(Task::getId)
+                                        .collect(Collectors.toList())
+                        ))
+                        .fetch()
+                        .stream()
+                        .collect(
+                                Collectors.groupingBy(
+                                        record ->
+                                                record.into(TASK_PARAMETER)
+                                                        .getTaskId(),
+                                        Parameter.taskParameterRecordMapper
+                                )
+                        );
+
+        return tasks
+                .stream()
+                .map(task ->
+                        task.toBuilder()
+                                .setParameters(
+                                        parameters.getOrDefault(
+                                                task.getId(),
+                                                Collections.emptyList()
+                                        )
+                                )
+                                .build()
+                )
+                .collect(Collectors.toList());
+    }
+
+    private Optional<Task> getParameters(
+            Task task,
+            org.jooq.Configuration transaction
+    ) {
+
+        return getParameters(Collections.singletonList(task), transaction)
+                .stream()
+                .findFirst();
     }
 }

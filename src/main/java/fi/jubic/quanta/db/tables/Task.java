@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Task extends TableImpl<TaskRecord> {
 
-    private static final long serialVersionUID = 638504825;
+    private static final long serialVersionUID = 347985506;
 
     /**
      * The reference instance of <code>task</code>
@@ -72,11 +72,6 @@ public class Task extends TableImpl<TaskRecord> {
     public final TableField<TaskRecord, Long> WORKER_DEF_ID = createField("worker_def_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>task.config</code>.
-     */
-    public final TableField<TaskRecord, String> CONFIG = createField("config", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
      * The column <code>task.cron_trigger</code>.
      */
     public final TableField<TaskRecord, String> CRON_TRIGGER = createField("cron_trigger", org.jooq.impl.SQLDataType.VARCHAR(255), this, "");
@@ -95,11 +90,6 @@ public class Task extends TableImpl<TaskRecord> {
      * The column <code>task.deleted_at</code>.
      */
     public final TableField<TaskRecord, Timestamp> DELETED_AT = createField("deleted_at", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
-
-    /**
-     * The column <code>task.additional_params</code>.
-     */
-    public final TableField<TaskRecord, String> ADDITIONAL_PARAMS = createField("additional_params", org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * Create a <code>task</code> table reference

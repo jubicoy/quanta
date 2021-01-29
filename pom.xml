@@ -114,6 +114,8 @@
             | external_client
             | series_table
             | worker_parameter
+            | task_parameter
+            | invocation_parameter
         </snoozy.jooq.includes>
         <snoozy.jooq.excludes>
             DATABASECHANGELOG
