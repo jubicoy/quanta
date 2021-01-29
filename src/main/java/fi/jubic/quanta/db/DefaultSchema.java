@@ -12,11 +12,13 @@ import fi.jubic.quanta.db.tables.ExternalClient;
 import fi.jubic.quanta.db.tables.Invocation;
 import fi.jubic.quanta.db.tables.InvocationColumnSelector;
 import fi.jubic.quanta.db.tables.InvocationOutputColumn;
+import fi.jubic.quanta.db.tables.InvocationParameter;
 import fi.jubic.quanta.db.tables.SeriesResult;
 import fi.jubic.quanta.db.tables.SeriesTable;
 import fi.jubic.quanta.db.tables.Task;
 import fi.jubic.quanta.db.tables.TaskColumnSelector;
 import fi.jubic.quanta.db.tables.TaskOutputColumn;
+import fi.jubic.quanta.db.tables.TaskParameter;
 import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
@@ -47,7 +49,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultSchema extends SchemaImpl {
 
-    private static final long serialVersionUID = -1248376093;
+    private static final long serialVersionUID = 104632271;
 
     /**
      * The reference instance of <code></code>
@@ -95,6 +97,11 @@ public class DefaultSchema extends SchemaImpl {
     public final InvocationOutputColumn INVOCATION_OUTPUT_COLUMN = fi.jubic.quanta.db.tables.InvocationOutputColumn.INVOCATION_OUTPUT_COLUMN;
 
     /**
+     * The table <code>invocation_parameter</code>.
+     */
+    public final InvocationParameter INVOCATION_PARAMETER = fi.jubic.quanta.db.tables.InvocationParameter.INVOCATION_PARAMETER;
+
+    /**
      * The table <code>series_result</code>.
      */
     public final SeriesResult SERIES_RESULT = fi.jubic.quanta.db.tables.SeriesResult.SERIES_RESULT;
@@ -118,6 +125,11 @@ public class DefaultSchema extends SchemaImpl {
      * The table <code>task_output_column</code>.
      */
     public final TaskOutputColumn TASK_OUTPUT_COLUMN = fi.jubic.quanta.db.tables.TaskOutputColumn.TASK_OUTPUT_COLUMN;
+
+    /**
+     * The table <code>task_parameter</code>.
+     */
+    public final TaskParameter TASK_PARAMETER = fi.jubic.quanta.db.tables.TaskParameter.TASK_PARAMETER;
 
     /**
      * The table <code>user</code>.
@@ -177,11 +189,13 @@ public class DefaultSchema extends SchemaImpl {
             Invocation.INVOCATION,
             InvocationColumnSelector.INVOCATION_COLUMN_SELECTOR,
             InvocationOutputColumn.INVOCATION_OUTPUT_COLUMN,
+            InvocationParameter.INVOCATION_PARAMETER,
             SeriesResult.SERIES_RESULT,
             SeriesTable.SERIES_TABLE,
             Task.TASK,
             TaskColumnSelector.TASK_COLUMN_SELECTOR,
             TaskOutputColumn.TASK_OUTPUT_COLUMN,
+            TaskParameter.TASK_PARAMETER,
             User.USER,
             Worker.WORKER,
             WorkerDefinition.WORKER_DEFINITION,
