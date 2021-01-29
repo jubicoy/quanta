@@ -29,7 +29,7 @@ export const QUERY_SELECTOR_REGEX
   = '^(?:(avg|min|max|sum|group_by|where)\\()?'             // G1: (Optional) Modifiers (grouping/modifier)
   + '(series|result|result_output):'                        // G2: Type
   + '([a-zA-Z0-9-_]+)'                                      // G3: Series name
-  + '(?:\\.([0-9]+))?'                                      // G4: (Optional) InvocationNumber
+  + '(?:\\.([0-9]+|latest))?'                               // G4: (Optional) InvocationNumber
   + '\\.([a-zA-Z0-9-_]+)'                                   // G5: Column name
   + '((?:\\s)?(?:=|!=|>|>=|<|<=)(?:\\s)?\'[^\'()]+\')?\\)?' // G6: (Optional) Filter condition
   + '(?: as ([a-zA-Z0-9-_]+))?$';                           // G7: (Optional) Alias
