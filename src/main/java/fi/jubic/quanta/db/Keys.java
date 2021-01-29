@@ -21,6 +21,7 @@ import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
+import fi.jubic.quanta.db.tables.WorkerParameter;
 import fi.jubic.quanta.db.tables.records.ColumnRecord;
 import fi.jubic.quanta.db.tables.records.DataConnectionRecord;
 import fi.jubic.quanta.db.tables.records.DataSeriesRecord;
@@ -37,6 +38,7 @@ import fi.jubic.quanta.db.tables.records.TaskRecord;
 import fi.jubic.quanta.db.tables.records.UserRecord;
 import fi.jubic.quanta.db.tables.records.WorkerDefinitionColumnRecord;
 import fi.jubic.quanta.db.tables.records.WorkerDefinitionRecord;
+import fi.jubic.quanta.db.tables.records.WorkerParameterRecord;
 import fi.jubic.quanta.db.tables.records.WorkerRecord;
 
 import javax.annotation.Generated;
@@ -92,6 +94,7 @@ public class Keys {
     public static final UniqueKey<WorkerDefinitionRecord> WORKER_DEFINITION_PKEY = UniqueKeys0.WORKER_DEFINITION_PKEY;
     public static final UniqueKey<WorkerDefinitionRecord> WORKER_DEFINITION_NAME_KEY = UniqueKeys0.WORKER_DEFINITION_NAME_KEY;
     public static final UniqueKey<WorkerDefinitionColumnRecord> WORKER_DEFINITION_COLUMN_PKEY = UniqueKeys0.WORKER_DEFINITION_COLUMN_PKEY;
+    public static final UniqueKey<WorkerParameterRecord> WORKER_PARAMETER_PKEY = UniqueKeys0.WORKER_PARAMETER_PKEY;
 
     // -------------------------------------------------------------------------
     // FOREIGN KEY definitions
@@ -116,6 +119,7 @@ public class Keys {
     public static final ForeignKey<TaskOutputColumnRecord, TaskRecord> TASK_OUTPUT_COLUMN__FK_TASK_OUTPUT_COLUMN_TASK_ID = ForeignKeys0.TASK_OUTPUT_COLUMN__FK_TASK_OUTPUT_COLUMN_TASK_ID;
     public static final ForeignKey<WorkerRecord, WorkerDefinitionRecord> WORKER__FK_WORKER_WORKER_DEF_ID = ForeignKeys0.WORKER__FK_WORKER_WORKER_DEF_ID;
     public static final ForeignKey<WorkerDefinitionColumnRecord, WorkerDefinitionRecord> WORKER_DEFINITION_COLUMN__FK_WORKER_DEFINITION_INPUT_COLUMN_WORKER_DEFINITION_ID = ForeignKeys0.WORKER_DEFINITION_COLUMN__FK_WORKER_DEFINITION_INPUT_COLUMN_WORKER_DEFINITION_ID;
+    public static final ForeignKey<WorkerParameterRecord, WorkerDefinitionRecord> WORKER_PARAMETER__FK_WORKER_PARAMETER_WORKER_DEFINITION_ID = ForeignKeys0.WORKER_PARAMETER__FK_WORKER_PARAMETER_WORKER_DEFINITION_ID;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -145,6 +149,7 @@ public class Keys {
         public static final UniqueKey<WorkerDefinitionRecord> WORKER_DEFINITION_PKEY = Internal.createUniqueKey(WorkerDefinition.WORKER_DEFINITION, "worker_definition_pkey", WorkerDefinition.WORKER_DEFINITION.ID);
         public static final UniqueKey<WorkerDefinitionRecord> WORKER_DEFINITION_NAME_KEY = Internal.createUniqueKey(WorkerDefinition.WORKER_DEFINITION, "worker_definition_name_key", WorkerDefinition.WORKER_DEFINITION.NAME);
         public static final UniqueKey<WorkerDefinitionColumnRecord> WORKER_DEFINITION_COLUMN_PKEY = Internal.createUniqueKey(WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN, "worker_definition_column_pkey", WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN.ID);
+        public static final UniqueKey<WorkerParameterRecord> WORKER_PARAMETER_PKEY = Internal.createUniqueKey(WorkerParameter.WORKER_PARAMETER, "worker_parameter_pkey", WorkerParameter.WORKER_PARAMETER.ID);
     }
 
     private static class ForeignKeys0 {
@@ -167,5 +172,6 @@ public class Keys {
         public static final ForeignKey<TaskOutputColumnRecord, TaskRecord> TASK_OUTPUT_COLUMN__FK_TASK_OUTPUT_COLUMN_TASK_ID = Internal.createForeignKey(fi.jubic.quanta.db.Keys.TASK_PKEY, TaskOutputColumn.TASK_OUTPUT_COLUMN, "task_output_column__fk_task_output_column_task_id", TaskOutputColumn.TASK_OUTPUT_COLUMN.TASK_ID);
         public static final ForeignKey<WorkerRecord, WorkerDefinitionRecord> WORKER__FK_WORKER_WORKER_DEF_ID = Internal.createForeignKey(fi.jubic.quanta.db.Keys.WORKER_DEFINITION_PKEY, Worker.WORKER, "worker__fk_worker_worker_def_id", Worker.WORKER.DEFINITION_ID);
         public static final ForeignKey<WorkerDefinitionColumnRecord, WorkerDefinitionRecord> WORKER_DEFINITION_COLUMN__FK_WORKER_DEFINITION_INPUT_COLUMN_WORKER_DEFINITION_ID = Internal.createForeignKey(fi.jubic.quanta.db.Keys.WORKER_DEFINITION_PKEY, WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN, "worker_definition_column__fk_worker_definition_input_column_worker_definition_id", WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN.DEFINITION_ID);
+        public static final ForeignKey<WorkerParameterRecord, WorkerDefinitionRecord> WORKER_PARAMETER__FK_WORKER_PARAMETER_WORKER_DEFINITION_ID = Internal.createForeignKey(fi.jubic.quanta.db.Keys.WORKER_DEFINITION_PKEY, WorkerParameter.WORKER_PARAMETER, "worker_parameter__fk_worker_parameter_worker_definition_id", WorkerParameter.WORKER_PARAMETER.WORKER_DEFINITION_ID);
     }
 }

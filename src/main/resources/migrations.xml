@@ -528,4 +528,34 @@
             UPDATE invocation_output_column SET class = 'java.time.Instant' WHERE class = 'java.time.LocalDateTime' OR class = 'java.time.LocalDate';
         </sql>
     </changeSet>
+    <changeSet id="8" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <createTable tableName="worker_parameter">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="description" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="type" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="default_value" type="varchar(255)">
+                <constraints nullable="true" />
+            </column>
+            <column name="nullable" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+            <column name="worker_definition_id" type="bigint">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="fk_worker_parameter_worker_definition_id"
+                        references="worker_definition(id)"
+                />
+            </column>
+        </createTable>
+        <dropColumn tableName="worker_definition" columnName="params" />
+    </changeSet>
 </databaseChangeLog>

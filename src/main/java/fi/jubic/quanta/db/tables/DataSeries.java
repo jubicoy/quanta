@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DataSeries extends TableImpl<DataSeriesRecord> {
 
-    private static final long serialVersionUID = -1844643956;
+    private static final long serialVersionUID = 754046709;
 
     /**
      * The reference instance of <code>data_series</code>

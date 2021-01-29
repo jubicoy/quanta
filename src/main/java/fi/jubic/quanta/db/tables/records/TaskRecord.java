@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskRecord extends UpdatableRecordImpl<TaskRecord> implements Record9<Long, String, Long, String, String, Long, String, Timestamp, String> {
 
-    private static final long serialVersionUID = -97826837;
+    private static final long serialVersionUID = 2044545393;
 
     /**
      * Setter for <code>task.id</code>.

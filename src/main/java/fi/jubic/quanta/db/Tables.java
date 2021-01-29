@@ -21,6 +21,7 @@ import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
+import fi.jubic.quanta.db.tables.WorkerParameter;
 
 import javax.annotation.Generated;
 
@@ -122,4 +123,9 @@ public class Tables {
      * The table <code>worker_definition_column</code>.
      */
     public static final WorkerDefinitionColumn WORKER_DEFINITION_COLUMN = fi.jubic.quanta.db.tables.WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN;
+
+    /**
+     * The table <code>worker_parameter</code>.
+     */
+    public static final WorkerParameter WORKER_PARAMETER = fi.jubic.quanta.db.tables.WorkerParameter.WORKER_PARAMETER;
 }

@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DetectionResultRecord extends UpdatableRecordImpl<DetectionResultRecord> implements Record8<Long, Long, Timestamp, Timestamp, String, String, Double, String> {
 
-    private static final long serialVersionUID = 106106348;
+    private static final long serialVersionUID = 334766246;
 
     /**
      * Setter for <code>detection_result.id</code>.

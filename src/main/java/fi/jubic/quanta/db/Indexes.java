@@ -21,6 +21,7 @@ import fi.jubic.quanta.db.tables.User;
 import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
+import fi.jubic.quanta.db.tables.WorkerParameter;
 
 import javax.annotation.Generated;
 
@@ -69,6 +70,7 @@ public class Indexes {
     public static final Index WORKER_DEFINITION_NAME_KEY = Indexes0.WORKER_DEFINITION_NAME_KEY;
     public static final Index WORKER_DEFINITION_PKEY = Indexes0.WORKER_DEFINITION_PKEY;
     public static final Index WORKER_DEFINITION_COLUMN_PKEY = Indexes0.WORKER_DEFINITION_COLUMN_PKEY;
+    public static final Index WORKER_PARAMETER_PKEY = Indexes0.WORKER_PARAMETER_PKEY;
 
     // -------------------------------------------------------------------------
     // [#1459] distribute members to avoid static initialisers > 64kb
@@ -98,5 +100,6 @@ public class Indexes {
         public static Index WORKER_DEFINITION_NAME_KEY = Internal.createIndex("worker_definition_name_key", WorkerDefinition.WORKER_DEFINITION, new OrderField[] { WorkerDefinition.WORKER_DEFINITION.NAME }, true);
         public static Index WORKER_DEFINITION_PKEY = Internal.createIndex("worker_definition_pkey", WorkerDefinition.WORKER_DEFINITION, new OrderField[] { WorkerDefinition.WORKER_DEFINITION.ID }, true);
         public static Index WORKER_DEFINITION_COLUMN_PKEY = Internal.createIndex("worker_definition_column_pkey", WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN, new OrderField[] { WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN.ID }, true);
+        public static Index WORKER_PARAMETER_PKEY = Internal.createIndex("worker_parameter_pkey", WorkerParameter.WORKER_PARAMETER, new OrderField[] { WorkerParameter.WORKER_PARAMETER.ID }, true);
     }
 }

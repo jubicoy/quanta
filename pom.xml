@@ -113,6 +113,7 @@
             | user
             | external_client
             | series_table
+            | worker_parameter
         </snoozy.jooq.includes>
         <snoozy.jooq.excludes>
             DATABASECHANGELOG

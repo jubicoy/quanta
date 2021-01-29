@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Invocation extends TableImpl<InvocationRecord> {
 
-    private static final long serialVersionUID = -1548666078;
+    private static final long serialVersionUID = 316796121;
 
     /**
      * The reference instance of <code>invocation</code>

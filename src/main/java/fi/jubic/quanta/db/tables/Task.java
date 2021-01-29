@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Task extends TableImpl<TaskRecord> {
 
-    private static final long serialVersionUID = -967321328;
+    private static final long serialVersionUID = 638504825;
 
     /**
      * The reference instance of <code>task</code>

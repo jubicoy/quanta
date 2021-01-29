@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ExternalClient extends TableImpl<ExternalClientRecord> {
 
-    private static final long serialVersionUID = 1325719332;
+    private static final long serialVersionUID = -1454404645;
 
     /**
      * The reference instance of <code>external_client</code>

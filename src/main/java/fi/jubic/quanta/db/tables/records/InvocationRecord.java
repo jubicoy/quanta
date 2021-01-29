@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class InvocationRecord extends UpdatableRecordImpl<InvocationRecord> implements Record10<Long, Long, String, Long, Long, String, Timestamp, Timestamp, Timestamp, String> {
 
-    private static final long serialVersionUID = -1571804530;
+    private static final long serialVersionUID = -1516129080;
 
     /**
      * Setter for <code>invocation.id</code>.

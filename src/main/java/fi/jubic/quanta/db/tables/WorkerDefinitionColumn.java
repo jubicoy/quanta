@@ -40,7 +40,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class WorkerDefinitionColumn extends TableImpl<WorkerDefinitionColumnRecord> {
 
-    private static final long serialVersionUID = -1878880207;
+    private static final long serialVersionUID = -1157945446;
 
     /**
      * The reference instance of <code>worker_definition_column</code>

@@ -28,7 +28,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class TaskOutputColumnRecord extends UpdatableRecordImpl<TaskOutputColumnRecord> implements Record8<Long, Integer, String, String, String, String, Boolean, Long> {
 
-    private static final long serialVersionUID = 1223656573;
+    private static final long serialVersionUID = 1811132803;
 
     /**
      * Setter for <code>task_output_column.id</code>.

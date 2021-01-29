@@ -30,7 +30,7 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DataConnectionRecord extends UpdatableRecordImpl<DataConnectionRecord> implements Record6<Long, String, String, String, String, Timestamp> {
 
-    private static final long serialVersionUID = 1385099567;
+    private static final long serialVersionUID = 126117045;
 
     /**
      * Setter for <code>data_connection.id</code>.
