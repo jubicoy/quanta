@@ -3,6 +3,7 @@ package fi.jubic.quanta.external.importer.csv;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.exception.ApplicationException;
+import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.external.importer.Types;
 import fi.jubic.quanta.models.Column;
@@ -20,6 +21,7 @@ import fi.jubic.quanta.models.typemetadata.CsvTypeMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -98,22 +100,24 @@ public class CsvImporter implements Importer {
         ) {
             parser = csvFormat.parse(input);
 
-            List<List<String>> sampleRows = StreamSupport.stream(parser.spliterator(), false)
-                    .limit(rows)
-                    .map(record -> IntStream.range(0, record.size())
-                            .boxed()
-                            .map(record::get)
-                            .collect(Collectors.toList())
-                    )
-                    .collect(Collectors.toList());
-
             List<Column> columns = dataSeries.getColumns();
+
+            List<CSVRecord> records = StreamSupport
+                    .stream(parser.spliterator(), false)
+                    .limit(rows)
+                    .collect(Collectors.toList());
 
             if (columns.isEmpty()) {
                 // Auto-detect types from CSVRecords
-                Map<String, String> csvMap = parser.iterator().next().toMap(); // Map<Header, Data>
 
                 List<String> headers = csvSeriesConfig.getHeaders();
+                Map<String, String> csvMap = records
+                        .stream()
+                        .findFirst()
+                        .orElseThrow(
+                                () -> new InputException("Can not import empty CSV file.")
+                        )
+                        .toMap(); // Map<Header, Data>
 
                 Map<String, Integer> headersMap;
                 // If custom headers are provided
@@ -155,6 +159,18 @@ public class CsvImporter implements Importer {
                         }).collect(Collectors.toList());
 
             }
+
+            List<List<String>> sampleRows = records
+                     .stream()
+                     .map(
+                             record -> IntStream.range(0, record.size())
+                                     .boxed()
+                                     .map(record::get)
+                                     .collect(Collectors.toList())
+                     )
+                     .collect(Collectors.toList());
+
+            input.close();
 
             return DataSample.builder()
                     .setDataSeries(
