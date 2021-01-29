@@ -17,4 +17,5 @@ export { useInitialContext } from './useInitialContext';
 export { useExternalClientsOfTask } from './useExternalClientsOfTask';
 export { useNameCheck } from './useNameCheck';
 export { useMultipleNamesCheck } from './useMultipleNamesCheck';
+export { useMultipleParametersValidation } from './useMultipleParametersValidation';
 export { useCronValidation } from './useCronValidation';

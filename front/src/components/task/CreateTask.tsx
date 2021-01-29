@@ -26,7 +26,8 @@ import {
   useTasks,
   useNameCheck,
   useMultipleNamesCheck,
-  useCronValidation
+  useCronValidation,
+  useMultipleParametersValidation
 } from '../../hooks';
 import { useAlerts } from '../../alert';
 import {
@@ -35,7 +36,7 @@ import {
   DataSeries,
   TaskType,
   ColumnSelector,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
 
@@ -47,18 +48,15 @@ const initialTask = {
     type: 'Detect' as WorkerType,
     name: '',
     description: '',
-    additionalParams: null,
+    parameters: undefined,
     columns: []
-  },
-  config: {
-    interval: 3600
   },
   columnSelectors: [],
   outputColumns: [],
   cronTrigger: null,
   taskTrigger: null,
   taskType: TaskType.process,
-  additionalParams: undefined
+  parameters: undefined
 };
 
 interface Props {
@@ -228,6 +226,22 @@ export default ({
     },
     [aliasesIsValid]
   );
+
+  const {
+    parametersIsValid: parametersValidation,
+    helperTexts: parametersHelperTexts
+  } = useMultipleParametersValidation(
+    task.parameters,
+    task.workerDef?.parameters
+  );
+
+  const areAllParametersValid = useMemo(
+    () => {
+      return parametersValidation.every(parameterValid => parameterValid);
+    },
+    [parametersValidation]
+  );
+
   const validateTask = (): boolean => {
     switch (task.taskType) {
       case TaskType.process:
@@ -236,6 +250,7 @@ export default ({
           && task.name !== ''
           && nameIsValid
           && areAllAliasesValid
+          && areAllParametersValid
           && triggersAreValid
           && isCronTriggerValid;
       case TaskType.sync:
@@ -401,11 +416,10 @@ export default ({
         name={task.name}
         setName={name => handleTaskNameChange(name)}
         workerDef={task.workerDef}
-        setWorkerDef={(workerDef, outputColumns, additionalParams) => setTask({
+        setWorkerDef={(workerDef, outputColumns) => setTask({
           ...task,
           workerDef,
           outputColumns,
-          additionalParams,
           columnSelectors: []
         })}
         cronTrigger={task.cronTrigger}
@@ -417,11 +431,6 @@ export default ({
         setTaskTrigger={taskTrigger => setTask({
           ...task,
           taskTrigger
-        })}
-        configurations={task.config}
-        onConfigChange={config => setTask({
-          ...task,
-          config
         })}
         dataConnection={dataConnection}
         setTaskColumnSelectors={columnSelectors => setTask({
@@ -437,11 +446,13 @@ export default ({
           ...task,
           taskType
         })}
-        additionalParams={task.additionalParams}
-        setAdditionalParams={(additionalParams: Record<string, WorkerParameter>) => setTask({
+        parameters={task.parameters}
+        setParameters={(parameters?: Parameter[]) => setTask({
           ...task,
-          additionalParams
+          parameters
         })}
+        parametersIsValid={parametersValidation}
+        parametersHelperTexts={parametersHelperTexts}
         tasks={tasks}
         triggersAreValid={triggersAreValid}
         isCronTriggerValid={isCronTriggerValid}

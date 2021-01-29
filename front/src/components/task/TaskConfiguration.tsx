@@ -1,12 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Typography as T,
   Button,
-  Grid,
   Icon,
-  Input,
-  InputLabel,
-  Fab,
   MenuItem,
   Paper,
   Select,
@@ -24,7 +20,7 @@ import {
   OutputColumn,
   Task,
   TaskType,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { WorkerDefConfiguration } from './WorkerDefConfiguration';
 
@@ -42,16 +38,16 @@ interface TaskProps {
   setCronTrigger: (set: string | null) => void;
   taskTrigger: number | null;
   setTaskTrigger: (set: number | null) => void;
-  configurations: Record<string, string | number | boolean>;
-  onConfigChange: (set: Record<string, string | number | boolean>) => void;
   dataConnection: DataConnection | null | undefined;
   setTaskColumnSelectors: (columnSelectors: ColumnSelector[]) => void;
   setTaskOutputColumns: (outputColumns: OutputColumn[]) => void;
-  setWorkerDef: (workerDef: WorkerDef | undefined, outputColumns: OutputColumn[], additionalParams?: Record<string, WorkerParameter>) => void;
+  setWorkerDef: (workerDef: WorkerDef | undefined, outputColumns: OutputColumn[]) => void;
   taskType: TaskType;
   setType: (set: TaskType) => void;
-  additionalParams?: Record<string, WorkerParameter>;
-  setAdditionalParams: (additionalParams: Record<string, WorkerParameter>) => void;
+  parameters?: Parameter[];
+  setParameters: (parameters?: Parameter[]) => void;
+  parametersIsValid?: boolean[];
+  parametersHelperTexts?: string[];
   tasks: Task[] | undefined;
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
@@ -72,50 +68,24 @@ export const TaskConfiguration = ({
   setCronTrigger,
   taskTrigger,
   setTaskTrigger,
-  configurations,
-  onConfigChange,
   dataConnection,
   setTaskColumnSelectors,
   setTaskOutputColumns,
   setWorkerDef,
   taskType,
   setType,
-  additionalParams,
-  setAdditionalParams,
+  parameters,
+  setParameters,
+  parametersIsValid,
+  parametersHelperTexts,
   tasks,
   triggersAreValid,
   isCronTriggerValid,
   cronHelperText
 }: TaskProps) => {
-  const [configKey, setConfigKey] = useState<string>('');
-  const [configType, setConfigType] = useState<'string' | 'number' | 'boolean' | 'function'>('string');
-
   const common = commonStyles();
 
   const taskTriggerList = tasks?.map(({ id, name }) => ({ id, name }));
-
-  const addConfig = () => {
-    if (
-      configKey.length > 0
-      && !Object.keys(configurations).some(oldKey => oldKey === configKey)
-    ) {
-      const newConfig = configurations;
-      switch (configType) {
-        case 'string':
-          newConfig[configKey] = '-';
-          break;
-        case 'number':
-          newConfig[configKey] = 0;
-          break;
-        case 'boolean':
-          newConfig[configKey] = false;
-          break;
-      }
-      onConfigChange(newConfig);
-      setConfigKey('');
-      setConfigType('string');
-    }
-  };
 
   return (
     <>
@@ -169,14 +139,14 @@ export const TaskConfiguration = ({
                 setCronTrigger={setCronTrigger}
                 taskTrigger={taskTrigger}
                 setTaskTrigger={setTaskTrigger}
-                configurations={configurations}
-                onConfigChange={onConfigChange}
                 dataConnection={dataConnection}
                 setTaskColumnSelectors={setTaskColumnSelectors}
                 setTaskOutputColumns={setTaskOutputColumns}
                 setWorkerDef={setWorkerDef}
-                additionalParams={additionalParams}
-                setAdditionalParams={setAdditionalParams}
+                parameters={parameters}
+                setParameters={setParameters}
+                parametersIsValid={parametersIsValid}
+                parametersHelperTexts={parametersHelperTexts}
                 tasks={tasks}
                 triggersAreValid={triggersAreValid}
                 isCronTriggerValid={isCronTriggerValid}
@@ -261,74 +231,6 @@ export const TaskConfiguration = ({
             }
           </TableBody>
         </Table>
-        {(editable && taskType === TaskType.process) && (
-          <div className={common.padding}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <InputLabel
-                  htmlFor='config-key-input'
-                  shrink
-                >
-                  Config key
-                </InputLabel>
-                <Input
-                  fullWidth
-                  id='config-key-input'
-                  value={configKey}
-                  onChange={e => setConfigKey(e.target.value as string)}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <InputLabel
-                  htmlFor='config-type-select'
-                  shrink
-                >
-                  Config type
-                </InputLabel>
-                <Select
-                  fullWidth
-                  value={configType}
-                  onChange={e => {
-                    const value = e.target.value as string;
-                    switch (value) {
-                      case 'string':
-                        setConfigType('string');
-                        break;
-                      case 'number':
-                        setConfigType('number');
-                        break;
-                      case 'boolean':
-                        setConfigType('boolean');
-                        break;
-                    }
-                  }}
-                  inputProps={{ id: 'config-type-select' }}
-                >
-                  [
-                  <MenuItem value='string'>String</MenuItem>,
-                  <MenuItem value='number'>Number</MenuItem>,
-                  <MenuItem value='boolean'>Boolean</MenuItem>
-                  ]
-                </Select>
-              </Grid>
-            </Grid>
-            <Fab
-              className={common.topMargin}
-              disabled={
-                configKey.length === 0
-                || Object.keys(configurations).some(oldKey => oldKey === configKey)
-              }
-              variant='extended'
-              color='primary'
-              onClick={addConfig}
-            >
-              <Icon className={common.icon}>
-                add
-              </Icon>
-              Add config
-            </Fab>
-          </div>
-        )}
       </Paper>
     </>
   );

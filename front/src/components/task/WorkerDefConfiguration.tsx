@@ -2,10 +2,8 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import {
   Button,
   Icon,
-  Input,
   MenuItem,
   Select,
-  Switch,
   Table,
   TableCell,
   TableHead,
@@ -36,48 +34,9 @@ import {
   mapWorkerDefOutputColumnWithAlias,
   mapWorkerDefColumnToOutputColumn,
   mapWorkerDefColumnWithAliasToOutputColumn,
+  Parameter,
   WorkerParameter
 } from '../../types';
-
-interface ConfigProps {
-  value: string | number | boolean;
-  onChange: (set: string | number | boolean) => void;
-}
-
-const ConfigInput = ({
-  value,
-  onChange
-}: ConfigProps) => {
-  switch (typeof value) {
-    case 'number':
-      return (
-        <Input
-          fullWidth
-          type='number'
-          value={value}
-          onChange={e => onChange(Number(e.target.value))}
-        />
-      );
-    case 'string':
-      return (
-        <Input
-          fullWidth
-          value={value}
-          onChange={e => onChange(e.target.value as string)}
-        />
-      );
-    case 'boolean':
-      return (
-        <Switch
-          color='primary'
-          checked={value}
-          onChange={e => onChange(e.target.checked)}
-        />
-      );
-    default:
-      return null;
-  }
-};
 
 interface WorkerDefProps {
   editable: boolean;
@@ -89,19 +48,26 @@ interface WorkerDefProps {
   setCronTrigger: (set: string | null) => void;
   taskTrigger: number | null;
   setTaskTrigger: (set: number | null) => void;
-  configurations: Record<string, string | number | boolean>;
-  onConfigChange: (set: Record<string, string | number | boolean>) => void;
   dataConnection: DataConnection | null | undefined;
   setTaskColumnSelectors: (columnSelectors: ColumnSelector[]) => void;
   setTaskOutputColumns: (outputColumns: OutputColumn[]) => void;
-  setWorkerDef: (set: WorkerDef, outputColumns: OutputColumn[], additionalParams?: Record<string, WorkerParameter>) => void;
-  additionalParams?: Record<string, WorkerParameter>;
-  setAdditionalParams: (additionalParams: Record<string, WorkerParameter>) => void;
+  setWorkerDef: (set: WorkerDef, outputColumns: OutputColumn[]) => void;
+  parameters?: Parameter[];
+  setParameters: (parameters?: Parameter[]) => void;
+  parametersIsValid?: boolean[];
+  parametersHelperTexts?: string[];
   tasks: Task[] | undefined;
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
   cronHelperText?: string;
 }
+
+const INPUT_TYPE = {
+  'java.lang.String': 'string',
+  'java.lang.Double': 'number',
+  'java.time.Instant': 'datetime-local',
+  'java.lang.Long': 'number'
+};
 
 export const WorkerDefConfiguration = ({
   editable,
@@ -113,14 +79,14 @@ export const WorkerDefConfiguration = ({
   setCronTrigger,
   taskTrigger,
   setTaskTrigger,
-  configurations,
-  onConfigChange,
   dataConnection,
   setTaskColumnSelectors,
   setTaskOutputColumns,
   setWorkerDef,
-  additionalParams,
-  setAdditionalParams,
+  parameters,
+  setParameters,
+  parametersIsValid,
+  parametersHelperTexts,
   tasks,
   triggersAreValid,
   isCronTriggerValid,
@@ -141,22 +107,22 @@ export const WorkerDefConfiguration = ({
     : [<MenuItem key={-1} value={-1}>Unset</MenuItem>];
 
   const taskTriggerList = tasks?.map(({ id, name }) => ({ id, name }));
-  const configList = Object.keys(configurations)
-    .map(key => ({
-      name: key,
-      value: configurations[key]
-    }))
-    .filter(c => typeof c.value !== 'object');
 
-  const additionalParamsList = additionalParams
-    ? Object.keys(additionalParams).map(key => ({
-      name: key,
-      description: additionalParams[key].description,
-      nullable: additionalParams[key].nullable,
-      condition: additionalParams[key].condition ?? null,
-      value: additionalParams[key].value ?? ''
-    }))
-    : [];
+  let parametersList: WorkerParameter[] = workerDef?.parameters || [];
+
+  if (parameters) {
+    parametersList = parametersList.map(parameter => {
+      const taskParameter = parameters.find(p => p.name === parameter.name);
+      if (taskParameter) {
+        return {
+          ...parameter,
+          id: taskParameter.id,
+          defaultValue: taskParameter.value
+        };
+      }
+      return parameter;
+    });
+  }
 
   function getSupportedColumnsForInputColumn (
     dataConnection: DataConnection | null | undefined,
@@ -305,20 +271,43 @@ export const WorkerDefConfiguration = ({
     [resetInputColumns, dataConnection, editable]
   );
 
-  const setConfig = (key: string, value: string | number | boolean) => {
-    const newConfig = configurations;
-    newConfig[key] = value;
-    onConfigChange(newConfig);
-  };
-
-  const handleAdditionalParametersValueChange = (
+  const handleParametersValueChange = (
     name: string,
     value: string
   ) => {
-    if (additionalParams) {
-      const updatedAdditionalParams = additionalParams;
-      updatedAdditionalParams[name].value = value;
-      setAdditionalParams(updatedAdditionalParams);
+    if (parameters && parameters.length !== 0) {
+      const updatedParameters = parameters.map(parameter => {
+        if (parameter.name === name) {
+          return {
+            ...parameter,
+            value: value || null
+          };
+        }
+        return parameter;
+      });
+      setParameters(updatedParameters);
+    }
+    else {
+      if (workerDef) {
+        if (workerDef.parameters) {
+          const updatedParameters = workerDef.parameters
+            .map(parameter => {
+              if (parameter.name === name) {
+                return {
+                  id: -1,
+                  name: parameter.name,
+                  value: value || null
+                };
+              }
+              return {
+                id: -1,
+                name: parameter.name,
+                value: parameter.defaultValue || null
+              };
+            });
+          setParameters(updatedParameters);
+        }
+      }
     }
   };
 
@@ -339,13 +328,12 @@ export const WorkerDefConfiguration = ({
                     type: 'Detect' as WorkerType,
                     name: '',
                     description: '',
-                    additionalParams: null,
+                    parameters: undefined,
                     columns: []
                   },
                   value?.columns.filter(column => column.columnType === 'output')
                     .map(mapWorkerDefColumnToOutputColumn)
-                    .sort((a, b) => a.index - b.index) ?? [],
-                  value?.additionalParams ?? undefined
+                    .sort((a, b) => a.index - b.index) ?? []
                 );
                 setColumnsOnWorkerDefChange(value);
               }}
@@ -508,48 +496,60 @@ export const WorkerDefConfiguration = ({
         }
       />
       <TableRowItem
-        title='Additional Parameters'
+        title='Parameters'
         value={
           <Table>
             <TableHead>
               <TableRow key={-3}>
                 <TableCell>Name</TableCell>
                 <TableCell>Description</TableCell>
+                <TableCell>Type</TableCell>
                 <TableCell>Nullable</TableCell>
                 <TableCell>Value</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {editable ? additionalParamsList.map(param => (
-                <TableRow key={param.name}>
-                  <TableCell>{param.name}</TableCell>
-                  <TableCell>{param.description}</TableCell>
+              {editable ? parametersList.map((parameter, index) => (
+                <TableRow key={parameter.name}>
+                  <TableCell>{parameter.name}</TableCell>
+                  <TableCell>{parameter.description}</TableCell>
+                  <TableCell>{parameter.type}</TableCell>
                   <TableCell>
                     <Icon>
-                      {param.nullable ? 'check_circle' : 'block_circle'}
+                      {parameter.nullable ? 'check_circle' : 'block_circle'}
                     </Icon>
                   </TableCell>
                   <TableCell>
                     <TextField
                       fullWidth
-                      value={param.value || undefined}
-                      onChange={e => handleAdditionalParametersValueChange(
-                        param.name,
+                      error={
+                        parametersIsValid
+                          ? !parametersIsValid[index] || false
+                          : false
+                      }
+                      helperText={
+                        parametersHelperTexts ? parametersHelperTexts[index] : ''
+                      }
+                      type={Object.values(INPUT_TYPE)[Object.keys(INPUT_TYPE).indexOf(parameter.type)] || 'string'}
+                      value={parameter.defaultValue || ''}
+                      onChange={e => handleParametersValueChange(
+                        parameter.name,
                         e.target.value
                       )} />
                   </TableCell>
                 </TableRow>
               ))
-                : additionalParamsList.map(param => (
+                : parametersList.map(param => (
                   <TableRow key={param.name}>
                     <TableCell>{param.name}</TableCell>
                     <TableCell>{param.description}</TableCell>
+                    <TableCell>{param.type}</TableCell>
                     <TableCell>
                       <Icon>
                         {param.nullable ? 'check_circle' : 'block_circle'}
                       </Icon>
                     </TableCell>
-                    <TableCell>{param.value}</TableCell>
+                    <TableCell>{param.defaultValue}</TableCell>
                   </TableRow>
                 ))
               }
@@ -633,20 +633,6 @@ export const WorkerDefConfiguration = ({
           : `${taskTrigger || ''}`}
         tooltip={'Task is launched whenever an Invocation of referred Task is completed'}
       />
-      {configList.map(config => (
-        <TableRowItem
-          key={config.name}
-          title={config.name}
-          value={editable
-            ? (
-              <ConfigInput
-                value={config.value}
-                onChange={(set) => setConfig(config.name, set)}
-              />
-            )
-            : `${typeof config.value === 'boolean' ? config.value.valueOf() : config.value}`}
-        />
-      ))}
     </>
   );
 };
