@@ -35,7 +35,6 @@ export const AuthProvider = ({ children }: Props) => {
   const [ auth, setStateAuth ] = useState<null | Authentication>(null);
   const { push } = useHistory();
   const { pathname } = useLocation();
-  const queryParameters = useLocation().search;
 
   const setAuth = useCallback((authentication: Authentication) => {
     localStorage.setItem(TOKEN_STRING, authentication.token);
@@ -79,11 +78,11 @@ export const AuthProvider = ({ children }: Props) => {
       push({
         pathname: '/login',
         search: pathname !== '/'
-          ? `?redirect=${pathname}${queryParameters}`
+          ? `?redirect=${pathname}`
           : undefined
       });
     }
-  }, [auth, loading, pathname, push, queryParameters]);
+  }, [auth, loading, pathname, push]);
 
   useEffect(() => {
     const timer = setTimeout(testAuth, 1000 * 60 * 30);

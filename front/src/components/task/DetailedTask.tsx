@@ -27,13 +27,14 @@ import {
   useRouter,
   useTasks,
   useNameCheck,
-  useCronValidation
+  useCronValidation,
+  useMultipleParametersValidation
 } from '../../hooks';
 import {
   Task,
   InvocationStatus,
   TaskType,
-  WorkerParameter
+  Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
 
@@ -87,6 +88,18 @@ export default ({
     nameArray
   );
 
+  const { parametersIsValid: parametersValidation, helperTexts: parametersHelperTexts } = useMultipleParametersValidation(
+    editTask ? editTask.parameters : undefined,
+    editTask ? editTask.workerDef?.parameters : undefined
+  );
+
+  const areAllParametersValid = useMemo(
+    () => {
+      return parametersValidation.every(parameterValid => parameterValid);
+    },
+    [parametersValidation]
+  );
+
   const { isCronTriggerValid, cronHelperText } = useCronValidation(
     editTask?.cronTrigger ?? ''
   );
@@ -95,7 +108,8 @@ export default ({
     return editTask?.name !== ''
     && nameIsValid
     && triggersAreValid
-    && isCronTriggerValid;
+    && isCronTriggerValid
+    && areAllParametersValid;
   };
 
   useEffect(
@@ -286,11 +300,10 @@ export default ({
           name
         })}
         workerDef={editTask.workerDef}
-        setWorkerDef={(workerDef, outputColumns, additionalParams) => setEditTask({
+        setWorkerDef={(workerDef, outputColumns) => setEditTask({
           ...editTask,
           workerDef,
-          outputColumns,
-          additionalParams
+          outputColumns
         })}
         cronTrigger={editTask.cronTrigger}
         setCronTrigger={cronTrigger => setEditTask({
@@ -301,11 +314,6 @@ export default ({
         setTaskTrigger={taskTrigger => setEditTask({
           ...editTask,
           taskTrigger
-        })}
-        configurations={editTask.config}
-        onConfigChange={config => setEditTask({
-          ...editTask,
-          config
         })}
         dataConnection={dataConnection}
         setTaskColumnSelectors={columnSelectors => setEditTask({
@@ -322,11 +330,13 @@ export default ({
           ...editTask,
           taskType
         })}
-        additionalParams={task.additionalParams}
-        setAdditionalParams={(additionalParams: Record<string, WorkerParameter>) => setEditTask({
-          ...task,
-          additionalParams
+        parameters={editTask.parameters}
+        setParameters={(parameters?: Parameter[]) => setEditTask({
+          ...editTask,
+          parameters
         })}
+        parametersIsValid={parametersValidation}
+        parametersHelperTexts={parametersHelperTexts}
         isCronTriggerValid={isCronTriggerValid}
         triggersAreValid={triggersAreValid}
         cronHelperText={cronHelperText}

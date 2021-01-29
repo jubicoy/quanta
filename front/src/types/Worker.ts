@@ -6,10 +6,12 @@ import { OutputColumn } from './Task';
 import { TIME_SERIES_MODIFIERS } from './TimeSeries';
 
 export interface WorkerParameter {
+  id: number;
+  name: string;
   description: string;
+  type: string;
   nullable: boolean;
-  condition: string | null;
-  value: string | null;
+  defaultValue: string | null;
 }
 
 export type WorkerType = 'Sync' | 'Detect' | 'Forecast';
@@ -108,7 +110,7 @@ export interface WorkerDef {
   type: WorkerType;
   name: string;
   description: string;
-  additionalParams: Record<string, WorkerParameter> | null;
+  parameters?: WorkerParameter[];
   columns: WorkerDefColumn[];
 }
 
