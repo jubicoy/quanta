@@ -21,6 +21,10 @@ public abstract class ExternalClient {
 
     public abstract String getToken();
 
+    public abstract String getDescription();
+
+    public abstract User getUser();
+
     @Nullable
     public abstract Task getTask();
 
@@ -41,6 +45,8 @@ public abstract class ExternalClient {
                     .setIdAccessor(EXTERNAL_CLIENT.ID)
                     .setNameAccessor(EXTERNAL_CLIENT.NAME)
                     .setTokenAccessor(EXTERNAL_CLIENT.TOKEN)
+                    .setDescriptionAccessor(EXTERNAL_CLIENT.DESCRIPTION)
+                    .setUserAccessor(EXTERNAL_CLIENT.USER_ID, User::getId)
                     .setTaskAccessor(EXTERNAL_CLIENT.TASK_ID, Task::getId)
                     .setDeletedAtAccessor(EXTERNAL_CLIENT.DELETED_AT,
                         Timestamp::from,

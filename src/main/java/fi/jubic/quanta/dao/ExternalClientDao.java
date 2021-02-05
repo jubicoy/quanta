@@ -5,7 +5,9 @@ import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.ExternalClient;
+import fi.jubic.quanta.models.ExternalClientQuery;
 import fi.jubic.quanta.models.Task;
+import fi.jubic.quanta.models.User;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerDefColumn;
 import org.jooq.Condition;
@@ -15,18 +17,19 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
 import static fi.jubic.quanta.db.Tables.DATA_SERIES;
 import static fi.jubic.quanta.db.Tables.EXTERNAL_CLIENT;
 import static fi.jubic.quanta.db.Tables.TASK;
 import static fi.jubic.quanta.db.Tables.TASK_COLUMN_SELECTOR;
+import static fi.jubic.quanta.db.Tables.USER;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 
@@ -39,25 +42,90 @@ public class ExternalClientDao {
         this.conf = configuration.getJooqConfiguration().getConfiguration();
     }
 
+    public List<ExternalClient> search(ExternalClientQuery query) {
+        Condition condition = Stream
+                .of(
+                        query.getUser().map(USER.ID::eq)
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .reduce(Condition::and)
+                .orElseGet(DSL::trueCondition)
+                .and(EXTERNAL_CLIENT.DELETED_AT.isNull());
+
+        return DSL.using(conf)
+                .select()
+                .from(EXTERNAL_CLIENT)
+                .leftJoin(USER)
+                .on(
+                        USER.ID.eq(EXTERNAL_CLIENT.USER_ID)
+                )
+                .leftJoin(TASK)
+                .on(
+                        TASK.ID.eq(EXTERNAL_CLIENT.TASK_ID)
+                )
+                .where(condition)
+                .fetchStream()
+                .collect(
+                        ExternalClient.mapper
+                                .withUser(User.mapper)
+                                .withTask(Task.mapper)
+                );
+    }
+
     public List<ExternalClient> getAllOfTask(Long taskId) {
         return DSL.using(conf)
                 .select()
                 .from(EXTERNAL_CLIENT)
-                .where(EXTERNAL_CLIENT.TASK_ID.eq(taskId))
-                .fetchStream()
-                .collect(ExternalClient.mapper)
-                .stream()
-                .map(
-                        externalClient -> getDetails(externalClient.getId())
-                                .orElseThrow(NotFoundException::new)
+                .leftJoin(USER)
+                .on(
+                        USER.ID.eq(EXTERNAL_CLIENT.USER_ID)
                 )
+                .leftJoin(TASK)
+                .on(
+                        TASK.ID.eq(EXTERNAL_CLIENT.TASK_ID)
+                )
+                .where(
+                        EXTERNAL_CLIENT.TASK_ID.eq(taskId)
+                )
+                .fetchStream()
+                .collect(
+                        ExternalClient.mapper
+                                .withUser(User.mapper)
+                                .withTask(Task.mapper)
+                )
+                .stream()
                 .filter(
                         externalClient -> Objects.isNull(externalClient.getDeletedAt())
                 )
                 .collect(Collectors.toList());
     }
 
-    public Optional<ExternalClient> getDetailsByToken(String token) {
+    public List<ExternalClient> getExternalClients() {
+        return DSL.using(conf)
+                .select()
+                .from(EXTERNAL_CLIENT)
+                .leftJoin(TASK)
+                .on(EXTERNAL_CLIENT.TASK_ID.eq(TASK.ID))
+                .leftJoin(USER)
+                .on(EXTERNAL_CLIENT.USER_ID.eq(USER.ID))
+                .where(EXTERNAL_CLIENT.DELETED_AT.isNull())
+                .fetchStream()
+                .collect(
+                        ExternalClient.mapper
+                        .withTask(Task.mapper)
+                        .withUser(User.mapper)
+                );
+    }
+
+    public Optional<ExternalClient> getDetails(User user) {
+        return getDetails(
+                EXTERNAL_CLIENT.USER_ID.eq(user.getId()),
+                conf
+        );
+    }
+
+    public Optional<ExternalClient> getDetails(String token) {
         return getDetails(
                 EXTERNAL_CLIENT.TOKEN.eq(token),
                 conf
@@ -82,8 +150,10 @@ public class ExternalClientDao {
         return DSL.using(transaction)
                 .select()
                 .from(EXTERNAL_CLIENT)
-                .join(TASK)
-                .on(EXTERNAL_CLIENT.TASK_ID.eq(TASK.ID))
+                .leftJoin(USER)
+                .on(USER.ID.eq(EXTERNAL_CLIENT.USER_ID))
+                .leftJoin(TASK)
+                .on(TASK.ID.eq(EXTERNAL_CLIENT.TASK_ID))
                 .leftJoin(WORKER_DEFINITION)
                 .on(TASK.WORKER_DEF_ID.eq(WORKER_DEFINITION.ID))
                 .leftJoin(TASK_COLUMN_SELECTOR)
@@ -99,7 +169,7 @@ public class ExternalClientDao {
                 .where(condition)
                 .fetchStream()
                 .collect(
-                        ExternalClient.mapper.collectingWithTask(
+                        ExternalClient.mapper.withUser(User.mapper).collectingWithTask(
                                 Task.mapper
                                         .withWorkerDef(WorkerDef.mapper)
                                         .collectingWithColumnSelectors(
@@ -158,7 +228,9 @@ public class ExternalClientDao {
                                                 externalClient
                                         )
                                 )
-                                .where(EXTERNAL_CLIENT.ID.eq(id))
+                                .where(
+                                        EXTERNAL_CLIENT.ID.eq(externalClient.getId())
+                                )
                                 .execute();
 
                         return getDetails(id, transaction)

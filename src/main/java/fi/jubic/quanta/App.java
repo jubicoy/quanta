@@ -5,6 +5,7 @@ import fi.jubic.easyschedule.TaskScheduler;
 import fi.jubic.easyschedule.liquibase.LiquibaseTask;
 import fi.jubic.quanta.auth.AdminAuthenticationTask;
 import fi.jubic.quanta.config.Configuration;
+import fi.jubic.quanta.models.QuantaAuthenticator;
 import fi.jubic.quanta.models.User;
 import fi.jubic.quanta.scheduled.ScheduledTask;
 import fi.jubic.snoozy.Application;
@@ -15,7 +16,6 @@ import fi.jubic.snoozy.StaticFiles;
 import fi.jubic.snoozy.auth.Authentication;
 import fi.jubic.snoozy.auth.implementation.DefaultAuthorizer;
 import fi.jubic.snoozy.auth.implementation.HeaderParser;
-import fi.jubic.snoozy.auth.implementation.StatefulAuthenticator;
 import fi.jubic.snoozy.filters.UrlRewrite;
 import fi.jubic.snoozy.undertow.UndertowServer;
 
@@ -32,7 +32,7 @@ public class App implements AuthenticatedApplication<User> {
     Configuration configuration;
 
     @Inject
-    StatefulAuthenticator<User> authenticator;
+    QuantaAuthenticator authenticator;
 
     @Inject
     AdminAuthenticationTask adminAuthenticationTask;
@@ -46,7 +46,6 @@ public class App implements AuthenticatedApplication<User> {
 
     @Inject
     App() {
-
     }
 
     @Override

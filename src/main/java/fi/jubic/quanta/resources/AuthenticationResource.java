@@ -2,9 +2,9 @@ package fi.jubic.quanta.resources;
 
 import fi.jubic.quanta.controller.UserController;
 import fi.jubic.quanta.models.LoginRequest;
+import fi.jubic.quanta.models.QuantaAuthenticator;
 import fi.jubic.quanta.models.User;
 import fi.jubic.quanta.util.HashUtil;
-import fi.jubic.snoozy.auth.implementation.StatefulAuthenticator;
 import fi.jubic.snoozy.auth.implementation.Token;
 
 import javax.annotation.security.PermitAll;
@@ -27,12 +27,12 @@ import javax.ws.rs.core.Response;
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
 public class AuthenticationResource {
-    private final StatefulAuthenticator<User> authenticator;
+    private final QuantaAuthenticator authenticator;
     private final UserController userController;
 
     @Inject
     AuthenticationResource(
-            StatefulAuthenticator<User> authenticator,
+            QuantaAuthenticator authenticator,
             UserController userController
     ) {
         this.authenticator = authenticator;

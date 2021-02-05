@@ -41,7 +41,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ExternalClient extends TableImpl<ExternalClientRecord> {
 
-    private static final long serialVersionUID = -1454404645;
+    private static final long serialVersionUID = -319297507;
 
     /**
      * The reference instance of <code>external_client</code>
@@ -74,12 +74,22 @@ public class ExternalClient extends TableImpl<ExternalClientRecord> {
     /**
      * The column <code>external_client.task_id</code>.
      */
-    public final TableField<ExternalClientRecord, Long> TASK_ID = createField("task_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<ExternalClientRecord, Long> TASK_ID = createField("task_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>external_client.deleted_at</code>.
      */
     public final TableField<ExternalClientRecord, Timestamp> DELETED_AT = createField("deleted_at", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
+
+    /**
+     * The column <code>external_client.description</code>.
+     */
+    public final TableField<ExternalClientRecord, String> DESCRIPTION = createField("description", org.jooq.impl.SQLDataType.CLOB, this, "");
+
+    /**
+     * The column <code>external_client.user_id</code>.
+     */
+    public final TableField<ExternalClientRecord, Long> USER_ID = createField("user_id", org.jooq.impl.SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * Create a <code>external_client</code> table reference
@@ -151,11 +161,15 @@ public class ExternalClient extends TableImpl<ExternalClientRecord> {
      */
     @Override
     public List<ForeignKey<ExternalClientRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<ExternalClientRecord, ?>>asList(Keys.EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_TASK_ID);
+        return Arrays.<ForeignKey<ExternalClientRecord, ?>>asList(Keys.EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_TASK_ID, Keys.EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_USER_ID);
     }
 
     public Task task() {
         return new Task(this, Keys.EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_TASK_ID);
+    }
+
+    public User user() {
+        return new User(this, Keys.EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_USER_ID);
     }
 
     /**
