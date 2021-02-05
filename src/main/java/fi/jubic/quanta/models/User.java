@@ -29,6 +29,7 @@ public abstract class User implements UserPrincipal {
     @JsonIgnore
     public abstract String getSalt();
 
+    @JsonIgnore
     @Nullable
     public abstract Instant getCreationDate();
 

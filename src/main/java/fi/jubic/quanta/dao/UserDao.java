@@ -24,6 +24,10 @@ public class UserDao {
         this.conf = configuration.getJooqConfiguration().getConfiguration();
     }
 
+    public Optional<User> getById(Long id) {
+        return getBy(USER.ID.eq(id), conf);
+    }
+
     public Optional<User> getUserByName(String name) {
         return getBy(USER.NAME.eq(name), conf);
     }

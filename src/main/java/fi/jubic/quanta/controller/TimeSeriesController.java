@@ -153,7 +153,7 @@ public class TimeSeriesController {
         TimeSeriesQuery validatedQuery = timeSeriesDomain.validateQuery(query);
         ExternalClient externalClient = externalClientDomain.validate(
                 externalClientDao
-                        .getDetailsByToken(externalClientToken)
+                        .getDetails(externalClientToken)
                         .orElseThrow(
                                 () -> new AuthorizationException("Invalid client")
                         )

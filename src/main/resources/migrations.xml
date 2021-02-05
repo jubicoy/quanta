@@ -598,4 +598,19 @@
         <dropColumn tableName="task" columnName="config" />
         <dropColumn tableName="invocation" columnName="config" />
     </changeSet>
+    <changeSet id="9" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <addColumn tableName="external_client" >
+            <column name="description" type="text">
+                <constraints nullable="true" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="fk_external_client_user_id"
+                    references="user(id)"
+                />
+            </column>
+        </addColumn>
+        <dropNotNullConstraint tableName="external_client" columnName="task_id" />
+    </changeSet>
 </databaseChangeLog>

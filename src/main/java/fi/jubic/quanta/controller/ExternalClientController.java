@@ -4,7 +4,9 @@ import fi.jubic.quanta.dao.ExternalClientDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.domain.ExternalClientDomain;
 import fi.jubic.quanta.models.ExternalClient;
+import fi.jubic.quanta.models.ExternalClientQuery;
 import fi.jubic.quanta.models.Task;
+import fi.jubic.quanta.models.User;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -29,17 +31,51 @@ public class ExternalClientController {
         this.taskDao = taskDao;
     }
 
-    public ExternalClient generateExternalClient(Long taskId, ExternalClient externalClient) {
-        Task task = taskDao
-                .getDetails(taskId)
-                .orElseThrow(NotFoundException::new);
+    public List<ExternalClient> search(ExternalClientQuery query) {
+        return externalClientDao.search(query);
+    }
+
+    public ExternalClient generateExternalClient(String name, String description, User user) {
         return externalClientDao
                 .create(
                         externalClientDomain
-                                .create(externalClient)
-                                .toBuilder()
-                                .setTask(task)
-                                .build()
+                                .create(
+                                        ExternalClient.builder()
+                                                .setId(0L)
+                                                .setName(name)
+                                                .setToken("")
+                                                .setDescription(description)
+                                                .setUser(user)
+                                                .build()
+                                )
+                );
+    }
+
+    public ExternalClient generateExternalClient(
+            Long taskId,
+            String name,
+            String description,
+            User user
+    ) {
+        Task task = taskDao
+                .getDetails(taskId)
+                .orElseThrow(
+                        () -> new NotFoundException("Task not found")
+                );
+
+        return externalClientDao
+                .create(
+                        externalClientDomain
+                                .create(
+                                        ExternalClient.builder()
+                                                .setId(0L)
+                                                .setName(name)
+                                                .setDescription(description)
+                                                .setToken("")
+                                                .setTask(task)
+                                                .setUser(user)
+                                                .build()
+                                )
                 );
     }
 
@@ -50,6 +86,10 @@ public class ExternalClientController {
                         optionalClient.orElseThrow(NotFoundException::new)
                 )
         );
+    }
+
+    public List<ExternalClient> getExternalClients() {
+        return externalClientDao.getExternalClients();
     }
 
     public List<ExternalClient> getAllOfTask(Long taskId) {
