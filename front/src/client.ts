@@ -19,7 +19,9 @@ import {
   QueryResult,
   Authentication,
   LoginRequest,
-  ExternalClient, DataConnectionQuery, WorkerDefQuery
+  ExternalClient,
+  DataConnectionQuery,
+  WorkerDefQuery
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -51,12 +53,31 @@ const queryEncode = (obj: Record<string, any>): string => {
 };
 
 // External clients
-export const createExternalClientOfTask = (
-  taskId: number, client: ExternalClient
+export const createExternalClient = (
+  client: ExternalClient
 ): Promise<ExternalClient> => {
   return window
     .fetch(
-      `/api/external-clients/generate/${taskId}`,
+      `/api/external-clients`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-type': 'application/json',
+          'Authorization': localStorage.getItem('token') || ''
+        },
+        body: JSON.stringify(client)
+      }
+    )
+    .then(res => checkResponse(res))
+    .then(res => res.json());
+};
+
+export const createExternalClientOfTask = (
+  client: ExternalClient
+): Promise<ExternalClient> => {
+  return window
+    .fetch(
+      `/api/external-clients`,
       {
         method: 'POST',
         headers: {
@@ -84,6 +105,21 @@ export const deleteExternalClient = (
       }
     )
     .then(res => checkResponse(res));
+};
+
+export const getExternalClients = (): Promise<ExternalClient[]> => {
+  return window
+    .fetch(
+      `api/external-clients`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': localStorage.getItem('token') || ''
+        }
+      }
+    )
+    .then(res => checkResponse(res))
+    .then(res => res.json());
 };
 
 export const getExternalClientsOfTask = (taskId: number): Promise<ExternalClient[]> => {

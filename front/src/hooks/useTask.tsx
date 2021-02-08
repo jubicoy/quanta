@@ -17,8 +17,13 @@ export const useTask = (
 
   const refresh = useCallback(
     () => {
-      client.getTask(id)
-        .then(setTask);
+      if (id === -1) {
+        setTask(null);
+      }
+      else {
+        client.getTask(id)
+          .then(setTask);
+      }
     },
     [id]
   );

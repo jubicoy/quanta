@@ -9,21 +9,23 @@ interface Context {
   deleteClient: (clientId: number) => Promise<Response>;
 }
 
-export const useExternalClientsOfTask = (taskId: number): Context => {
+export const useExternalClients = (
+): Context => {
   const [externalClients, setExternalClients] = useState<ExternalClient[] | null>(null);
 
   const fetch = useCallback(
     () => {
-      client.getExternalClientsOfTask(taskId)
-        .then(setExternalClients);
+      client.getExternalClients()
+        .then(setExternalClients)
+        .catch(() => setExternalClients([]));
     },
-    [taskId]
+    []
   );
 
   const create = useCallback(
     (newClient: ExternalClient) =>
-      client.createExternalClientOfTask(taskId, newClient),
-    [taskId]
+      client.createExternalClient(newClient),
+    []
   );
 
   const deleteClient = (clientId: number) =>

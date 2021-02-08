@@ -23,11 +23,12 @@ import { AuthProvider } from '../hooks';
 import { DataConnectionPage } from './dataconnections';
 import { DetailedDataConnection } from './dataconnection';
 import { TaskPage } from './tasks';
-import { DetailedTask, CreateTask, DetailedInvocation, TaskClients } from './task';
+import { DetailedTask, CreateTask, DetailedInvocation } from './task';
 import { DetailedWorker } from './worker';
 import { WorkerPage } from './workers';
 import { ChartsPage, ForecastPage } from './visualization';
 import { JsonIngestPage } from './data/json';
+import { SettingsPage } from './settings';
 
 import { AlertProvider } from '../alert';
 
@@ -71,6 +72,10 @@ class App extends React.PureComponent<{}> {
       path: '/visualization',
       icon: 'timeline',
       text: 'Visualization'
+    }, {
+      path: '/settings',
+      icon: 'settings',
+      text: 'Settings'
     }];
 
     return (
@@ -92,11 +97,11 @@ class App extends React.PureComponent<{}> {
                       <Route path='/task-list' component={TaskPage} />
                       <Route path='/task-new/:dataConnectionId?' component={CreateTask} />
                       <Route exact path='/task/:id' component={DetailedTask} />
-                      <Route path='/task/:id/clients' component={TaskClients} />
                       <Route exact path='/task/:id/visualization' component={ForecastPage} />
                       <Route path='/worker-list' component={WorkerPage} />
                       <Route path='/worker/:id' component={DetailedWorker} />
                       <Route path='/visualization' component={ChartsPage} />
+                      <Route path='/settings' component={SettingsPage} />
                       <Redirect from='*' exact to='/upload' />
                     </Switch>
                   </Layout>

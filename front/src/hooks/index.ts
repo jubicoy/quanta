@@ -14,7 +14,7 @@ export { useWorkerDefs } from './useWorkerDefs';
 export { useLogin } from './useLogin';
 export { useAuth, AuthProvider } from './useAuth';
 export { useInitialContext } from './useInitialContext';
-export { useExternalClientsOfTask } from './useExternalClientsOfTask';
+export { useExternalClients } from './useExternalClients';
 export { useNameCheck } from './useNameCheck';
 export { useMultipleNamesCheck } from './useMultipleNamesCheck';
 export { useMultipleParametersValidation } from './useMultipleParametersValidation';
