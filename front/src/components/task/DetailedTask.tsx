@@ -164,15 +164,6 @@ export default ({
           <T variant='h4'>Task {task.id}</T>
         </div>
         <div className={common.toggle}>
-          <Fab className={common.leftMargin} variant='extended' color='primary'
-            onClick={() => {
-              history.push(`/task/${task.id}/clients`);
-            }} >
-            <Icon className={common.icon}>
-              computer
-            </Icon>
-            Manage Clients
-          </Fab>
           {editOpen
             ? (
               <>

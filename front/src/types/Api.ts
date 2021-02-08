@@ -39,7 +39,6 @@ export interface User {
   id: string;
   role: string;
   name: string;
-  creationDate: string;
 }
 
 export interface Authentication {
