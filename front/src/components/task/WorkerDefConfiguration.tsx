@@ -110,19 +110,17 @@ export const WorkerDefConfiguration = ({
 
   let parametersList: WorkerParameter[] = workerDef?.parameters || [];
 
-  if (parameters) {
-    parametersList = parametersList.map(parameter => {
-      const taskParameter = parameters.find(p => p.name === parameter.name);
-      if (taskParameter) {
-        return {
-          ...parameter,
-          id: taskParameter.id,
-          defaultValue: taskParameter.value
-        };
-      }
-      return parameter;
-    });
-  }
+  parametersList = parametersList.map(parameter => {
+    const taskParameter = parameters?.find(p => p.name === parameter.name);
+    if (taskParameter) {
+      return {
+        ...parameter,
+        id: taskParameter.id,
+        defaultValue: taskParameter.value
+      };
+    }
+    return parameter;
+  });
 
   function getSupportedColumnsForInputColumn (
     dataConnection: DataConnection | null | undefined,
@@ -269,6 +267,20 @@ export const WorkerDefConfiguration = ({
       }
     },
     [resetInputColumns, dataConnection, editable]
+  );
+
+  useEffect(
+    () => {
+      if (parameters && parameters.length !== 0) return;
+      if (parametersList.length === 0) return;
+
+      const taskParameters = parametersList.map(parameter => ({
+        id: parameter.id,
+        name: parameter.name,
+        value: parameter.defaultValue
+      }));
+      setParameters(taskParameters);
+    }, [parametersList, parameters, setParameters]
   );
 
   const handleParametersValueChange = (
