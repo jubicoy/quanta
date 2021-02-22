@@ -52,9 +52,20 @@ public class DataConnectionDao {
         return DSL.using(conf)
                 .select()
                 .from(DATA_CONNECTION)
+                .leftJoin(DATA_SERIES)
+                .on(DATA_CONNECTION.ID.eq(DATA_SERIES.DATA_CONNECTION_ID))
+                .leftJoin(COLUMN)
+                .on(DATA_SERIES.ID.eq(COLUMN.DATA_SERIES_ID))
                 .where(condition)
                 .fetchStream()
-                .collect(DataConnection.mapper);
+                .collect(
+                        DataConnection.mapper
+                        .collectingManyWithSeries(
+                                DataSeries.mapper.collectingManyWithColumns(
+                                        Column.seriesColumnMapper
+                                )
+                        )
+                );
     }
 
     public Optional<DataConnection> getDetails(Long id) {
