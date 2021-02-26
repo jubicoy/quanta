@@ -1,4 +1,4 @@
-FROM adoptopenjdk/maven-openjdk8 AS builder
+FROM adoptopenjdk/maven-openjdk11 AS builder
 
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
   && apt-get install -y nodejs git \
@@ -29,7 +29,7 @@ RUN cd /opt/build \
   && chmod a+x /opt/${ARTIFACT}-${VERSION_STRING}.jar \
   && echo "${ARTIFACT}-${VERSION_STRING}.jar" > /opt/artifact
 
-FROM adoptopenjdk/openjdk8:debian-jre
+FROM adoptopenjdk/openjdk11:debian-jre
 
 RUN mkdir -p /opt
 COPY --from=0 /opt/*.jar /opt/
