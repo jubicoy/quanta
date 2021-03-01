@@ -24,6 +24,15 @@ public class UserDao {
         this.conf = configuration.getJooqConfiguration().getConfiguration();
     }
 
+    public Optional<User> getUsers() {
+        return DSL.using(conf)
+                .select()
+                .from(USER)
+                .limit(1)
+                .fetchOptional()
+                .map(User.mapper::map);
+    }
+
     public Optional<User> getById(Long id) {
         return getBy(USER.ID.eq(id), conf);
     }
@@ -75,4 +84,5 @@ public class UserDao {
                 .map(User.mapper::map);
 
     }
+
 }

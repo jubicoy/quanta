@@ -18,6 +18,10 @@ public class UserController {
         this.userDao = userDao;
     }
 
+    public Optional<User> getUsers() {
+        return userDao.getUsers();
+    }
+
     public Optional<User> getUserByName(String name) {
         return userDao.getUserByName(name);
     }

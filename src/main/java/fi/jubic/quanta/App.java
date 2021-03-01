@@ -5,6 +5,7 @@ import fi.jubic.easyschedule.TaskScheduler;
 import fi.jubic.easyschedule.liquibase.LiquibaseTask;
 import fi.jubic.quanta.auth.AdminAuthenticationTask;
 import fi.jubic.quanta.config.Configuration;
+import fi.jubic.quanta.controller.UserController;
 import fi.jubic.quanta.models.QuantaAuthenticator;
 import fi.jubic.quanta.models.User;
 import fi.jubic.quanta.scheduled.ScheduledTask;
@@ -43,6 +44,9 @@ public class App implements AuthenticatedApplication<User> {
     @Inject
     @Resources
     Set<Object> resources;
+
+    @Inject
+    UserController userController;
 
     @Inject
     App() {
@@ -110,6 +114,8 @@ public class App implements AuthenticatedApplication<User> {
         taskScheduler.start();
 
         new UndertowServer().start(app, configuration);
-        app.authenticator.reloadExternalClients();
+        if (app.userController.getUsers().isPresent()) {
+            app.authenticator.reloadExternalClients();
+        }
     }
 }
