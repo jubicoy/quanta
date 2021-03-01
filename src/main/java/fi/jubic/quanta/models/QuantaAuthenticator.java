@@ -22,7 +22,6 @@ public class QuantaAuthenticator extends StatefulAuthenticator<User> {
     ) {
         this.tokens = new CopyOnWriteArrayList<>();
         this.externalClientController = externalClientController;
-        reloadExternalClients();
     }
 
     @Override

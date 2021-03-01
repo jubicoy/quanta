@@ -110,6 +110,6 @@ public class App implements AuthenticatedApplication<User> {
         taskScheduler.start();
 
         new UndertowServer().start(app, configuration);
-
+        app.authenticator.reloadExternalClients();
     }
 }
