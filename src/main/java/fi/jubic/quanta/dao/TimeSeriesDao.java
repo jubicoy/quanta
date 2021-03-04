@@ -12,6 +12,7 @@ import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.TimeSeriesColumnSelector;
 import fi.jubic.quanta.models.TimeSeriesFilter;
 import fi.jubic.quanta.models.TimeSeriesGroupSelector;
+import fi.jubic.quanta.models.TimeSeriesModifier;
 import fi.jubic.quanta.models.TimeSeriesQuery;
 import fi.jubic.quanta.models.TimeSeriesResultOutputColumnSelector;
 import fi.jubic.quanta.models.TimeSeriesResultOutputFilter;
@@ -552,6 +553,60 @@ public class TimeSeriesDao {
                 })
                 .collect(Collectors.toList());
 
+        List<Field<?>> distinctFields = selectColumns.stream()
+                .filter(columnSelector ->
+                        Objects.equals(
+                                columnSelector.getModifier(),
+                                TimeSeriesModifier.distinct
+                        )
+                )
+                .map(columnSelector ->
+                        DSL.field(DSL.sql(
+                                String.format(
+                                        "\"%d\"",
+                                        columnSelector.getColumn().getIndex()
+                                )
+                        ))
+                ).collect(Collectors.toList());
+
+        if (!selectFields.isEmpty() && !distinctFields.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Do not combine distinct aggregation with other selectors"
+            );
+        }
+
+        if (!distinctFields.isEmpty()) {
+            return queryDistinct(
+                    selectorPrefix,
+                    tableName,
+                    anchorFields,
+                    distinctFields,
+                    groupingFields,
+                    columns,
+                    condition
+            );
+        }
+
+        return query(
+                selectorPrefix,
+                tableName,
+                anchorFields,
+                selectFields,
+                groupingFields,
+                columns,
+                condition
+        );
+    }
+
+    private Map<List<?>, List<Measurement>> query(
+            String selectorPrefix,
+            String tableName,
+            List<Field<?>> anchorFields,
+            List<Field<?>> selectFields,
+            List<Field<?>> groupingFields,
+            List<Column> columns,
+            Condition condition
+    ) {
         return DSL.using(conf)
                 .select(
                         Stream.concat(
@@ -586,6 +641,55 @@ public class TimeSeriesDao {
                                                         columns,
                                                         anchorFields.size(),
                                                         selectFields,
+                                                        selectorPrefix
+                                                )
+                                        )
+                                        .filter(Optional::isPresent)
+                                        .map(Optional::get)
+                                        .collect(Collectors.toList())
+                        )
+                );
+    }
+
+    private Map<List<?>, List<Measurement>> queryDistinct(
+            String selectorPrefix,
+            String tableName,
+            List<Field<?>> anchorFields,
+            List<Field<?>> distinctFields,
+            List<Field<?>> groupingFields,
+            List<Column> columns,
+            Condition condition
+    ) {
+        return  DSL.using(conf)
+                .select(
+                        Stream.concat(
+                                anchorFields.stream(),
+                                distinctFields.stream()
+                        ).collect(Collectors.toList())
+                )
+                .distinctOn(distinctFields)
+                .from(DSL.table(DSL.name(tableName)))
+                .where(condition)
+                .orderBy(
+                        distinctFields
+                )
+                .limit(1000)
+                .fetchGroups(
+                        groupingFields.toArray(new Field[0])
+                )
+                .entrySet()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                entry -> entry.getKey().intoList(),
+                                entry -> entry.getValue()
+                                        .stream()
+                                        .map(
+                                                record -> mapToMeasurement(
+                                                        record,
+                                                        columns,
+                                                        anchorFields.size(),
+                                                        distinctFields,
                                                         selectorPrefix
                                                 )
                                         )
@@ -682,6 +786,64 @@ public class TimeSeriesDao {
                 })
                 .collect(Collectors.toList());
 
+        List<Field<?>> distinctFields = selectColumns.stream()
+                .filter(
+                        columnSelector ->
+                                Objects.equals(
+                                        columnSelector.getModifier(),
+                                        TimeSeriesModifier.distinct
+                                )
+                )
+                .map(columnSelector ->
+                        DSL.field(DSL.sql(
+                                String.format(
+                                        "\"%d\"",
+                                        columnSelector
+                                                .getOutputColumn()
+                                                .getIndex()
+                                )
+                        ))
+                )
+                .collect(Collectors.toList());
+
+        if (!selectFields.isEmpty() && !distinctFields.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Do not combine distinct aggregation with other selectors"
+            );
+        }
+
+        if (!distinctFields.isEmpty()) {
+            return queryDistinctResultOutput(
+                    selectorPrefix,
+                    tableName,
+                    anchorFields,
+                    distinctFields,
+                    groupingFields,
+                    outputColumns,
+                    condition
+            );
+        }
+
+        return queryResultOutput(
+                selectorPrefix,
+                tableName,
+                anchorFields,
+                selectFields,
+                groupingFields,
+                outputColumns,
+                condition
+        );
+    }
+
+    private Map<List<?>, List<Measurement>> queryResultOutput(
+            String selectorPrefix,
+            String tableName,
+            List<Field<?>> anchorFields,
+            List<Field<?>> selectFields,
+            List<Field<?>> groupingFields,
+            List<OutputColumn> outputColumns,
+            Condition condition
+    ) {
         return DSL.using(conf)
                 .select(
                         Stream.concat(
@@ -716,6 +878,57 @@ public class TimeSeriesDao {
                                                         outputColumns,
                                                         anchorFields.size(),
                                                         selectFields,
+                                                        selectorPrefix
+                                                )
+                                        )
+                                        .filter(Optional::isPresent)
+                                        .map(Optional::get)
+                                        .collect(Collectors.toList())
+                        )
+                );
+    }
+
+    private Map<List<?>, List<Measurement>> queryDistinctResultOutput(
+            String selectorPrefix,
+            String tableName,
+            List<Field<?>> anchorFields,
+            List<Field<?>> distinctFields,
+            List<Field<?>> groupingFields,
+            List<OutputColumn> outputColumns,
+            Condition condition
+    ) {
+        return DSL.using(conf)
+                .select(
+                        Stream.concat(
+                                anchorFields.stream(),
+                                distinctFields.stream()
+                        ).collect(Collectors.toList())
+                )
+                .distinctOn(
+                        distinctFields
+                )
+                .from(DSL.table(DSL.name(tableName)))
+                .where(condition)
+                .orderBy(
+                        distinctFields
+                )
+                .limit(1000)
+                .fetchGroups(
+                        groupingFields.toArray(new Field[0])
+                )
+                .entrySet()
+                .stream()
+                .collect(
+                        Collectors.toMap(
+                                entry -> entry.getKey().intoList(),
+                                entry -> entry.getValue()
+                                        .stream()
+                                        .map(
+                                                record -> mapToMeasurementWithOutputColumns(
+                                                        record,
+                                                        outputColumns,
+                                                        anchorFields.size(),
+                                                        distinctFields,
                                                         selectorPrefix
                                                 )
                                         )

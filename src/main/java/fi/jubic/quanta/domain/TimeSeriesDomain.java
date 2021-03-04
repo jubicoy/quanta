@@ -62,7 +62,7 @@ public class TimeSeriesDomain {
         // Return list of all selectors from query
         Pattern pattern = Pattern.compile(
                 // G1: (Optional) Modifiers(grouping/aggregation)
-                "^(?:(avg|min|max|sum|group_by|where)\\()?"
+                "^(?:(avg|min|max|sum|group_by|where|distinct)\\()?"
                 // G2: Type
                 + "(series|result|result_output):"
                 // G3: Series name
