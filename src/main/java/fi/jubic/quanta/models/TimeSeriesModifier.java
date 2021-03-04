@@ -6,7 +6,8 @@ public enum TimeSeriesModifier {
     max,
     sum,
     group_by,
-    where;
+    where,
+    distinct;
 
     public static TimeSeriesModifier parse(String timeSeriesModifier) {
         switch (timeSeriesModifier.toLowerCase()) {
@@ -16,6 +17,7 @@ public enum TimeSeriesModifier {
             case "sum": return sum;
             case "group_by": return group_by;
             case "where": return where;
+            case "distinct": return  distinct;
 
             default: return null;
         }
