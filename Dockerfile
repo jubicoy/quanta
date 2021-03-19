@@ -15,19 +15,16 @@ RUN cd /opt/build/front \
 
 COPY ./ /opt/build/
 
-ARG VERSION_STRING=DEV
-
 RUN cd /opt/build \
-  # Read project.artifactId from pom.xml into a variable
-  && export ARTIFACT=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}' --non-recursive exec:exec) \
-  && mvn versions:set -DnewVersion=${VERSION_STRING} \
+  # Read project.artifactId and project.version from pom.xml into a variable
+  && export ARTIFACT=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.artifactId}-${project.version}' --non-recursive exec:exec) \
   # Package with shade profile so all libraries are included
   && mvn clean package -P shade \
-  && mv target/${ARTIFACT}-${VERSION_STRING}.jar /opt/${ARTIFACT}-${VERSION_STRING}.jar \
+  && mv target/${ARTIFACT}.jar /opt/${ARTIFACT}.jar \
   && cd /opt \
   && rm -rf /opt/build \
-  && chmod a+x /opt/${ARTIFACT}-${VERSION_STRING}.jar \
-  && echo "${ARTIFACT}-${VERSION_STRING}.jar" > /opt/artifact
+  && chmod a+x /opt/${ARTIFACT}.jar \
+  && echo "${ARTIFACT}.jar" > /opt/artifact
 
 FROM adoptopenjdk/openjdk11:debian-jre
 
