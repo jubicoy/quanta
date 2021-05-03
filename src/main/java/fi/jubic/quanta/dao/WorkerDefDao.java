@@ -1,6 +1,7 @@
 package fi.jubic.quanta.dao;
 
 import fi.jubic.quanta.config.Configuration;
+import fi.jubic.quanta.db.tables.records.WorkerDefinitionRecord;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerDefColumn;
@@ -99,17 +100,21 @@ public class WorkerDefDao {
             org.jooq.Configuration transaction
     ) {
         try {
-            Long workerDefId = DSL.using(transaction)
-                    .insertInto(WORKER_DEFINITION)
-                    .set(
-                            WorkerDef.mapper.write(
-                                DSL.using(transaction).newRecord(WORKER_DEFINITION),
-                                workerDef
-                            )
+            Long workerDefId = Optional
+                    .ofNullable(
+                            DSL.using(transaction)
+                                    .insertInto(WORKER_DEFINITION)
+                                    .set(
+                                            WorkerDef.mapper.write(
+                                                DSL.using(transaction).newRecord(WORKER_DEFINITION),
+                                                workerDef
+                                            )
+                                    )
+                                    .returning(WORKER_DEFINITION.ID)
+                                    .fetchOne()
                     )
-                    .returning(WORKER_DEFINITION.ID)
-                    .fetchOne()
-                    .getId();
+                    .map(WorkerDefinitionRecord::getId)
+                    .orElseThrow(IllegalStateException::new);
 
             DSL.using(transaction)
                     .batchInsert(
@@ -160,16 +165,21 @@ public class WorkerDefDao {
     public WorkerDef create(WorkerDef workerDef) {
         try {
             return DSL.using(conf).transactionResult(transaction -> {
-                Long workerDefId = DSL.using(transaction)
-                        .insertInto(WORKER_DEFINITION)
-                        .set(
-                                WorkerDef.mapper.write(
-                                        DSL.using(transaction).newRecord(WORKER_DEFINITION),
-                                        workerDef
-                                ))
-                        .returning(WORKER_DEFINITION.ID)
-                        .fetchOne()
-                        .getId();
+                Long workerDefId = Optional
+                        .ofNullable(
+                                DSL.using(transaction)
+                                        .insertInto(WORKER_DEFINITION)
+                                        .set(
+                                                WorkerDef.mapper.write(
+                                                        DSL.using(transaction)
+                                                                .newRecord(WORKER_DEFINITION),
+                                                        workerDef
+                                                ))
+                                        .returning(WORKER_DEFINITION.ID)
+                                        .fetchOne()
+                        )
+                        .map(WorkerDefinitionRecord::getId)
+                        .orElseThrow(IllegalStateException::new);
 
                 DSL.using(transaction)
                         .batchInsert(
@@ -208,16 +218,21 @@ public class WorkerDefDao {
     public Optional<WorkerDef> insert(WorkerDef workerDef) {
         try {
             return DSL.using(conf).transactionResult(transactionResult -> {
-                Long workerDefId = DSL.using(transactionResult)
-                        .insertInto(WORKER_DEFINITION)
-                        .set(
-                                WorkerDef.mapper.write(
-                                        DSL.using(transactionResult).newRecord(WORKER_DEFINITION),
-                                        workerDef
-                        ))
-                        .returning(WORKER_DEFINITION.ID)
-                        .fetchOne()
-                        .getId();
+                Long workerDefId = Optional
+                        .ofNullable(
+                                DSL.using(transactionResult)
+                                        .insertInto(WORKER_DEFINITION)
+                                        .set(
+                                                WorkerDef.mapper.write(
+                                                        DSL.using(transactionResult)
+                                                                .newRecord(WORKER_DEFINITION),
+                                                        workerDef
+                                        ))
+                                        .returning(WORKER_DEFINITION.ID)
+                                        .fetchOne()
+                        )
+                        .map(WorkerDefinitionRecord::getId)
+                        .orElseThrow(IllegalStateException::new);
 
                 DSL.using(transactionResult)
                         .batchInsert(

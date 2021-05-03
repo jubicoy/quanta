@@ -265,19 +265,24 @@ public class InvocationDao {
                         transaction
                 ) + 1L;
 
-                Long invocationId = DSL.using(transaction)
-                        .insertInto(INVOCATION)
-                        .set(
-                                Invocation.mapper.write(
-                                        DSL.using(transaction).newRecord(INVOCATION),
-                                        invocation.toBuilder()
-                                        .setInvocationNumber(nextInvocationNumber)
-                                        .build()
-                                )
+                Long invocationId = Optional
+                        .ofNullable(
+                                DSL.using(transaction)
+                                        .insertInto(INVOCATION)
+                                        .set(
+                                                Invocation.mapper.write(
+                                                        DSL.using(transaction)
+                                                                .newRecord(INVOCATION),
+                                                        invocation.toBuilder()
+                                                        .setInvocationNumber(nextInvocationNumber)
+                                                        .build()
+                                                )
+                                        )
+                                        .returning(INVOCATION.ID)
+                                        .fetchOne()
                         )
-                        .returning(INVOCATION.ID)
-                        .fetchOne()
-                        .getId();
+                        .map(InvocationRecord::getId)
+                        .orElseThrow(IllegalStateException::new);
 
                 if (!invocation.getColumnSelectors().isEmpty()) {
                     DSL.using(transaction)
@@ -357,11 +362,16 @@ public class InvocationDao {
     ) {
         Invocation invocation = updater.apply(getDetails(invocationId));
 
-        InvocationRecord record = DSL.using(conf)
-                .select()
-                .from(INVOCATION)
-                .where(INVOCATION.ID.eq(invocation.getId()))
-                .fetchOneInto(INVOCATION);
+        InvocationRecord record = Optional
+                .ofNullable(
+                        DSL.using(conf)
+                                .select()
+                                .from(INVOCATION)
+                                .where(INVOCATION.ID.eq(invocation.getId()))
+                                .fetchOneInto(INVOCATION)
+                )
+                .orElseThrow(IllegalStateException::new);
+
 
         Invocation.mapper.write(
                 record,

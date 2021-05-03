@@ -1,5 +1,6 @@
 package fi.jubic.quanta.dao;
 
+import fi.jubic.quanta.db.tables.records.ExternalClientRecord;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataConnection;
@@ -195,19 +196,21 @@ public class ExternalClientDao {
     }
 
     private ExternalClient create(ExternalClient externalClient, Configuration transaction) {
-        Long externalClientId = DSL.using(transaction)
-                .insertInto(EXTERNAL_CLIENT)
-                .set(
-                        ExternalClient.mapper.write(
-                                DSL.using(conf).newRecord(EXTERNAL_CLIENT),
-                                externalClient
-                        )
+        return Optional
+                .ofNullable(
+                        DSL.using(transaction)
+                                .insertInto(EXTERNAL_CLIENT)
+                                .set(
+                                        ExternalClient.mapper.write(
+                                                DSL.using(conf).newRecord(EXTERNAL_CLIENT),
+                                                externalClient
+                                        )
+                                )
+                                .returning(EXTERNAL_CLIENT.ID)
+                                .fetchOne()
                 )
-                .returning(EXTERNAL_CLIENT.ID)
-                .fetchOne()
-                .getId();
-
-        return getDetails(externalClientId)
+                .map(ExternalClientRecord::getId)
+                .flatMap(this::getDetails)
                 .orElseThrow(IllegalStateException::new);
     }
 

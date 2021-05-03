@@ -1,5 +1,6 @@
 package fi.jubic.quanta.dao;
 
+import fi.jubic.quanta.db.tables.records.DataConnectionRecord;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.models.Column;
@@ -130,19 +131,21 @@ public class DataConnectionDao {
     }
 
     public DataConnection create(DataConnection dataConnection) {
-        Long dataConnectionId = DSL.using(conf)
-                .insertInto(DATA_CONNECTION)
-                .set(
-                        DataConnection.mapper.write(
-                                DSL.using(conf).newRecord(DATA_CONNECTION),
-                                dataConnection
-                        )
+        return Optional
+                .ofNullable(
+                        DSL.using(conf)
+                                .insertInto(DATA_CONNECTION)
+                                .set(
+                                        DataConnection.mapper.write(
+                                                DSL.using(conf).newRecord(DATA_CONNECTION),
+                                                dataConnection
+                                        )
+                                )
+                                .returning(DATA_CONNECTION.ID)
+                                .fetchOne()
                 )
-                .returning(DATA_CONNECTION.ID)
-                .fetchOne()
-                .getId();
-
-        return getDetails(dataConnectionId)
+                .map(DataConnectionRecord::getId)
+                .flatMap(this::getDetails)
                 .orElseThrow(IllegalStateException::new);
     }
 

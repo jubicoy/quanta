@@ -149,11 +149,15 @@ public class WorkerDao {
                     .orElseThrow(NotFoundException::new);
         }
 
-        WorkerRecord record = DSL.using(transaction)
-                .select()
-                .from(WORKER)
-                .where(WORKER.ID.eq(workerId))
-                .fetchOneInto(WorkerRecord.class);
+        WorkerRecord record = Optional
+                .ofNullable(
+                        DSL.using(transaction)
+                                .select()
+                                .from(WORKER)
+                                .where(WORKER.ID.eq(workerId))
+                                .fetchOneInto(WorkerRecord.class)
+                )
+                .orElseThrow(IllegalStateException::new);
 
         Worker.mapper.write(record, worker).store();
 
