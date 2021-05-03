@@ -2,7 +2,6 @@ package fi.jubic.quanta;
 
 import fi.jubic.easyschedule.StartupScheduler;
 import fi.jubic.easyschedule.TaskScheduler;
-import fi.jubic.easyschedule.liquibase.LiquibaseTask;
 import fi.jubic.quanta.auth.AdminAuthenticationTask;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.models.QuantaAuthenticator;
@@ -12,11 +11,11 @@ import fi.jubic.snoozy.Application;
 import fi.jubic.snoozy.AuthenticatedApplication;
 import fi.jubic.snoozy.MethodAccess;
 import fi.jubic.snoozy.Snoozy;
-import fi.jubic.snoozy.StaticFiles;
 import fi.jubic.snoozy.auth.Authentication;
 import fi.jubic.snoozy.auth.implementation.DefaultAuthorizer;
 import fi.jubic.snoozy.auth.implementation.HeaderParser;
 import fi.jubic.snoozy.filters.UrlRewrite;
+import fi.jubic.snoozy.staticfiles.StaticFiles;
 import fi.jubic.snoozy.undertow.UndertowServer;
 
 import javax.inject.Inject;
@@ -64,10 +63,10 @@ public class App implements AuthenticatedApplication<User> {
                         .setClassLoader(Application.class.getClassLoader())
                         .setMethodAccess(MethodAccess.anonymous())
                         .setRewrite(
-                                UrlRewrite.builder()
-                                        .setFrom("^\\/(?!(((api|assets).*)|.*\\.(html|js)$)).*$")
-                                        .setTo("/index.html")
-                                        .build()
+                                UrlRewrite.of(
+                                        "^\\/(?!(((api|assets).*)|.*\\.(html|js)$)).*$",
+                                        "/index.html"
+                                )
                         )
                         .build()
         );
@@ -94,12 +93,6 @@ public class App implements AuthenticatedApplication<User> {
         Configuration configuration = app.getConfiguration();
 
         TaskScheduler taskScheduler = new StartupScheduler()
-                .registerStartupTask(
-                        new LiquibaseTask(
-                                configuration.getJooqConfiguration(),
-                                "migrations.xml"
-                        )
-                )
                 .registerStartupTask(
                         app.adminAuthenticationTask
                 )

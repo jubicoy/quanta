@@ -1,6 +1,7 @@
 package fi.jubic.quanta.config;
 
-import fi.jubic.easyconfig.annotations.EasyConfigProperty;
+import fi.jubic.easyconfig.annotations.ConfigProperty;
+import fi.jubic.easyconfig.extensions.LiquibaseExtension;
 import fi.jubic.easyconfig.jooq.JooqConfiguration;
 import fi.jubic.easyconfig.snoozy.SnoozyServerConfiguration;
 import fi.jubic.quanta.auth.Admin;
@@ -16,17 +17,18 @@ public class Configuration implements ServerConfigurator {
     private Admin admin;
 
     public Configuration(
-            @EasyConfigProperty("SERVER_")
+            @ConfigProperty("SERVER_")
                     SnoozyServerConfiguration serverConfiguration,
-            @EasyConfigProperty("")
+            @LiquibaseExtension(migrations = "migrations.xml")
+            @ConfigProperty("")
                     JooqConfiguration jooqConfiguration,
-            @EasyConfigProperty(value = "SERVER_FILE_PATH", defaultValue = "/tmp")
+            @ConfigProperty(value = "SERVER_FILE_PATH", defaultValue = "/tmp")
                     String filePath,
-            @EasyConfigProperty(value = "SERVER_JDBC_PATH", defaultValue = "/tmp")
+            @ConfigProperty(value = "SERVER_JDBC_PATH", defaultValue = "/tmp")
                     String jdbcPath,
-            @EasyConfigProperty(value = "SERVER_PERSIST_OLD_SERIES_TABLES", defaultValue = "3600")
+            @ConfigProperty(value = "SERVER_PERSIST_OLD_SERIES_TABLES", defaultValue = "3600")
                     Integer persistOldSeriesTables,
-            @EasyConfigProperty(value = "ADMIN_")
+            @ConfigProperty(value = "ADMIN_")
                     Admin admin
     ) {
         this.serverConfiguration = serverConfiguration;

@@ -4,7 +4,6 @@ import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import fi.jubic.easyconfig.ConfigMapper;
-import fi.jubic.easyconfig.MappingException;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.external.ExternalModule;
 import fi.jubic.quanta.resources.ResourceModule;
@@ -29,13 +28,7 @@ public interface AppComponent {
         @Provides
         @Singleton
         static Configuration provideConfiguration() {
-            try {
-                return new ConfigMapper().read(Configuration.class);
-            }
-            catch (MappingException e) {
-                e.printStackTrace();
-                return null;
-            }
+            return new ConfigMapper().read(Configuration.class);
         }
 
         @Provides
