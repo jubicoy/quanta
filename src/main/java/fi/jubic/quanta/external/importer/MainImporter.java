@@ -12,6 +12,8 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
@@ -21,6 +23,7 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -59,6 +62,11 @@ public class MainImporter implements Importer {
                     public Boolean onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.test(dataConnection);
                     }
+
+                    @Override
+                    public Boolean onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
+                        throw new UnsupportedOperationException();
+                    }
                 });
     }
 
@@ -81,6 +89,11 @@ public class MainImporter implements Importer {
                     @Override
                     public DataConnection onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.validate(dataConnection);
+                    }
+
+                    @Override
+                    public DataConnection onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
+                        return dataConnection;
                     }
                 });
     }
@@ -105,6 +118,11 @@ public class MainImporter implements Importer {
                     public DataConnection onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.getWithEmptyLogin(dataConnection);
                     }
+
+                    @Override
+                    public DataConnection onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
+                        return dataConnection;
+                    }
                 });
     }
 
@@ -125,6 +143,14 @@ public class MainImporter implements Importer {
                     @Override
                     public DataSample onJson(JsonIngestDataSeriesConfiguration ignored) {
                         return jsonImporter.getSample(dataSeries, rows);
+                    }
+
+                    @Override
+                    public DataSample onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+                        return DataSample.builder()
+                                .setDataSeries(dataSeries)
+                                .setData(Collections.emptyList())
+                                .build();
                     }
                 });
     }
@@ -165,6 +191,11 @@ public class MainImporter implements Importer {
                     ) {
                         return jsonImporter.getConnectionMetadata(dataConnection);
                     }
+
+                    @Override
+                    public DataConnectionMetadata onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
+                        throw new UnsupportedOperationException();
+                    }
                 });
     }
 
@@ -187,6 +218,11 @@ public class MainImporter implements Importer {
                     @Override
                     public Stream<List<String>> onJson(JsonIngestDataSeriesConfiguration ignored) {
                         return jsonImporter.getRows(dataSeries);
+                    }
+
+                    @Override
+                    public Stream<List<String>> onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+                        return Stream.empty();
                     }
                 });
     }

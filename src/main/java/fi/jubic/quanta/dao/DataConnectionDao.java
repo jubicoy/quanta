@@ -96,30 +96,22 @@ public class DataConnectionDao {
                     JsonIngestDataConnectionConfiguration config = dataConnection
                             .getConfiguration()
                             .visit(new DataConnectionConfiguration
-                                    .FunctionVisitor<JsonIngestDataConnectionConfiguration>() {
-                                @Override
-                                public JsonIngestDataConnectionConfiguration onCsv(
-                                        CsvDataConnectionConfiguration csvConfiguration
-                                ) {
-                                    throw new InputException(
-                                            "JSON_INGEST DataConnection has invalid configurations"
-                                    );
-                                }
-
-                                @Override
-                                public JsonIngestDataConnectionConfiguration onJdbc(
-                                        JdbcDataConnectionConfiguration jdbcConfiguration
-                                ) {
-                                    throw new InputException(
-                                            "JSON_INGEST DataConnection has invalid configurations"
-                                    );
-                                }
+                                    .DefaultFunctionVisitor<JsonIngestDataConnectionConfiguration>() {
 
                                 @Override
                                 public JsonIngestDataConnectionConfiguration onJson(
                                         JsonIngestDataConnectionConfiguration jsonConfiguration
                                 ) {
                                     return jsonConfiguration;
+                                }
+
+                                @Override
+                                public JsonIngestDataConnectionConfiguration otherwise(
+                                        DataConnectionConfiguration configuration
+                                ) {
+                                    throw new InputException(
+                                            "JSON_INGEST DataConnection has invalid configurations"
+                                    );
                                 }
                             });
                     return config.getToken().equals(token);
