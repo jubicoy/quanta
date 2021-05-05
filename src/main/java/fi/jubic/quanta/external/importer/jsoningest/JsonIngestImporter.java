@@ -13,6 +13,7 @@ import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataSeriesConfiguration;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
@@ -187,6 +188,15 @@ public class JsonIngestImporter implements Importer, Ingester {
                             JsonIngestDataSeriesConfiguration jsonConfiguration
                     ) {
                         return jsonConfiguration;
+                    }
+
+                    @Override
+                    public JsonIngestDataSeriesConfiguration onImportWorker(
+                            ImportWorkerDataSeriesConfiguration importWorkerConfiguration
+                    ) {
+                        throw new InputException(
+                                "JSON_INGEST DataSeries has invalid configurations"
+                        );
                     }
                 });
     }

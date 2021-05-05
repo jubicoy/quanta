@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row7;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -84,6 +84,21 @@ public class Task extends TableImpl<TaskRecord> {
      */
     public final TableField<TaskRecord, LocalDateTime> DELETED_AT = createField(DSL.name("deleted_at"), SQLDataType.LOCALDATETIME(6), this, "");
 
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Long> DATA_SERIES_ID = createField(DSL.name("data_series_id"), SQLDataType.BIGINT, this, "");
+
+    /**
+     * The column <code>task.sync_interval_start_time</code>.
+     */
+    public final TableField<TaskRecord, LocalDateTime> SYNC_INTERVAL_START_TIME = createField(DSL.name("sync_interval_start_time"), SQLDataType.LOCALDATETIME(6), this, "");
+
+    /**
+     * The column <code>task.sync_interval_end_time</code>.
+     */
+    public final TableField<TaskRecord, LocalDateTime> SYNC_INTERVAL_END_TIME = createField(DSL.name("sync_interval_end_time"), SQLDataType.LOCALDATETIME(6), this, "");
+
     private Task(Name alias, Table<TaskRecord> aliased) {
         this(alias, aliased, null);
     }
@@ -139,11 +154,15 @@ public class Task extends TableImpl<TaskRecord> {
 
     @Override
     public List<ForeignKey<TaskRecord, ?>> getReferences() {
-        return Arrays.<ForeignKey<TaskRecord, ?>>asList(Keys.TASK__FK_TASK_WORKER_DEF_ID);
+        return Arrays.<ForeignKey<TaskRecord, ?>>asList(Keys.TASK__FK_TASK_WORKER_DEF_ID, Keys.TASK__FK_TASK_DATA_SERIES_ID);
     }
 
     public WorkerDefinition workerDefinition() {
         return new WorkerDefinition(this, Keys.TASK__FK_TASK_WORKER_DEF_ID);
+    }
+
+    public DataSeries dataSeries() {
+        return new DataSeries(this, Keys.TASK__FK_TASK_DATA_SERIES_ID);
     }
 
     @Override
@@ -173,11 +192,11 @@ public class Task extends TableImpl<TaskRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row7 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row7<Long, String, Long, String, Long, String, LocalDateTime> fieldsRow() {
-        return (Row7) super.fieldsRow();
+    public Row10<Long, String, Long, String, Long, String, LocalDateTime, Long, LocalDateTime, LocalDateTime> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 }

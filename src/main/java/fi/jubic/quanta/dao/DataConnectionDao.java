@@ -9,8 +9,6 @@ import fi.jubic.quanta.models.DataConnectionConfiguration;
 import fi.jubic.quanta.models.DataConnectionQuery;
 import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
-import fi.jubic.quanta.models.configuration.JdbcDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
 import org.jooq.Condition;
 import org.jooq.Record;
@@ -96,30 +94,22 @@ public class DataConnectionDao {
                     JsonIngestDataConnectionConfiguration config = dataConnection
                             .getConfiguration()
                             .visit(new DataConnectionConfiguration
-                                    .FunctionVisitor<JsonIngestDataConnectionConfiguration>() {
-                                @Override
-                                public JsonIngestDataConnectionConfiguration onCsv(
-                                        CsvDataConnectionConfiguration csvConfiguration
-                                ) {
-                                    throw new InputException(
-                                            "JSON_INGEST DataConnection has invalid configurations"
-                                    );
-                                }
-
-                                @Override
-                                public JsonIngestDataConnectionConfiguration onJdbc(
-                                        JdbcDataConnectionConfiguration jdbcConfiguration
-                                ) {
-                                    throw new InputException(
-                                            "JSON_INGEST DataConnection has invalid configurations"
-                                    );
-                                }
+                                    .DefaultFunctionVisitor<>() {
 
                                 @Override
                                 public JsonIngestDataConnectionConfiguration onJson(
                                         JsonIngestDataConnectionConfiguration jsonConfiguration
                                 ) {
                                     return jsonConfiguration;
+                                }
+
+                                @Override
+                                public JsonIngestDataConnectionConfiguration otherwise(
+                                        DataConnectionConfiguration configuration
+                                ) {
+                                    throw new InputException(
+                                            "JSON_INGEST DataConnection has invalid configurations"
+                                    );
                                 }
                             });
                     return config.getToken().equals(token);

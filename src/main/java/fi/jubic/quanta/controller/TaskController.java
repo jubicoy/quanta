@@ -1,8 +1,10 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
+import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
+import fi.jubic.quanta.dao.SeriesTableDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
@@ -15,6 +17,8 @@ import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.models.Anomaly;
 import fi.jubic.quanta.models.AnomalyQuery;
 import fi.jubic.quanta.models.ColumnSelector;
+import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
@@ -22,6 +26,7 @@ import fi.jubic.quanta.models.Measurement;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.SeriesResultQuery;
+import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.TaskType;
@@ -37,7 +42,9 @@ import org.quartz.CronExpression;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +64,8 @@ public class TaskController {
     private final TaskDao taskDao;
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
+    private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
+    private final SeriesTableDao seriesTableDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -74,6 +83,8 @@ public class TaskController {
             TaskDao taskDao,
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
+            ImportWorkerDataSampleDao importWorkerDataSampleDao,
+            SeriesTableDao seriesTableDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -87,6 +98,8 @@ public class TaskController {
         this.taskDao = taskDao;
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
+        this.importWorkerDataSampleDao = importWorkerDataSampleDao;
+        this.seriesTableDao = seriesTableDao;
 
 
         this.dataController = dataController;
@@ -244,8 +257,16 @@ public class TaskController {
             String workerToken
     ) {
         Invocation invocation = getInvocationDetails(id)
-                .filter(inv -> inv.getColumnSelectors().size() > 0)
                 .orElseThrow(NotFoundException::new);
+
+        TaskType taskType = invocation.getTask().getTaskType();
+
+        //the import tasks can have empty column selectors
+        if (!taskType.equals(TaskType.IMPORT_SAMPLE) && !taskType.equals(TaskType.IMPORT)) {
+            invocation = getInvocationDetails(id)
+                   .filter(inv -> inv.getColumnSelectors().size() > 0)
+                   .orElseThrow(NotFoundException::new);
+        }
 
         if (!invocation.getWorker().getToken().equals(workerToken)) {
             throw new AuthorizationException("Authorization Worker token is not same as "
@@ -299,29 +320,89 @@ public class TaskController {
             Invocation invocation,
             List<Measurement> measurements
     ) {
-        SeriesResult createdResult = DSL.using(conf).transactionResult(transaction -> {
-            SeriesResult intermediateResult = seriesResultDao.create(
-                    taskDomain.createSeriesResult(invocation),
-                    transaction
-            );
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)
+                || invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
 
-            timeSeriesDao.createTableWithOutputColumns(
-                    intermediateResult,
+            DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
+
+                DataSeries invocationSeries = invocation.getColumnSelectors()
+                        .stream()
+                        .findFirst()
+                        .map(ColumnSelector::getSeries)
+                        .orElseThrow(IllegalStateException::new);
+
+                SeriesTable table = SeriesTable
+                        .builder()
+                        .setId(-1L)
+                        .setTableName(invocationSeries.getTableName())
+                        .setDataSeries(invocationSeries)
+                        .build();
+
+                seriesTableDao.deleteWithTableName(invocationSeries.getTableName(), transaction);
+
+                timeSeriesDao.deleteTable(invocationSeries, transaction);
+
+
+                seriesTableDao.create(table, transaction);
+
+                timeSeriesDao.createTableWithOutputColumns(
+                        table,
+                        invocation.getOutputColumns(),
+                        transaction
+                );
+
+                return invocationSeries;
+
+            });
+
+            timeSeriesDao.insertDataWithOutputColumns(
+                    createdSeries,
                     invocation.getOutputColumns(),
-                    transaction
+                    timeSeriesDomain.convertFromMeasurement(
+                            invocation,
+                            measurements
+                    )
             );
 
-            return intermediateResult;
-        });
+            //for data waiting thing
+            importWorkerDataSampleDao.putSample(invocation.getId(),
+                    ImportWorkerDataSample.builder()
+                    .setColumns(Collections.emptyList())
+                    .setErrorFlag(false)
+                    .setData(
+                            timeSeriesDomain.convertFromMeasurement(
+                            invocation,
+                            measurements).collect(Collectors.toList())
+                    )
+                    .build());
+        }
 
-        timeSeriesDao.insertDataWithOutputColumns(
-                createdResult,
-                invocation.getOutputColumns(),
-                timeSeriesDomain.convertFromMeasurement(
-                        invocation,
-                        measurements
-                )
-        );
+
+        else {
+            SeriesResult createdResult = DSL.using(conf).transactionResult(transaction -> {
+                SeriesResult intermediateResult = seriesResultDao.create(
+                        taskDomain.createSeriesResult(invocation),
+                        transaction
+                );
+
+                timeSeriesDao.createTableWithOutputColumns(
+                        intermediateResult,
+                        invocation.getOutputColumns(),
+                        transaction
+                );
+
+                return intermediateResult;
+            });
+
+            timeSeriesDao.insertDataWithOutputColumns(
+                    createdResult,
+                    invocation.getOutputColumns(),
+                    timeSeriesDomain.convertFromMeasurement(
+                            invocation,
+                            measurements
+                    )
+            );
+        }
     }
 
     public void storeAnomalyResult(
@@ -477,5 +558,17 @@ public class TaskController {
         }
 
         return deletedTask;
+    }
+
+    public Response submitDataSample(
+            Invocation invocation,  ImportWorkerDataSample sample
+    ) {
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+            importWorkerDataSampleDao.putSample(invocation.getId(), sample);
+
+            return Response.ok().build();
+        }
+
+        return null;
     }
 }
