@@ -255,6 +255,7 @@ public class DataController {
 
         switch (dataSeries.getType()) {
             case CSV:
+            case IMPORT_WORKER:
             case JDBC:
                 throw new UnsupportedOperationException();
 
@@ -286,6 +287,10 @@ public class DataController {
     ) {
         DataConnection dataConnection = dataConnectionDao.getDetails(dataConnectionId)
                 .orElseThrow(() -> new InputException("No such DataConnection"));
+
+        if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
+            return importer.getSample(dataSeries, 5);
+        }
 
         return importer.getSample(
                 dataDomain.create(

@@ -54,7 +54,7 @@ public class WorkerDefDao {
             List<WorkerDef> workerDefs = DSL.using(transaction)
                     .select()
                     .from(WORKER_DEFINITION)
-                    .join(WORKER_DEFINITION_COLUMN)
+                    .leftJoin(WORKER_DEFINITION_COLUMN)
                     .on(WORKER_DEFINITION_COLUMN.DEFINITION_ID.eq(WORKER_DEFINITION.ID))
                     .where(condition)
                     .fetchStream()
@@ -115,23 +115,24 @@ public class WorkerDefDao {
                     )
                     .map(WorkerDefinitionRecord::getId)
                     .orElseThrow(IllegalStateException::new);
-
-            DSL.using(transaction)
-                    .batchInsert(
-                            workerDef.getColumns()
-                                    .stream()
-                                    .map(column ->
-                                            WorkerDefColumn.workerDefColumnMapper.write(
-                                                    DSL.using(conf).newRecord(
-                                                            WORKER_DEFINITION_COLUMN
-                                                    ),
-                                                    column
-                                            )
-                                    )
-                                    .peek(record -> record.setDefinitionId(workerDefId))
-                                    .collect(Collectors.toList())
-                    )
-                    .execute();
+            if (!workerDef.getColumns().isEmpty()) {
+                DSL.using(transaction)
+                        .batchInsert(
+                                workerDef.getColumns()
+                                        .stream()
+                                        .map(column ->
+                                                WorkerDefColumn.workerDefColumnMapper.write(
+                                                        DSL.using(conf).newRecord(
+                                                                WORKER_DEFINITION_COLUMN
+                                                        ),
+                                                        column
+                                                )
+                                        )
+                                        .peek(record -> record.setDefinitionId(workerDefId))
+                                        .collect(Collectors.toList())
+                        )
+                        .execute();
+            }
 
             if (workerDef.getParameters() != null) {
                 DSL.using(transaction)
@@ -181,7 +182,8 @@ public class WorkerDefDao {
                         .map(WorkerDefinitionRecord::getId)
                         .orElseThrow(IllegalStateException::new);
 
-                DSL.using(transaction)
+                if (!workerDef.getColumns().isEmpty()) {
+                    DSL.using(transaction)
                         .batchInsert(
                                 workerDef.getColumns()
                                         .stream()
@@ -196,7 +198,8 @@ public class WorkerDefDao {
                                         .peek(record -> record.setDefinitionId(workerDefId))
                                         .collect(Collectors.toList())
                         )
-                        .execute();
+                            .execute();
+                }
 
                 return getDetails(workerDefId, transaction)
                         .orElseThrow(IllegalStateException::new);
@@ -234,23 +237,24 @@ public class WorkerDefDao {
                         .map(WorkerDefinitionRecord::getId)
                         .orElseThrow(IllegalStateException::new);
 
-                DSL.using(transactionResult)
-                        .batchInsert(
-                                workerDef.getColumns()
-                                        .stream()
-                                        .map(inputColumn ->
-                                                WorkerDefColumn.workerDefColumnMapper.write(
-                                                        DSL.using(conf).newRecord(
-                                                                WORKER_DEFINITION_COLUMN
-                                                        ),
-                                                        inputColumn
-                                                )
-                                        )
-                                        .peek(record -> record.setDefinitionId(workerDefId))
-                                        .collect(Collectors.toList())
-                        )
-                        .execute();
-
+                if (!workerDef.getColumns().isEmpty()) {
+                    DSL.using(transactionResult)
+                            .batchInsert(
+                                    workerDef.getColumns()
+                                            .stream()
+                                            .map(inputColumn ->
+                                                    WorkerDefColumn.workerDefColumnMapper.write(
+                                                            DSL.using(conf).newRecord(
+                                                                    WORKER_DEFINITION_COLUMN
+                                                            ),
+                                                            inputColumn
+                                                    )
+                                            )
+                                            .peek(record -> record.setDefinitionId(workerDefId))
+                                            .collect(Collectors.toList())
+                            )
+                            .execute();
+                }
                 if (workerDef.getParameters() != null) {
                     DSL.using(transactionResult)
                             .batchInsert(

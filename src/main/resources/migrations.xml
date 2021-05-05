@@ -618,4 +618,25 @@
         <renameColumn tableName="detection_result" oldColumnName="delta_max" newColumnName="metadata" />
         <renameTable oldTableName="detection_result" newTableName="anomaly" />
     </changeSet>
+    <changeSet id="11" author="Arvo Koskikallio &lt;arvo.koskikallio@jubic.fi&gt;">
+        <addColumn tableName="task" >
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="true"
+                        foreignKeyName="fk_task_data_series_id"
+                        references="data_series(id)" />
+            </column>
+        </addColumn>
+        <addColumn tableName="task" >
+            <column name="sync_interval_start_time" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="task" >
+            <column name="sync_interval_end_time" type="timestamp">
+                <constraints nullable="true"/>
+
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
