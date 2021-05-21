@@ -83,7 +83,9 @@ public abstract class DataConnectionConfiguration {
         }
 
         @Override
-        public void onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
+        public void onImportWorker(
+                ImportWorkerDataConnectionConfiguration importWorkerConfiguration
+        ) {
             otherwise(importWorkerConfiguration);
         }
 

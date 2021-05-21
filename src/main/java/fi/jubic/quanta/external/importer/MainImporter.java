@@ -2,6 +2,7 @@ package fi.jubic.quanta.external.importer;
 
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.external.importer.csv.CsvImporter;
+import fi.jubic.quanta.external.importer.importworker.ImportWorkerImporter;
 import fi.jubic.quanta.external.importer.jdbc.JdbcImporter;
 import fi.jubic.quanta.external.importer.jsoningest.JsonIngestImporter;
 import fi.jubic.quanta.models.DataConnection;
@@ -23,7 +24,6 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,16 +32,19 @@ public class MainImporter implements Importer {
     private final Importer csvImporter;
     private final Importer jdbcImporter;
     private final Importer jsonImporter;
+    private final Importer importWorkerImporter;
 
     @Inject
     public MainImporter(
             CsvImporter csvImporter,
             JdbcImporter jdbcImporter,
-            JsonIngestImporter jsonImporter
+            JsonIngestImporter jsonImporter,
+            ImportWorkerImporter importWorkerImporter
     ) {
         this.csvImporter = csvImporter;
         this.jdbcImporter = jdbcImporter;
         this.jsonImporter = jsonImporter;
+        this.importWorkerImporter = importWorkerImporter;
     }
 
     @Override
@@ -64,8 +67,8 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public Boolean onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
-                        throw new UnsupportedOperationException();
+                    public Boolean onImportWorker(ImportWorkerDataConnectionConfiguration ignored) {
+                        return importWorkerImporter.test(dataConnection);
                     }
                 });
     }
@@ -92,8 +95,10 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public DataConnection onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
-                        return dataConnection;
+                    public DataConnection onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.validate(dataConnection);
                     }
                 });
     }
@@ -120,8 +125,10 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public DataConnection onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
-                        return dataConnection;
+                    public DataConnection onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getWithEmptyLogin(dataConnection);
                     }
                 });
     }
@@ -146,11 +153,8 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public DataSample onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
-                        return DataSample.builder()
-                                .setDataSeries(dataSeries)
-                                .setData(Collections.emptyList())
-                                .build();
+                    public DataSample onImportWorker(ImportWorkerDataSeriesConfiguration ignored) {
+                        return importWorkerImporter.getSample(dataSeries, rows);
                     }
                 });
     }
@@ -164,6 +168,8 @@ public class MainImporter implements Importer {
                 return jdbcImporter.getMetadata(type);
             case JSON_INGEST:
                 return jsonImporter.getMetadata(type);
+            case IMPORT_WORKER:
+                return importWorkerImporter.getMetadata(type);
             default:
                 throw new IllegalStateException();
         }
@@ -193,8 +199,10 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public DataConnectionMetadata onImportWorker(ImportWorkerDataConnectionConfiguration importWorkerConfiguration) {
-                        throw new UnsupportedOperationException();
+                    public DataConnectionMetadata onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getConnectionMetadata(dataConnection);
                     }
                 });
     }
@@ -221,11 +229,11 @@ public class MainImporter implements Importer {
                     }
 
                     @Override
-                    public Stream<List<String>> onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
-                        return Stream.empty();
+                    public Stream<List<String>> onImportWorker(
+                            ImportWorkerDataSeriesConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getRows(dataSeries);
                     }
                 });
     }
-
-
 }

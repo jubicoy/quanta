@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.models.DataConnectionConfiguration;
-import fi.jubic.quanta.models.WorkerDef;
 
 @EasyValue
 @JsonTypeName("IMPORT_WORKER")

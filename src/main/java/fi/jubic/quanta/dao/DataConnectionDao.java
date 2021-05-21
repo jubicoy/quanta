@@ -9,8 +9,6 @@ import fi.jubic.quanta.models.DataConnectionConfiguration;
 import fi.jubic.quanta.models.DataConnectionQuery;
 import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
-import fi.jubic.quanta.models.configuration.JdbcDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
 import org.jooq.Condition;
 import org.jooq.Record;
@@ -96,7 +94,7 @@ public class DataConnectionDao {
                     JsonIngestDataConnectionConfiguration config = dataConnection
                             .getConfiguration()
                             .visit(new DataConnectionConfiguration
-                                    .DefaultFunctionVisitor<JsonIngestDataConnectionConfiguration>() {
+                                    .DefaultFunctionVisitor<>() {
 
                                 @Override
                                 public JsonIngestDataConnectionConfiguration onJson(

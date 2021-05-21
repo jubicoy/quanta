@@ -255,6 +255,7 @@ public class DataController {
 
         switch (dataSeries.getType()) {
             case CSV:
+            case IMPORT_WORKER:
             case JDBC:
                 throw new UnsupportedOperationException();
 

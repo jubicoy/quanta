@@ -79,7 +79,9 @@ public class DataDomain {
                     }
 
                     @Override
-                    public void onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+                    public void onImportWorker(
+                            ImportWorkerDataSeriesConfiguration importWorkerConfiguration
+                    ) {
                         // No validation
                     }
                 });

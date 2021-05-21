@@ -46,7 +46,9 @@ public class MainIngester implements Ingester {
                     }
 
                     @Override
-                    public List<List<String>> onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+                    public List<List<String>> onImportWorker(
+                            ImportWorkerDataSeriesConfiguration importWorkerConfiguration
+                    ) {
                         throw new UnsupportedOperationException();
                     }
                 });

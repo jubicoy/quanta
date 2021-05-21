@@ -6,7 +6,6 @@ import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.Parameter;
 
-import javax.annotation.Nullable;
 import java.util.List;
 
 @EasyValue
@@ -28,7 +27,9 @@ public abstract class ImportWorkerDataSeriesConfiguration extends DataSeriesConf
         visitor.onImportWorker(this);
     }
 
-    public static Builder builder() { return new Builder(); }
+    public static Builder builder() {
+        return new Builder();
+    }
 
     public static class Builder extends EasyValue_ImportWorkerDataSeriesConfiguration.Builder {
     }

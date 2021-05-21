@@ -191,8 +191,12 @@ public class JsonIngestImporter implements Importer, Ingester {
                     }
 
                     @Override
-                    public JsonIngestDataSeriesConfiguration onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
-                        throw new UnsupportedOperationException();
+                    public JsonIngestDataSeriesConfiguration onImportWorker(
+                            ImportWorkerDataSeriesConfiguration importWorkerConfiguration
+                    ) {
+                        throw new InputException(
+                                "JSON_INGEST DataSeries has invalid configurations"
+                        );
                     }
                 });
     }
