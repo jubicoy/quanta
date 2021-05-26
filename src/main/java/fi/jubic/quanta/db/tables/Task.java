@@ -7,6 +7,7 @@ package fi.jubic.quanta.db.tables;
 import fi.jubic.quanta.db.DefaultSchema;
 import fi.jubic.quanta.db.Indexes;
 import fi.jubic.quanta.db.Keys;
+import fi.jubic.quanta.db.tables.records.TaskColumnSelectorRecord;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 
 import java.sql.Timestamp;
@@ -85,6 +86,11 @@ public class Task extends TableImpl<TaskRecord> {
      * The column <code>task.task_type</code>.
      */
     public final TableField<TaskRecord, String> TASK_TYPE = createField("task_type", org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false).defaultValue(org.jooq.impl.DSL.field("'process'::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Long> DATA_SERIES_ID = createField("data_series_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
 
     /**
      * The column <code>task.deleted_at</code>.

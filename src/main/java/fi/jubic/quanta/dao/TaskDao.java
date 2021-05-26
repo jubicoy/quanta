@@ -55,6 +55,7 @@ public class TaskDao {
                         query.getHasCronTrigger().map(
                                 hasCronTrigger -> TASK.CRON_TRIGGER.isNotNull()
                         ),
+                        query.getDataSeriesId().map(TASK.DATA_SERIES_ID::eq),
                         query.getNotDeleted().map(
                                 hasCronTrigger -> TASK.DELETED_AT.isNull()
                         )
