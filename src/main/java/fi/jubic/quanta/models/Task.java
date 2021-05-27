@@ -10,7 +10,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static fi.jubic.quanta.db.tables.Task.TASK;
 
