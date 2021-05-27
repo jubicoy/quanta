@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @Singleton
 public class ImportWorkerDataSampleDao {
@@ -16,15 +17,14 @@ public class ImportWorkerDataSampleDao {
 
     }
 
-    private ImportWorkerDataSample getSample(Long invocationId) {
+    private Optional<ImportWorkerDataSample> takeSample(Long invocationId) {
         ImportWorkerDataSample returnVal = sampleMap.get(invocationId);
         sampleMap.remove(invocationId);
 
-        return returnVal;
+        return Optional.ofNullable(returnVal);
     }
 
-    private void setSample(Long invocationId, ImportWorkerDataSample sample) {
-
+    private void putSample(Long invocationId, ImportWorkerDataSample sample) {
         if (sample.getData().isEmpty() && sample.getColumns().isEmpty()) {
             sampleMap.put(invocationId, sample.toBuilder()
                     .setErrorFlag(true)
