@@ -4,6 +4,7 @@ import fi.jubic.quanta.controller.TaskController;
 import fi.jubic.quanta.controller.TimeSeriesController;
 import fi.jubic.quanta.controller.WorkerController;
 import fi.jubic.quanta.models.Anomaly;
+import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Measurement;
 import fi.jubic.quanta.models.Pagination;
@@ -145,6 +146,16 @@ public class WorkerClientV1Resource {
                 seriesResultData
         );
         return Response.ok().build();
+    }
+
+    @POST
+    @Path("invocations/{id}/data-sample")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response submitDataSample(
+            @PathParam("id") Long id,
+            ImportWorkerDataSample sample
+    ) {
+        return taskController.submitDataSample(id, sample);
     }
 
     private Invocation getInvocation(
