@@ -1,6 +1,7 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
+import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
 import fi.jubic.quanta.dao.TaskDao;
@@ -15,6 +16,7 @@ import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.models.Anomaly;
 import fi.jubic.quanta.models.AnomalyQuery;
 import fi.jubic.quanta.models.ColumnSelector;
+import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
@@ -37,6 +39,7 @@ import org.quartz.CronExpression;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +60,7 @@ public class TaskController {
     private final TaskDao taskDao;
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
+    private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -74,6 +78,7 @@ public class TaskController {
             TaskDao taskDao,
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
+            ImportWorkerDataSampleDao importWorkerDataSampleDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -87,6 +92,7 @@ public class TaskController {
         this.taskDao = taskDao;
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
+        this.importWorkerDataSampleDao = importWorkerDataSampleDao;
 
 
         this.dataController = dataController;
@@ -477,5 +483,18 @@ public class TaskController {
         }
 
         return deletedTask;
+    }
+
+    public Response submitDataSample(Long invocationId, ImportWorkerDataSample sample) {
+        Invocation invocation = invocationDao.getDetails(invocationId)
+                .orElseThrow(() -> new ApplicationException("Invocation does not exist"));
+
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+            importWorkerDataSampleDao.putSample(invocationId, sample);
+
+            return Response.ok().build();
+        }
+
+        return null;
     }
 }

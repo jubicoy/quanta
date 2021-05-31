@@ -4,27 +4,24 @@ import fi.jubic.quanta.models.ImportWorkerDataSample;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Singleton
 public class ImportWorkerDataSampleDao {
-    private final Map<Long, ImportWorkerDataSample> sampleMap = new HashMap<>();
+    private final Map<Long, ImportWorkerDataSample> sampleMap = new ConcurrentHashMap<>();
 
     @Inject
     ImportWorkerDataSampleDao() {
 
     }
 
-    private Optional<ImportWorkerDataSample> takeSample(Long invocationId) {
-        ImportWorkerDataSample returnVal = sampleMap.get(invocationId);
-        sampleMap.remove(invocationId);
-
-        return Optional.ofNullable(returnVal);
+    public Optional<ImportWorkerDataSample> takeSample(Long invocationId) {
+        return Optional.ofNullable(sampleMap.remove(invocationId));
     }
 
-    private void putSample(Long invocationId, ImportWorkerDataSample sample) {
+    public void putSample(Long invocationId, ImportWorkerDataSample sample) {
         if (sample.getData().isEmpty() && sample.getColumns().isEmpty()) {
             sampleMap.put(invocationId, sample.toBuilder()
                     .setErrorFlag(true)
