@@ -485,12 +485,10 @@ public class TaskController {
         return deletedTask;
     }
 
-    public Response submitDataSample(Long invocationId, ImportWorkerDataSample sample) {
-        Invocation invocation = invocationDao.getDetails(invocationId)
-                .orElseThrow(() -> new ApplicationException("Invocation does not exist"));
+    public Response submitDataSample(Invocation invocation, ImportWorkerDataSample sample) {
 
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
-            importWorkerDataSampleDao.putSample(invocationId, sample);
+            importWorkerDataSampleDao.putSample(invocation.getId(), sample);
 
             return Response.ok().build();
         }

@@ -152,10 +152,14 @@ public class WorkerClientV1Resource {
     @Path("invocations/{id}/data-sample")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response submitDataSample(
-            @PathParam("id") Long id,
+            @HeaderParam("Authorization") String token,
+            @PathParam("id") Long invocationId,
             ImportWorkerDataSample sample
     ) {
-        return taskController.submitDataSample(id, sample);
+        return taskController.submitDataSample(
+                getInvocation(invocationId, token),
+                sample
+        );
     }
 
     private Invocation getInvocation(

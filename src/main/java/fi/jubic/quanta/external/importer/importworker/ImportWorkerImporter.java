@@ -35,7 +35,8 @@ public class ImportWorkerImporter implements Importer {
     ImportWorkerImporter(
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             InvocationDao invocationDao,
-            TaskDao taskDao) {
+            TaskDao taskDao
+    ) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
@@ -85,13 +86,19 @@ public class ImportWorkerImporter implements Importer {
             //We have to get the task/invocation from Dao,
             //the IDs change once entered into the db
 
-            Invocation inv = invocationDao.search(
-                    new InvocationQuery().withTaskId(
-                            taskDao.getDetails(taskName)
-                                    .orElseThrow(NotFoundException::new)
-                                    .getId())
-                            .withStatus(InvocationStatus.Pending))
-                    .get(0);
+            Invocation inv = invocationDao
+                    .search(
+                            new InvocationQuery()
+                                    .withTaskId(
+                                            taskDao.getDetails(taskName)
+                                                    .orElseThrow(NotFoundException::new)
+                                                    .getId()
+                                    )
+                                    .withStatus(InvocationStatus.Pending)
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(NotFoundException::new);
 
             while (true) {
                 Thread.sleep(5000);
@@ -110,10 +117,8 @@ public class ImportWorkerImporter implements Importer {
 
         }
         catch (InterruptedException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-
-        return null;
     }
 
     @Override
