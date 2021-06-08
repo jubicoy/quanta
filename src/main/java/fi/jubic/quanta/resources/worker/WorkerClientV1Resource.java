@@ -157,8 +157,7 @@ public class WorkerClientV1Resource {
             ImportWorkerDataSample sample
     ) {
         return taskController.submitDataSample(
-                token,
-                invocationId,
+                getInvocation(invocationId, token),
                 sample
         );
     }

@@ -250,8 +250,16 @@ public class TaskController {
             String workerToken
     ) {
         Invocation invocation = getInvocationDetails(id)
-                .filter(inv -> inv.getColumnSelectors().size() > 0)
                 .orElseThrow(NotFoundException::new);
+
+        TaskType taskType = invocation.getTask().getTaskType();
+
+        //the import tasks can have empty column selectors
+        if (!taskType.equals(TaskType.IMPORT_SAMPLE) && !taskType.equals(TaskType.IMPORT)) {
+            invocation = getInvocationDetails(id)
+                   .filter(inv -> inv.getColumnSelectors().size() > 0)
+                   .orElseThrow(NotFoundException::new);
+        }
 
         if (!invocation.getWorker().getToken().equals(workerToken)) {
             throw new AuthorizationException("Authorization Worker token is not same as "
@@ -486,16 +494,10 @@ public class TaskController {
     }
 
     public Response submitDataSample(
-            String token, Long invocationId, ImportWorkerDataSample sample
+            Invocation invocation,  ImportWorkerDataSample sample
     ) {
-
-        checkWorkerAuthorization(token);
-
-        Invocation invocation = invocationDao.getDetails(invocationId)
-                .orElseThrow(() -> new ApplicationException("Invocation does not exist"));
-
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
-            importWorkerDataSampleDao.putSample(invocationId, sample);
+            importWorkerDataSampleDao.putSample(invocation.getId(), sample);
 
             return Response.ok().build();
         }
