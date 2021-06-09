@@ -356,6 +356,30 @@ public class InvocationDao {
         }
     }
 
+    public void createOutputColumns(Long invocationId, List<OutputColumn> columns) {
+        try {
+            DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
+                    .batchInsert(
+                            columns.stream()
+                                    .map(outputColumn ->
+                                            OutputColumn
+                                                    .invocationOutputColumnMapper.write(
+                                                    DSL.using(transaction).newRecord(
+                                                            INVOCATION_OUTPUT_COLUMN
+                                                    ),
+                                                    outputColumn
+                                            )
+                                    )
+                                    .peek(record -> record.setInvocationId(invocationId))
+                                    .collect(Collectors.toList())
+                    )
+                    .execute());
+        }
+        catch (DataAccessException exception) {
+            throw new ApplicationException("Could not store columns", exception);
+        }
+    }
+
     public Invocation update(
             Long invocationId,
             Function<Optional<Invocation>, Invocation> updater

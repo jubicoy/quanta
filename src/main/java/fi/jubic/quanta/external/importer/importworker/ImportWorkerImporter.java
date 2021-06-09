@@ -16,6 +16,7 @@ import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
+import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
@@ -29,6 +30,7 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,7 +50,8 @@ public class ImportWorkerImporter implements Importer {
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             InvocationDao invocationDao,
             TaskDao taskDao,
-            WorkerDefDao workerDefDao, WorkerDao workerDao) {
+            WorkerDefDao workerDefDao,
+            WorkerDao workerDao) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
@@ -158,6 +161,22 @@ public class ImportWorkerImporter implements Importer {
                         importWorkerDataSampleDao.takeSample(inv.getId());
 
                 if (importWorkerDataSample.isPresent()) {
+
+                    List<OutputColumn> columnList = new ArrayList<>();
+
+                    importWorkerDataSample.get().getColumns().forEach(column ->
+                            columnList.add(
+                                    OutputColumn.builder()
+                                    .setId(column.getId())
+                                    .setColumnName(column.getName())
+                                    .setIndex(column.getIndex())
+                                    .setType(column.getType())
+                                    .build()
+                            )
+                    );
+
+                    invocationDao.createOutputColumns(inv.getId(), columnList);
+
                     return DataSample
                             .builder()
                             .setData(importWorkerDataSample.get().getData())
