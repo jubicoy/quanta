@@ -193,12 +193,36 @@ public class ImportWorkerImporter implements Importer {
                     invocationDao.createOutputColumns(inv.getId(), columnList);
                     invocationDao.createColumnSelectors(inv.getId(), selectors);
 
-                    return DataSample
-                            .builder()
-                            .setData(importWorkerDataSample.get().getData())
+                    System.out.println("columns received!");
+                    break;
+                }
+            }
+
+            while (true) {
+                Thread.sleep(5000);
+
+                Optional<ImportWorkerDataSample> bigDataSample =
+                        importWorkerDataSampleDao.takeSample(inv.getId());
+
+                if (bigDataSample.isPresent()) {
+                    System.out.println("data received!");
+                    List<List<String>> sample;
+
+                    //if the data has less rows than sample row amount we return the whole data
+                    if (bigDataSample.get().getData().size() > rows) {
+                        sample = bigDataSample.get().getData().subList(0, rows);
+                    }
+
+                    else {
+                        sample = bigDataSample.get().getData();
+                    }
+
+                    return DataSample.builder()
                             .setDataSeries(dataSeries)
+                            .setData(sample)
                             .build();
                 }
+
             }
 
         }

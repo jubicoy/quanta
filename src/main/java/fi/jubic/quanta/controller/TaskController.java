@@ -1,7 +1,6 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
-import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
@@ -45,6 +44,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -65,7 +65,6 @@ public class TaskController {
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
-    private final DataSeriesDao dataSeriesDao;
     private final SeriesTableDao seriesTableDao;
 
     private final DataController dataController;
@@ -85,7 +84,6 @@ public class TaskController {
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
-            DataSeriesDao dataSeriesDao,
             SeriesTableDao seriesTableDao,
             DataController dataController,
             SchedulerController schedulerController,
@@ -101,7 +99,6 @@ public class TaskController {
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
-        this.dataSeriesDao = dataSeriesDao;
         this.seriesTableDao = seriesTableDao;
 
 
@@ -366,6 +363,18 @@ public class TaskController {
                             measurements
                     )
             );
+
+            //for data waiting thing
+            importWorkerDataSampleDao.putSample(invocation.getId(),
+                    ImportWorkerDataSample.builder()
+                    .setColumns(Collections.emptyList())
+                    .setErrorFlag(false)
+                    .setData(
+                            timeSeriesDomain.convertFromMeasurement(
+                            invocation,
+                            measurements).collect(Collectors.toList())
+                    )
+                    .build());
         }
 
 
