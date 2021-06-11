@@ -79,8 +79,6 @@ public class ImportWorkerImporter implements Importer {
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
 
-        System.out.println(dataSeries.getId() + " AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-
         String taskName = dataSeries.getId() + "-" + dataSeries.getName()
                 + "-" + System.currentTimeMillis();
 

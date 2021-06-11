@@ -313,6 +313,7 @@ public class TimeSeriesDao {
                 data
         );
     }
+
     public long insertDataWithOutputColumns(
             DataSeries dataSeries,
             List<OutputColumn> outputColumns,
