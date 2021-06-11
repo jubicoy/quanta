@@ -7,6 +7,7 @@ import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
+import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataConnectionConfiguration;
 import fi.jubic.quanta.models.DataConnectionType;
@@ -77,6 +78,8 @@ public class ImportWorkerImporter implements Importer {
 
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
+
+        System.out.println(dataSeries.getId() + " AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
 
         String taskName = dataSeries.getId() + "-" + dataSeries.getName()
                 + "-" + System.currentTimeMillis();
@@ -175,7 +178,22 @@ public class ImportWorkerImporter implements Importer {
                             )
                     );
 
+                    List<ColumnSelector> selectors = new ArrayList<>();
+
+                    importWorkerDataSample.get().getColumns().forEach(column ->
+                            selectors.add(
+                                    ColumnSelector.builder()
+                                    .setId(column.getId())
+                                    .setColumnName(column.getName())
+                                    .setType(column.getType())
+                                    .setColumnIndex(column.getIndex())
+                                    .setSeries(dataSeries)
+                                    .build()
+                            )
+                    );
+
                     invocationDao.createOutputColumns(inv.getId(), columnList);
+                    invocationDao.createColumnSelectors(inv.getId(), selectors);
 
                     return DataSample
                             .builder()

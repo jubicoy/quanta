@@ -380,6 +380,34 @@ public class InvocationDao {
         }
     }
 
+    public void createColumnSelectors(Long invocationId, List<ColumnSelector> selectors) {
+        try {
+            if (!selectors.isEmpty()) {
+                DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
+                        .batchInsert(
+                                selectors
+                                        .stream()
+                                        .map(columnSelector ->
+                                                ColumnSelector.invocationColumnSelectorMapper
+                                                        .write(DSL.using(transaction).newRecord(
+                                                                INVOCATION_COLUMN_SELECTOR
+                                                                ),
+                                                                columnSelector
+                                                        )
+                                        )
+                                        .peek(record -> record
+                                                .setInvocationId(invocationId)
+                                        )
+                                        .collect(Collectors.toList())
+                        )
+                        .execute());
+            }
+        }
+        catch (DataAccessException exception) {
+            throw new ApplicationException("Could not store selectors", exception);
+        }
+    }
+
     public Invocation update(
             Long invocationId,
             Function<Optional<Invocation>, Invocation> updater

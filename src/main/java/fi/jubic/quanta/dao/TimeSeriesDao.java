@@ -148,6 +148,20 @@ public class TimeSeriesDao {
         );
     }
 
+    public void createTableWithOutputColumns(
+            SeriesTable seriesTable,
+            List<OutputColumn> outputColumns,
+            Configuration transaction
+    ) {
+        createTableWithOutputColumns(
+                seriesTable.getTableName(),
+                outputColumns.stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                transaction
+        );
+    }
+
     private void createTableWithOutputColumns(
             String tableName,
             List<OutputColumn> outputColumns,
@@ -292,6 +306,20 @@ public class TimeSeriesDao {
     ) {
         return insertDataWithOutputColumns(
                 seriesResult.getTableName(),
+                outputColumns
+                        .stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                data
+        );
+    }
+    public long insertDataWithOutputColumns(
+            DataSeries dataSeries,
+            List<OutputColumn> outputColumns,
+            Stream<List<String>> data
+    ) {
+        return insertDataWithOutputColumns(
+                dataSeries.getTableName(),
                 outputColumns
                         .stream()
                         .sorted(Comparator.comparingInt(OutputColumn::getIndex))
