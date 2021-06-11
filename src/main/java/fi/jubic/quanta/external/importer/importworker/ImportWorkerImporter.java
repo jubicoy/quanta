@@ -193,7 +193,6 @@ public class ImportWorkerImporter implements Importer {
                     invocationDao.createOutputColumns(inv.getId(), columnList);
                     invocationDao.createColumnSelectors(inv.getId(), selectors);
 
-                    System.out.println("columns received!");
                     break;
                 }
             }
@@ -205,7 +204,7 @@ public class ImportWorkerImporter implements Importer {
                         importWorkerDataSampleDao.takeSample(inv.getId());
 
                 if (bigDataSample.isPresent()) {
-                    System.out.println("data received!");
+
                     List<List<String>> sample;
 
                     //if the data has less rows than sample row amount we return the whole data
