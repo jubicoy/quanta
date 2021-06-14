@@ -1,10 +1,10 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
+import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
-import fi.jubic.quanta.dao.SeriesTableDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
@@ -16,6 +16,7 @@ import fi.jubic.quanta.exception.AuthorizationException;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.models.Anomaly;
 import fi.jubic.quanta.models.AnomalyQuery;
+import fi.jubic.quanta.models.Column;
 import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.ImportWorkerDataSample;
@@ -23,6 +24,7 @@ import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
 import fi.jubic.quanta.models.Measurement;
+import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.SeriesResultQuery;
@@ -43,7 +45,9 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +69,7 @@ public class TaskController {
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
-    private final SeriesTableDao seriesTableDao;
+    private final DataSeriesDao dataSeriesDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -84,7 +88,7 @@ public class TaskController {
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
-            SeriesTableDao seriesTableDao,
+            DataSeriesDao dataSeriesDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -99,8 +103,7 @@ public class TaskController {
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
-        this.seriesTableDao = seriesTableDao;
-
+        this.dataSeriesDao = dataSeriesDao;
 
         this.dataController = dataController;
         this.schedulerController = schedulerController;
@@ -264,8 +267,8 @@ public class TaskController {
         //the import tasks can have empty column selectors
         if (!taskType.equals(TaskType.IMPORT_SAMPLE) && !taskType.equals(TaskType.IMPORT)) {
             invocation = getInvocationDetails(id)
-                   .filter(inv -> inv.getColumnSelectors().size() > 0)
-                   .orElseThrow(NotFoundException::new);
+                    .filter(inv -> inv.getColumnSelectors().size() > 0)
+                    .orElseThrow(NotFoundException::new);
         }
 
         if (!invocation.getWorker().getToken().equals(workerToken)) {
@@ -311,7 +314,7 @@ public class TaskController {
         if (status.equals(InvocationStatus.Completed)) {
             taskDao.search(
                     new TaskQuery().withTriggeredById(invocation.getTask().getId())
-                        .withNotDeleted(true)
+                            .withNotDeleted(true)
             ).forEach(task -> invoke(task.getId()));
         }
     }
@@ -320,16 +323,21 @@ public class TaskController {
             Invocation invocation,
             List<Measurement> measurements
     ) {
-        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)
-                || invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
+
+            List<OutputColumn> outputColumns = convertSeriesColumnsToOutputColumns(
+                    Objects.requireNonNull(invocation.getTask().getSeries()).getColumns()
+            );
+
+            updateInvocationStatus(invocation, InvocationStatus.Running);
+
+            List<Measurement> newMeasurements = new ArrayList<>();
 
             DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
 
-                DataSeries invocationSeries = invocation.getColumnSelectors()
-                        .stream()
-                        .findFirst()
-                        .map(ColumnSelector::getSeries)
-                        .orElseThrow(IllegalStateException::new);
+                DataSeries invocationSeries = Objects.requireNonNull(
+                        invocation.getTask().getSeries()
+                );
 
                 SeriesTable table = SeriesTable
                         .builder()
@@ -338,43 +346,84 @@ public class TaskController {
                         .setDataSeries(invocationSeries)
                         .build();
 
-                seriesTableDao.deleteWithTableName(invocationSeries.getTableName(), transaction);
+                InvocationQuery query = new InvocationQuery();
 
-                timeSeriesDao.deleteTable(invocationSeries, transaction);
+                //Get all completed import invocations created with the worker currently being used
+                List<Invocation> oldInvocations = invocationDao.search(query.withWorker(
+                        Objects.requireNonNull(invocation.getWorker()).getId()
+                ))
+                        .stream()
+                        .filter(invocation1 -> invocation1
+                                .getStatus()
+                                .equals(InvocationStatus.Completed))
+                        .filter(invocation1 -> invocation1
+                                .getTask().getTaskType()
+                                .equals(TaskType.IMPORT))
+                        .collect(Collectors.toList());
 
+                if (invocation.getTask().getSyncIntervalStartTime() != null
+                        && invocation.getTask().getSyncIntervalEndTime() != null) {
+                    newMeasurements.addAll(measurements.stream()
+                            .filter(measurement -> measurement.getTime()
+                                    .isAfter(invocation.getTask().getSyncIntervalStartTime()))
+                            .filter(measurement -> measurement.getTime()
+                                    .isBefore(invocation.getTask().getSyncIntervalEndTime()))
+                            .collect(Collectors.toList()));
+                }
 
-                seriesTableDao.create(table, transaction);
+                else {
+                    newMeasurements.addAll(measurements);
+                }
 
-                timeSeriesDao.createTableWithOutputColumns(
-                        table,
-                        invocation.getOutputColumns(),
-                        transaction
-                );
+                //We recreate the table if this is the first completed IMPORT task
+                if (oldInvocations.size() == 0) {
 
+                    timeSeriesDao.deleteTable(invocationSeries, transaction);
+
+                    timeSeriesDao.createTableWithOutputColumns(
+                            table,
+                            outputColumns,
+                            transaction
+                    );
+                }
                 return invocationSeries;
 
             });
+            if (invocation.getTask().getSyncIntervalStartTime() != null
+                    && invocation.getTask().getSyncIntervalEndTime() != null) {
+
+                timeSeriesDao.deleteRowsWithTableName(
+                        createdSeries.getTableName(),
+                        "0",
+                        Timestamp.from(invocation.getTask().getSyncIntervalStartTime()),
+                        Timestamp.from(invocation.getTask().getSyncIntervalEndTime()),
+                        conf
+                );
+            }
+
 
             timeSeriesDao.insertDataWithOutputColumns(
                     createdSeries,
-                    invocation.getOutputColumns(),
+                    outputColumns,
                     timeSeriesDomain.convertFromMeasurement(
                             invocation,
-                            measurements
+                            newMeasurements
                     )
             );
 
-            //for data waiting thing
             importWorkerDataSampleDao.putSample(invocation.getId(),
                     ImportWorkerDataSample.builder()
-                    .setColumns(Collections.emptyList())
-                    .setErrorFlag(false)
-                    .setData(
-                            timeSeriesDomain.convertFromMeasurement(
-                            invocation,
-                            measurements).collect(Collectors.toList())
-                    )
-                    .build());
+                            .setColumns(Collections.emptyList())
+                            .setErrorFlag(false)
+                            .setData(
+                                    timeSeriesDomain.convertFromMeasurement(
+                                            invocation,
+                                            newMeasurements
+                                    ).collect(Collectors.toList())
+                            )
+                            .build());
+
+            updateInvocationStatus(invocation, InvocationStatus.Completed);
         }
 
 
@@ -429,10 +478,10 @@ public class TaskController {
 
     public Map<String, CronRegistration> createMapOfCronRegistrations(Stream<Task> tasks) {
         return tasks.map(task -> CronRegistration.of(
-                        task.getCronTrigger(),
-                        invokeTask(task.getId()),
-                        task.getName()
-                ))
+                task.getCronTrigger(),
+                invokeTask(task.getId()),
+                task.getName()
+        ))
                 .collect(
                         Collectors.toMap(
                                 CronRegistration::getTaskName,
@@ -484,10 +533,10 @@ public class TaskController {
             Instant startAt
     ) {
         return invocationStream.map(invocation -> SingleTriggerJob.of(
-                        getSyncJobStartAt(invocation, startAt),
-                        syncDataSeries(invocation),
-                        getSyncJobName(invocation)
-                ))
+                getSyncJobStartAt(invocation, startAt),
+                syncDataSeries(invocation),
+                getSyncJobName(invocation)
+        ))
                 .collect(
                         Collectors.toMap(
                                 SingleTriggerJob::getJobName,
@@ -564,11 +613,34 @@ public class TaskController {
             Invocation invocation,  ImportWorkerDataSample sample
     ) {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+
+            updateInvocationStatus(invocation, InvocationStatus.Running);
             importWorkerDataSampleDao.putSample(invocation.getId(), sample);
+            updateInvocationStatus(invocation, InvocationStatus.Completed);
 
             return Response.ok().build();
         }
 
         return null;
+    }
+
+    public List<OutputColumn> convertSeriesColumnsToOutputColumns(
+            List<Column> seriesColumns
+    ) {
+        List<OutputColumn> outputColumns = new ArrayList<>();
+
+        seriesColumns.forEach(column ->
+                outputColumns.add(
+                        OutputColumn.builder()
+                                .setIndex(column.getIndex())
+                                .setType(column.getType())
+                                .setId(column.getId())
+                                .setColumnName(column.getName())
+                                .setAlias(column.getName())
+                                .build()
+                )
+        );
+
+        return outputColumns;
     }
 }
