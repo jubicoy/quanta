@@ -127,6 +127,7 @@ public class ImportWorkerImporter implements Importer {
                 .setId(-1L)
                 .setName(taskName)
                 .setWorkerDef(workerDef)
+                .setSeries(dataSeries)
                 .setTaskType(TaskType.IMPORT_SAMPLE)
                 .build();
 
