@@ -419,7 +419,7 @@ public class InvocationDao {
                         DSL.using(conf)
                                 .select()
                                 .from(INVOCATION)
-                                .where(INVOCATION.ID.eq(invocation.getId()))
+                                .where(INVOCATION.ID.eq(invocationId))
                                 .fetchOneInto(INVOCATION)
                 )
                 .orElseThrow(IllegalStateException::new);
@@ -430,7 +430,7 @@ public class InvocationDao {
                 invocation
         ).update();
 
-        return getDetails(invocation.getId())
+        return getDetails(invocationId)
                 .orElseThrow(IllegalStateException::new);
     }
 

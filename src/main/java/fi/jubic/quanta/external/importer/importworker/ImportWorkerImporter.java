@@ -5,6 +5,7 @@ import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
+import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.models.ColumnSelector;
@@ -31,6 +32,7 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -46,19 +48,23 @@ public class ImportWorkerImporter implements Importer {
     private final WorkerDefDao workerDefDao;
     private final WorkerDao workerDao;
 
+    private final TaskDomain taskDomain;
+
     @Inject
     ImportWorkerImporter(
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             InvocationDao invocationDao,
             TaskDao taskDao,
             WorkerDefDao workerDefDao,
-            WorkerDao workerDao) {
+            WorkerDao workerDao,
+            TaskDomain taskDomain) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
         this.taskDao = taskDao;
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
+        this.taskDomain = taskDomain;
     }
 
     @Override
@@ -129,10 +135,11 @@ public class ImportWorkerImporter implements Importer {
         Invocation invocation = Invocation.builder()
                 .setId(-1L)
                 .setInvocationNumber(-1L)
-                .setStatus(InvocationStatus.Pending)
+                .setStatus(InvocationStatus.Running)
                 .setWorker(worker)
                 .setTask(taskDao.getDetails(taskName)
                         .orElseThrow(NotFoundException::new))
+                .setStartTime(Instant.now())
                 .build();
 
         invocationDao.create(invocation);
@@ -149,7 +156,7 @@ public class ImportWorkerImporter implements Importer {
                                                     .orElseThrow(NotFoundException::new)
                                                     .getId()
                                     )
-                                    .withStatus(InvocationStatus.Pending)
+                                    .withStatus(InvocationStatus.Running)
                     )
                     .stream()
                     .findFirst()
@@ -215,6 +222,12 @@ public class ImportWorkerImporter implements Importer {
                     else {
                         sample = bigDataSample.get().getData();
                     }
+
+                    invocationDao.update(
+                            inv.getId(),
+                            optionalInvocation -> taskDomain
+                                    .updateInvocationStatus(invocation, InvocationStatus.Completed)
+                    );
 
                     return DataSample.builder()
                             .setDataSeries(dataSeries)
