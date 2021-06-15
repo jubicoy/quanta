@@ -563,7 +563,8 @@ public class TaskController {
     public Response submitDataSample(
             Invocation invocation,  ImportWorkerDataSample sample
     ) {
-        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)
+                || invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
             importWorkerDataSampleDao.putSample(invocation.getId(), sample);
 
             return Response.ok().build();
