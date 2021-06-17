@@ -43,8 +43,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -323,6 +326,8 @@ public class TaskController {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)
                 || invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
 
+            List<Measurement> newMeasurements = new ArrayList<>();
+
             DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
 
                 DataSeries invocationSeries = invocation.getColumnSelectors()
@@ -338,29 +343,87 @@ public class TaskController {
                         .setDataSeries(invocationSeries)
                         .build();
 
-                seriesTableDao.deleteWithTableName(invocationSeries.getTableName(), transaction);
+                InvocationQuery query = new InvocationQuery();
 
-                timeSeriesDao.deleteTable(invocationSeries, transaction);
+                //Get all completed invocations created with the worker currently being used
+                List<Invocation> oldInvocations = invocationDao.search(query.withWorker(
+                        invocation.getWorker().getId()
+                ))
+                        .stream()
+                        .filter(invocation1 -> invocation1
+                        .getStatus()
+                        .equals(InvocationStatus.Completed))
+                        .collect(Collectors.toList());
 
+                if (invocation.getTask().getSyncIntervalStartTime() != null
+                        && invocation.getTask().getSyncIntervalEndTime() != null) {
+                    newMeasurements.addAll(measurements.stream()
+                            .filter(measurement -> measurement.getTime()
+                                    .isAfter(invocation.getTask().getSyncIntervalStartTime()))
+                            .filter(measurement -> measurement.getTime()
+                                    .isBefore(invocation.getTask().getSyncIntervalEndTime()))
+                            .collect(Collectors.toList()));
+                }
 
-                seriesTableDao.create(table, transaction);
+                else {
+                    newMeasurements.addAll(measurements);
+                }
 
-                timeSeriesDao.createTableWithOutputColumns(
-                        table,
-                        invocation.getOutputColumns(),
-                        transaction
-                );
+                //arranging old invocations by ID - earliest first
+                if (oldInvocations.size() > 0) {
+                    oldInvocations.sort(Comparator.comparing(Invocation::getId));
+                }
 
+                //If the last invocation has different columns as this one we recreate table
+                //we also recreate the table if there have been no completed invocations yet
+                if (oldInvocations.size() == 0
+                        || !oldInvocations.get(oldInvocations.size() - 1)
+                        .getColumnSelectors()
+                        .stream()
+                        .map(ColumnSelector::getType)
+                        .collect(Collectors.toList()).equals(
+                                invocation.getColumnSelectors()
+                                        .stream()
+                                        .map(ColumnSelector::getType)
+                                        .collect(Collectors.toList())
+                        )
+                ) {
+
+                    seriesTableDao.deleteWithTableName(
+                            invocationSeries.getTableName(), transaction
+                    );
+
+                    timeSeriesDao.deleteTable(invocationSeries, transaction);
+
+                    seriesTableDao.create(table, transaction);
+                    timeSeriesDao.createTableWithOutputColumns(
+                            table,
+                            invocation.getOutputColumns(),
+                            transaction
+                    );
+                }
                 return invocationSeries;
 
             });
+            if (invocation.getTask().getSyncIntervalStartTime() != null
+                    && invocation.getTask().getSyncIntervalEndTime() != null) {
+
+                timeSeriesDao.deleteRowsWithTableName(
+                        createdSeries.getTableName(),
+                        "0",
+                        Timestamp.from(invocation.getTask().getSyncIntervalStartTime()),
+                        Timestamp.from(invocation.getTask().getSyncIntervalEndTime()),
+                        conf
+                );
+            }
+
 
             timeSeriesDao.insertDataWithOutputColumns(
                     createdSeries,
                     invocation.getOutputColumns(),
                     timeSeriesDomain.convertFromMeasurement(
                             invocation,
-                            measurements
+                            newMeasurements
                     )
             );
 
@@ -371,8 +434,9 @@ public class TaskController {
                     .setErrorFlag(false)
                     .setData(
                             timeSeriesDomain.convertFromMeasurement(
-                            invocation,
-                            measurements).collect(Collectors.toList())
+                                    invocation,
+                                    newMeasurements
+                            ).collect(Collectors.toList())
                     )
                     .build());
         }

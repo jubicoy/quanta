@@ -11,6 +11,7 @@ import fi.jubic.quanta.db.tables.records.TaskColumnSelectorRecord;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
+import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
@@ -91,6 +93,16 @@ public class Task extends TableImpl<TaskRecord> {
      * The column <code>task.data_series_id</code>.
      */
     public final TableField<TaskRecord, Long> DATA_SERIES_ID = createField("data_series_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
+
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Timestamp> SYNC_INTERVAL_START_TIME = createField("sync_interval_start_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
+
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Timestamp> SYNC_INTERVAL_END_TIME = createField("sync_interval_end_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
 
     /**
      * The column <code>task.deleted_at</code>.

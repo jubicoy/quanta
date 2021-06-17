@@ -223,6 +223,33 @@ public class TimeSeriesDao {
         DSL.using(transaction).execute(command);
     }
 
+    public void deleteRowsWithTableName(
+            String tableName,
+            String column,
+            Timestamp time1,
+            Timestamp time2,
+            Configuration transaction
+    ) {
+        deleteRows(tableName, column, time1, time2, transaction);
+    }
+
+    private void deleteRows(
+            String tableName,
+            String column,
+            Timestamp time1,
+            Timestamp time2,
+            Configuration transaction
+    ) {
+        String command = String.format(
+                "DELETE FROM \"%s\" WHERE \"%s\" BETWEEN '%s' AND '%s'",
+                Sql.sanitize(tableName),
+                Sql.sanitize(column),
+                time1,
+                time2
+        );
+        DSL.using(transaction).execute(command);
+    }
+
     public void truncateTable(
             DataSeries dataSeries,
             Configuration transaction

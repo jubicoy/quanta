@@ -13,6 +13,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
@@ -72,9 +73,11 @@ public class DataConnectionResource {
     @Path("{id}/sample")
     public DataSample getSample(
             @PathParam("id") Long dataConnectionId,
+            @HeaderParam("start") String start,
+            @HeaderParam("end") String end,
             DataSeries dataSeries
     ) {
-        return dataController.getSample(dataConnectionId, dataSeries);
+        return dataController.getSample(dataConnectionId, dataSeries, start, end);
     }
 
     @POST

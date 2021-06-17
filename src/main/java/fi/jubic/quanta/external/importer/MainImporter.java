@@ -134,27 +134,27 @@ public class MainImporter implements Importer {
     }
 
     @Override
-    public DataSample getSample(DataSeries dataSeries, int rows) {
+    public DataSample getSample(DataSeries dataSeries, int rows, String start, String end) {
         return dataSeries.getConfiguration()
                 .visit(new DataSeriesConfiguration.FunctionVisitor<DataSample>() {
                     @Override
                     public DataSample onCsv(CsvDataSeriesConfiguration ignored) {
-                        return csvImporter.getSample(dataSeries, rows);
+                        return csvImporter.getSample(dataSeries, rows, start, end);
                     }
 
                     @Override
                     public DataSample onJdbc(JdbcDataSeriesConfiguration jdbcConfiguration) {
-                        return jdbcImporter.getSample(dataSeries, rows);
+                        return jdbcImporter.getSample(dataSeries, rows, start, end);
                     }
 
                     @Override
                     public DataSample onJson(JsonIngestDataSeriesConfiguration ignored) {
-                        return jsonImporter.getSample(dataSeries, rows);
+                        return jsonImporter.getSample(dataSeries, rows, start, end);
                     }
 
                     @Override
                     public DataSample onImportWorker(ImportWorkerDataSeriesConfiguration ignored) {
-                        return importWorkerImporter.getSample(dataSeries, rows);
+                        return importWorkerImporter.getSample(dataSeries, rows, start, end);
                     }
                 });
     }

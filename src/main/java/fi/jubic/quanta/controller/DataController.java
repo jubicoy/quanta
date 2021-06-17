@@ -283,13 +283,15 @@ public class DataController {
 
     public DataSample getSample(
             Long dataConnectionId,
-            DataSeries dataSeries
+            DataSeries dataSeries,
+            String start,
+            String end
     ) {
         DataConnection dataConnection = dataConnectionDao.getDetails(dataConnectionId)
                 .orElseThrow(() -> new InputException("No such DataConnection"));
 
         if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
-            return importer.getSample(dataSeries, 5);
+            return importer.getSample(dataSeries, 5, start, end);
         }
 
         return importer.getSample(
@@ -297,7 +299,9 @@ public class DataController {
                         dataSeries,
                         dataConnection
                 ),
-                5
+                5,
+                start,
+                end
         );
     }
 

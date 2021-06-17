@@ -622,5 +622,16 @@
                         references="data_series(id)" />
             </column>
         </addColumn>
+        <addColumn tableName="task" >
+            <column name="sync_interval_start_time" type="timestamp">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+        <addColumn tableName="task" >
+            <column name="sync_interval_end_time" type="timestamp">
+                <constraints nullable="true"/>
+
+            </column>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>
