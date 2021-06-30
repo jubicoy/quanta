@@ -146,7 +146,7 @@ public class ImportWorkerImporter implements Importer {
         Invocation invocation = Invocation.builder()
                 .setId(-1L)
                 .setInvocationNumber(-1L)
-                .setStatus(InvocationStatus.Running)
+                .setStatus(InvocationStatus.Pending)
                 .setWorker(worker)
                 .setTask(taskDao.getDetails(taskName)
                         .orElseThrow(NotFoundException::new))
@@ -167,7 +167,7 @@ public class ImportWorkerImporter implements Importer {
                                                     .orElseThrow(NotFoundException::new)
                                                     .getId()
                                     )
-                                    .withStatus(InvocationStatus.Running)
+                                    .withStatus(InvocationStatus.Pending)
                     )
                     .stream()
                     .findFirst()
@@ -223,6 +223,12 @@ public class ImportWorkerImporter implements Importer {
 
                 if (bigDataSample.isPresent()) {
 
+                    invocationDao.update(
+                            inv.getId(),
+                            optionalInvocation -> taskDomain
+                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
+                    );
+
                     List<List<String>> sample;
 
                     //if the data has less rows than sample row amount we return the whole data
@@ -234,10 +240,24 @@ public class ImportWorkerImporter implements Importer {
                         sample = bigDataSample.get().getData();
                     }
 
+                    Invocation running = invocationDao
+                            .search(
+                                    new InvocationQuery()
+                                            .withTaskId(
+                                                    taskDao.getDetails(taskName)
+                                                            .orElseThrow(NotFoundException::new)
+                                                            .getId()
+                                            )
+                                            .withStatus(InvocationStatus.Running)
+                            )
+                            .stream()
+                            .findFirst()
+                            .orElseThrow(NotFoundException::new);
+
                     invocationDao.update(
-                            inv.getId(),
+                            running.getId(),
                             optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(invocation, InvocationStatus.Completed)
+                                    .updateInvocationStatus(running, InvocationStatus.Completed)
                     );
 
                     return DataSample.builder()
