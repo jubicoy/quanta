@@ -181,6 +181,12 @@ public class ImportWorkerImporter implements Importer {
 
                 if (importWorkerDataSample.isPresent()) {
 
+                    invocationDao.update(
+                            inv.getId(),
+                            optionalInvocation -> taskDomain
+                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
+                    );
+
                     List<OutputColumn> columnList = new ArrayList<>();
 
                     importWorkerDataSample.get().getColumns().forEach(column ->
@@ -222,12 +228,6 @@ public class ImportWorkerImporter implements Importer {
                         importWorkerDataSampleDao.takeSample(inv.getId());
 
                 if (bigDataSample.isPresent()) {
-
-                    invocationDao.update(
-                            inv.getId(),
-                            optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
-                    );
 
                     List<List<String>> sample;
 
