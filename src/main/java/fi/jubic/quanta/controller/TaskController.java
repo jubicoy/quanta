@@ -1,7 +1,6 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
-import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
@@ -45,7 +44,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -69,7 +67,6 @@ public class TaskController {
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
-    private final DataSeriesDao dataSeriesDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -88,7 +85,6 @@ public class TaskController {
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
-            DataSeriesDao dataSeriesDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -103,7 +99,6 @@ public class TaskController {
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
-        this.dataSeriesDao = dataSeriesDao;
 
         this.dataController = dataController;
         this.schedulerController = schedulerController;
@@ -361,13 +356,14 @@ public class TaskController {
                                 .equals(TaskType.IMPORT))
                         .collect(Collectors.toList());
 
-                if (invocation.getTask().getSyncIntervalStartTime() != null
-                        && invocation.getTask().getSyncIntervalEndTime() != null) {
+                if (invocation.getTask().getSyncIntervalOffset() != null) {
                     newMeasurements.addAll(measurements.stream()
                             .filter(measurement -> measurement.getTime()
-                                    .isAfter(invocation.getTask().getSyncIntervalStartTime()))
+                                    .isAfter(Instant.now().minusSeconds(
+                                            invocation.getTask().getSyncIntervalOffset()
+                                    )))
                             .filter(measurement -> measurement.getTime()
-                                    .isBefore(invocation.getTask().getSyncIntervalEndTime()))
+                                    .isBefore(Instant.now()))
                             .collect(Collectors.toList()));
                 }
 
@@ -389,14 +385,15 @@ public class TaskController {
                 return invocationSeries;
 
             });
-            if (invocation.getTask().getSyncIntervalStartTime() != null
-                    && invocation.getTask().getSyncIntervalEndTime() != null) {
+            if (invocation.getTask().getSyncIntervalOffset() != null) {
 
                 timeSeriesDao.deleteRowsWithTableName(
                         createdSeries.getTableName(),
                         "0",
-                        Timestamp.from(invocation.getTask().getSyncIntervalStartTime()),
-                        Timestamp.from(invocation.getTask().getSyncIntervalEndTime()),
+                        Instant.from(Instant.now().minusSeconds(
+                                invocation.getTask().getSyncIntervalOffset()
+                        )),
+                        Instant.from(Instant.now()),
                         conf
                 );
             }

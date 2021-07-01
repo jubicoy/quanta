@@ -17,7 +17,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row10;
+import org.jooq.Row9;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -90,14 +90,9 @@ public class Task extends TableImpl<TaskRecord> {
     public final TableField<TaskRecord, Long> DATA_SERIES_ID = createField(DSL.name("data_series_id"), SQLDataType.BIGINT, this, "");
 
     /**
-     * The column <code>task.sync_interval_start_time</code>.
+     * The column <code>task.sync_interval_offset</code>.
      */
-    public final TableField<TaskRecord, LocalDateTime> SYNC_INTERVAL_START_TIME = createField(DSL.name("sync_interval_start_time"), SQLDataType.LOCALDATETIME(6), this, "");
-
-    /**
-     * The column <code>task.sync_interval_end_time</code>.
-     */
-    public final TableField<TaskRecord, LocalDateTime> SYNC_INTERVAL_END_TIME = createField(DSL.name("sync_interval_end_time"), SQLDataType.LOCALDATETIME(6), this, "");
+    public final TableField<TaskRecord, Long> SYNC_INTERVAL_OFFSET = createField(DSL.name("sync_interval_offset"), SQLDataType.BIGINT, this, "");
 
     private Task(Name alias, Table<TaskRecord> aliased) {
         this(alias, aliased, null);
@@ -192,11 +187,11 @@ public class Task extends TableImpl<TaskRecord> {
     }
 
     // -------------------------------------------------------------------------
-    // Row10 type methods
+    // Row9 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row10<Long, String, Long, String, Long, String, LocalDateTime, Long, LocalDateTime, LocalDateTime> fieldsRow() {
-        return (Row10) super.fieldsRow();
+    public Row9<Long, String, Long, String, Long, String, LocalDateTime, Long, Long> fieldsRow() {
+        return (Row9) super.fieldsRow();
     }
 }

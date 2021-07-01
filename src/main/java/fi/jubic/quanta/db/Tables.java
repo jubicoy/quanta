@@ -4,6 +4,7 @@
 package fi.jubic.quanta.db;
 
 
+import fi.jubic.quanta.db.tables.Anomaly;
 import fi.jubic.quanta.db.tables.Column;
 import fi.jubic.quanta.db.tables.DataConnection;
 import fi.jubic.quanta.db.tables.DataSeries;
@@ -30,6 +31,11 @@ import fi.jubic.quanta.db.tables.WorkerParameter;
  */
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Tables {
+
+    /**
+     * The table <code>anomaly</code>.
+     */
+    public static final Anomaly ANOMALY = Anomaly.ANOMALY;
 
     /**
      * The table <code>column</code>.

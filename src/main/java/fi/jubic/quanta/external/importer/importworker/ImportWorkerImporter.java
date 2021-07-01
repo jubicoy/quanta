@@ -1,14 +1,14 @@
 package fi.jubic.quanta.external.importer.importworker;
 
+import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
-import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
-import fi.jubic.quanta.models.ColumnSelector;
+import fi.jubic.quanta.models.Column;
 import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataConnectionConfiguration;
 import fi.jubic.quanta.models.DataConnectionType;
@@ -18,7 +18,6 @@ import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
-import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
@@ -47,8 +46,7 @@ public class ImportWorkerImporter implements Importer {
     private final TaskDao taskDao;
     private final WorkerDefDao workerDefDao;
     private final WorkerDao workerDao;
-
-    private final TaskDomain taskDomain;
+    private final DataSeriesDao dataSeriesDao;
 
     @Inject
     ImportWorkerImporter(
@@ -57,14 +55,14 @@ public class ImportWorkerImporter implements Importer {
             TaskDao taskDao,
             WorkerDefDao workerDefDao,
             WorkerDao workerDao,
-            TaskDomain taskDomain) {
+            DataSeriesDao dataSeriesDao) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
         this.taskDao = taskDao;
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
-        this.taskDomain = taskDomain;
+        this.dataSeriesDao = dataSeriesDao;
     }
 
     @Override
@@ -85,13 +83,17 @@ public class ImportWorkerImporter implements Importer {
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
 
-        String taskName = dataSeries.getId() + "-" + dataSeries.getName()
+        //getting accurate details from DB
+        DataSeries series = dataSeriesDao.getDetails(dataSeries.getId())
+                .orElseThrow(NotFoundException::new);
+
+        String taskName = series.getId() + "-" + series.getName()
                 + "-" + System.currentTimeMillis();
 
         ImportWorkerDataConnectionConfiguration configuration =
-                Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
+                Objects.requireNonNull(series.getDataConnection()).getConfiguration()
                         .visit(new DataConnectionConfiguration
-                        .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
+                                .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
 
                             @Override
                             public ImportWorkerDataConnectionConfiguration onImportWorker(
@@ -115,9 +117,9 @@ public class ImportWorkerImporter implements Importer {
 
         Worker worker = workerDao.search(
                 new WorkerQuery()
-                .withWorkerDefId(workerDef.getId())
-                .withStatus(WorkerStatus.Accepted)
-                .withNotDeleted(true)
+                        .withWorkerDefId(workerDef.getId())
+                        .withStatus(WorkerStatus.Accepted)
+                        .withNotDeleted(true)
         )
                 .stream()
                 .findFirst()
@@ -127,7 +129,7 @@ public class ImportWorkerImporter implements Importer {
                 .setId(-1L)
                 .setName(taskName)
                 .setWorkerDef(workerDef)
-                .setSeries(dataSeries)
+                .setSeries(series)
                 .setTaskType(TaskType.IMPORT_SAMPLE)
                 .build();
 
@@ -163,7 +165,8 @@ public class ImportWorkerImporter implements Importer {
                     .findFirst()
                     .orElseThrow(NotFoundException::new);
 
-            while (true) {
+            for (int i = 0; i < 5; i++) {
+
                 Thread.sleep(5000);
 
                 Optional<ImportWorkerDataSample> importWorkerDataSample =
@@ -171,102 +174,118 @@ public class ImportWorkerImporter implements Importer {
 
                 if (importWorkerDataSample.isPresent()) {
 
-                    invocationDao.update(
-                            inv.getId(),
-                            optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
-                    );
-
-                    List<OutputColumn> columnList = new ArrayList<>();
-
-                    importWorkerDataSample.get().getColumns().forEach(column ->
-                            columnList.add(
-                                    OutputColumn.builder()
-                                    .setId(column.getId())
-                                    .setColumnName(column.getName())
-                                    .setIndex(column.getIndex())
-                                    .setType(column.getType())
-                                    .build()
-                            )
-                    );
-
-                    List<ColumnSelector> selectors = new ArrayList<>();
-
-                    importWorkerDataSample.get().getColumns().forEach(column ->
-                            selectors.add(
-                                    ColumnSelector.builder()
-                                    .setId(column.getId())
-                                    .setColumnName(column.getName())
-                                    .setType(column.getType())
-                                    .setColumnIndex(column.getIndex())
-                                    .setSeries(dataSeries)
-                                    .build()
-                            )
-                    );
-
-                    invocationDao.createOutputColumns(inv.getId(), columnList);
-                    invocationDao.createColumnSelectors(inv.getId(), selectors);
-
-                    break;
-                }
-            }
-
-            while (true) {
-                Thread.sleep(5000);
-
-                Optional<ImportWorkerDataSample> bigDataSample =
-                        importWorkerDataSampleDao.takeSample(inv.getId());
-
-                if (bigDataSample.isPresent()) {
-
-                    List<List<String>> sample;
-
-                    //if the data has less rows than sample row amount we return the whole data
-                    if (bigDataSample.get().getData().size() > rows) {
-                        sample = bigDataSample.get().getData().subList(0, rows);
-                    }
-
-                    else {
-                        sample = bigDataSample.get().getData();
-                    }
-
-                    Invocation running = invocationDao
-                            .search(
-                                    new InvocationQuery()
-                                            .withTaskId(
-                                                    taskDao.getDetails(taskName)
-                                                            .orElseThrow(NotFoundException::new)
-                                                            .getId()
-                                            )
-                                            .withStatus(InvocationStatus.Running)
-                            )
-                            .stream()
+                    //If the only declared column is timestamp (mandatory), we add the rest here
+                    if (series.getColumns().size() == 1
+                            && series.getColumns().stream()
                             .findFirst()
-                            .orElseThrow(NotFoundException::new);
+                            .get().getType()
+                            .getClassName()
+                            .equals(Instant.class)) {
 
-                    invocationDao.update(
-                            running.getId(),
-                            optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(running, InvocationStatus.Completed)
-                    );
+                        List<Column> seriesColumns = new ArrayList<>();
+
+                        importWorkerDataSample
+                                .get()
+                                .getColumns()
+                                .forEach(workerDefColumn -> seriesColumns.add(
+                                        Column.builder()
+                                                .setIndex(workerDefColumn.getIndex())
+                                                .setName(workerDefColumn.getName())
+                                                .setType(Optional.ofNullable(
+                                                        workerDefColumn.getValueType()
+                                                ).orElseThrow(NotFoundException::new))
+                                                .setId(workerDefColumn.getId())
+                                                .setSeries(series)
+                                                .build()
+                                ));
+
+                        dataSeriesDao.createColumns(
+                                series,
+                                seriesColumns.subList(1, seriesColumns.size())
+                        );
+                    }
 
                     return DataSample.builder()
-                            .setDataSeries(dataSeries)
-                            .setData(sample)
+                            .setDataSeries(series)
+                            .setData(importWorkerDataSample.get().getData())
                             .build();
-                }
 
+                }
             }
 
+            return null;
         }
         catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return null;
         }
     }
 
     @Override
     public Stream<List<String>> getRows(DataSeries dataSeries) {
-        return Stream.empty();
+
+        try {
+            ImportWorkerDataConnectionConfiguration configuration =
+                    Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
+                            .visit(new DataConnectionConfiguration
+                                    .DefaultFunctionVisitor<>() {
+
+                                @Override
+                                public ImportWorkerDataConnectionConfiguration onImportWorker(
+                                        ImportWorkerDataConnectionConfiguration importConfiguration
+                                ) {
+                                    return importConfiguration;
+                                }
+
+                                @Override
+                                public ImportWorkerDataConnectionConfiguration otherwise(
+                                        DataConnectionConfiguration configuration
+                                ) {
+                                    throw new InputException(
+                                            "IMPORT_WORKER DataConnection"
+                                                    + " has invalid configurations"
+                                    );
+                                }
+                            });
+
+            List<Invocation> invocations = invocationDao.search(
+                    new InvocationQuery().withWorker(
+                            workerDao.search(
+                                    new WorkerQuery()
+                                            .withWorkerDefId(configuration.getWorkerDefId())
+                                            .withStatus(WorkerStatus.Accepted)
+                            )
+                                    .stream()
+                                    .findFirst()
+                                    .get()
+                                    .getId()
+                    )
+            );
+
+            Invocation invocation = invocations.get(invocations.size() - 1);
+
+            for (int i = 0; i < 120; i++) {
+                Thread.sleep(5000);
+
+                Optional<ImportWorkerDataSample> bigDataSample =
+                        importWorkerDataSampleDao.takeSample(invocation.getId());
+
+                if (bigDataSample.isPresent()) {
+
+                    return bigDataSample
+                            .get()
+                            .getData()
+                            .stream();
+                }
+
+
+            }
+            return null;
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override

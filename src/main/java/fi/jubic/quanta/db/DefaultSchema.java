@@ -4,6 +4,7 @@
 package fi.jubic.quanta.db;
 
 
+import fi.jubic.quanta.db.tables.Anomaly;
 import fi.jubic.quanta.db.tables.Column;
 import fi.jubic.quanta.db.tables.DataConnection;
 import fi.jubic.quanta.db.tables.DataSeries;
@@ -44,6 +45,11 @@ public class DefaultSchema extends SchemaImpl {
      * The reference instance of <code>DEFAULT_SCHEMA</code>
      */
     public static final DefaultSchema DEFAULT_SCHEMA = new DefaultSchema();
+
+    /**
+     * The table <code>anomaly</code>.
+     */
+    public final Anomaly ANOMALY = Anomaly.ANOMALY;
 
     /**
      * The table <code>column</code>.
@@ -156,6 +162,7 @@ public class DefaultSchema extends SchemaImpl {
     @Override
     public final List<Table<?>> getTables() {
         return Arrays.<Table<?>>asList(
+            Anomaly.ANOMALY,
             Column.COLUMN,
             DataConnection.DATA_CONNECTION,
             DataSeries.DATA_SERIES,

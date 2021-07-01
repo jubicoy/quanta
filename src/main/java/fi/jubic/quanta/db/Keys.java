@@ -4,6 +4,7 @@
 package fi.jubic.quanta.db;
 
 
+import fi.jubic.quanta.db.tables.Anomaly;
 import fi.jubic.quanta.db.tables.Column;
 import fi.jubic.quanta.db.tables.DataConnection;
 import fi.jubic.quanta.db.tables.DataSeries;
@@ -23,6 +24,7 @@ import fi.jubic.quanta.db.tables.Worker;
 import fi.jubic.quanta.db.tables.WorkerDefinition;
 import fi.jubic.quanta.db.tables.WorkerDefinitionColumn;
 import fi.jubic.quanta.db.tables.WorkerParameter;
+import fi.jubic.quanta.db.tables.records.AnomalyRecord;
 import fi.jubic.quanta.db.tables.records.ColumnRecord;
 import fi.jubic.quanta.db.tables.records.DataConnectionRecord;
 import fi.jubic.quanta.db.tables.records.DataSeriesRecord;
@@ -61,6 +63,7 @@ public class Keys {
     // UNIQUE and PRIMARY KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final UniqueKey<AnomalyRecord> DETECTION_RESULT_PKEY = Internal.createUniqueKey(Anomaly.ANOMALY, DSL.name("detection_result_pkey"), new TableField[] { Anomaly.ANOMALY.ID }, true);
     public static final UniqueKey<ColumnRecord> COLUMN_PKEY = Internal.createUniqueKey(Column.COLUMN, DSL.name("column_pkey"), new TableField[] { Column.COLUMN.ID }, true);
     public static final UniqueKey<DataConnectionRecord> DATA_CONNECTION_NAME_KEY = Internal.createUniqueKey(DataConnection.DATA_CONNECTION, DSL.name("data_connection_name_key"), new TableField[] { DataConnection.DATA_CONNECTION.NAME }, true);
     public static final UniqueKey<DataConnectionRecord> DATA_CONNECTION_PKEY = Internal.createUniqueKey(DataConnection.DATA_CONNECTION, DSL.name("data_connection_pkey"), new TableField[] { DataConnection.DATA_CONNECTION.ID }, true);
@@ -91,6 +94,7 @@ public class Keys {
     // FOREIGN KEY definitions
     // -------------------------------------------------------------------------
 
+    public static final ForeignKey<AnomalyRecord, InvocationRecord> ANOMALY__FK_RESULT_INVOCATION_ID = Internal.createForeignKey(Anomaly.ANOMALY, DSL.name("fk_result_invocation_id"), new TableField[] { Anomaly.ANOMALY.INVOCATION_ID }, Keys.INVOCATION_PKEY, new TableField[] { Invocation.INVOCATION.ID }, true);
     public static final ForeignKey<ColumnRecord, DataSeriesRecord> COLUMN__FK_COLUMN_DATA_SERIES_ID = Internal.createForeignKey(Column.COLUMN, DSL.name("fk_column_data_series_id"), new TableField[] { Column.COLUMN.DATA_SERIES_ID }, Keys.DATA_SERIES_PKEY, new TableField[] { DataSeries.DATA_SERIES.ID }, true);
     public static final ForeignKey<DataSeriesRecord, DataConnectionRecord> DATA_SERIES__FK_DATA_SERIES_DATA_CONNECTION_ID = Internal.createForeignKey(DataSeries.DATA_SERIES, DSL.name("fk_data_series_data_connection_id"), new TableField[] { DataSeries.DATA_SERIES.DATA_CONNECTION_ID }, Keys.DATA_CONNECTION_PKEY, new TableField[] { DataConnection.DATA_CONNECTION.ID }, true);
     public static final ForeignKey<ExternalClientRecord, TaskRecord> EXTERNAL_CLIENT__FK_EXTERNAL_CLIENT_TASK_ID = Internal.createForeignKey(ExternalClient.EXTERNAL_CLIENT, DSL.name("fk_external_client_task_id"), new TableField[] { ExternalClient.EXTERNAL_CLIENT.TASK_ID }, Keys.TASK_PKEY, new TableField[] { Task.TASK.ID }, true);
