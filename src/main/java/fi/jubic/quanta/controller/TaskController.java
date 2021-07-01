@@ -326,6 +326,12 @@ public class TaskController {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)
                 || invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
 
+            invocationDao.update(
+                    invocation.getId(),
+                    optionalInvocation -> taskDomain
+                            .updateInvocationStatus(invocation, InvocationStatus.Running)
+            );
+
             List<Measurement> newMeasurements = new ArrayList<>();
 
             DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
@@ -439,6 +445,12 @@ public class TaskController {
                             ).collect(Collectors.toList())
                     )
                     .build());
+
+            invocationDao.update(
+                    invocation.getId(),
+                    optionalInvocation -> taskDomain
+                            .updateInvocationStatus(invocation, InvocationStatus.Completed)
+            );
         }
 
 
