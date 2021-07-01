@@ -104,6 +104,25 @@ public class DataSeriesDao {
                     .orElseThrow(IllegalStateException::new);
     }
 
+    public DataSeries createColumns(DataSeries dataSeries, List<Column> columns) {
+        DSL.using(conf)
+                .batchInsert(
+                        columns
+                                .stream()
+                                .map(column -> column.toBuilder()
+                                        .setSeries(dataSeries)
+                                        .build())
+                                .map(column -> Column.seriesColumnMapper.write(
+                                        DSL.using(conf).newRecord(COLUMN),
+                                        column
+                                ))
+                                .collect(Collectors.toList())
+                )
+                .execute();
+
+        return dataSeries;
+    }
+
     public DataSeries update(
             Long id,
             Function<Optional<DataSeries>, DataSeries> updater

@@ -333,6 +333,39 @@ public class WorkerDefDao {
         }
     }
 
+    public WorkerDef createColumns(
+            WorkerDef workerDef,
+            List<WorkerDefColumn> columns
+    ) {
+        try {
+            return DSL.using(conf).transactionResult(transaction -> {
+                DSL.using(transaction)
+                        .batchInsert(
+                                columns
+                                        .stream()
+                                        .map(column ->
+                                                WorkerDefColumn.workerDefColumnMapper.write(
+                                                        DSL.using(conf).newRecord(
+                                                                WORKER_DEFINITION_COLUMN
+                                                        ),
+                                                        column
+                                                )
+                                        )
+                                        .peek(record ->
+                                                record.setDefinitionId(workerDef.getId()))
+                                        .collect(Collectors.toList())
+                        )
+                        .execute();
+
+                return getDetails(workerDef.getId(), transaction)
+                        .orElseThrow(IllegalStateException::new);
+            });
+        }
+        catch (DataAccessException exception) {
+            throw new ApplicationException("Could not create a Worker Definition", exception);
+        }
+    }
+
     private List<WorkerDef> getParameters(
             List<WorkerDef> workerDefs,
             org.jooq.Configuration transaction

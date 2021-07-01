@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -143,8 +144,11 @@ public class DataController {
             return series;
         });
 
-        if (!createdSeries.getType().equals(DataConnectionType.JSON_INGEST) && !skipImportData) {
+        if (!createdSeries.getType().equals(DataConnectionType.JSON_INGEST)
+                && !createdSeries.getType().equals(DataConnectionType.IMPORT_WORKER)
+                && !skipImportData) {
             // JSON_INGEST DataSeries has no initial rows
+            // IMPORT_WORKER DataSeries cannot import data yet
             importData(createdSeries);
         }
 
@@ -299,6 +303,16 @@ public class DataController {
                 ),
                 5
         );
+    }
+
+    public List<List<String>> getResult(
+            DataSeries dataSeries
+    ) {
+        if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
+            return importer.getRows(dataSeries).collect(Collectors.toList());
+        }
+
+        return Collections.emptyList();
     }
 
     public TypeMetadata getMetadata(String type) {

@@ -7,7 +7,6 @@ import fi.jubic.quanta.db.tables.records.TaskRecord;
 import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -41,10 +40,7 @@ public abstract class Task {
     public abstract DataSeries getSeries();
 
     @Nullable
-    public abstract Instant getSyncIntervalStartTime();
-
-    @Nullable
-    public abstract Instant getSyncIntervalEndTime();
+    public abstract Long getSyncIntervalOffset();
 
     @Nullable
     public abstract Instant getDeletedAt();
@@ -76,15 +72,11 @@ public abstract class Task {
             .setCronTriggerAccessor(TASK.CRON_TRIGGER)
             .setTaskTriggerAccessor(TASK.TASK_TRIGGER)
             .setTaskTypeAccessor(TASK.TASK_TYPE, TaskType::toString, TaskType::parse)
-            .setSyncIntervalStartTimeAccessor(
-                    TASK.SYNC_INTERVAL_START_TIME, Timestamp::from, Timestamp::toInstant
-            )
-            .setSyncIntervalEndTimeAccessor(
-                    TASK.SYNC_INTERVAL_END_TIME, Timestamp::from, Timestamp::toInstant
-            )
+            .setSyncIntervalOffsetAccessor(TASK.SYNC_INTERVAL_OFFSET)
             .setSeriesAccessor(
                     TASK.DATA_SERIES_ID,
                     DataSeries::getId
+            )
             .setDeletedAtAccessor(
                     TASK.DELETED_AT,
                     DateUtil::toLocalDateTime,

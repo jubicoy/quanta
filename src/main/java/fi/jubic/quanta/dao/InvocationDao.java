@@ -51,14 +51,16 @@ import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 public class InvocationDao {
     private final org.jooq.Configuration conf;
     private final WorkerDefDao workerDefDao;
+    private final DataSeriesDao dataSeriesDao;
 
     @Inject
     InvocationDao(
             fi.jubic.quanta.config.Configuration conf,
-            WorkerDefDao workerDefDao
-    ) {
+            WorkerDefDao workerDefDao,
+            DataSeriesDao dataSeriesDao) {
         this.conf = conf.getJooqConfiguration().getConfiguration();
         this.workerDefDao = workerDefDao;
+        this.dataSeriesDao = dataSeriesDao;
     }
 
     public List<Invocation> search(InvocationQuery query) {
@@ -100,16 +102,16 @@ public class InvocationDao {
                                 .eq(WORKER_DEFINITION_COLUMN.ID)
                         )
                         .leftJoin(DATA_SERIES)
-                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                        .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                         .where(condition)
                         .limit(pagination.getLimit().orElse(10000))
                         .offset(pagination.getOffset().orElse(0))
                         .fetchStream()
                         .collect(
                                 Invocation.mapper
-                                        .withTask(Task.mapper.withWorkerDef(
-                                                WorkerDef.mapper
-                                                )
+                                        .withTask(Task.mapper
+                                                .withWorkerDef(WorkerDef.mapper)
+                                                .withSeries(DataSeries.mapper)
                                         )
                                         .withWorker(Worker.mapper.withDefinition(
                                                 WorkerDef.mapper
@@ -117,7 +119,11 @@ public class InvocationDao {
                                         )
                                         .collectingManyWithColumnSelectors(
                                                 ColumnSelector.invocationColumnSelectorMapper
-                                                        .withSeries(DataSeries.mapper)
+                                                        .withSeries(DataSeries.mapper
+                                                                .withDataConnection(
+                                                                        DataConnection.mapper
+                                                                )
+                                                        )
                                                         .withWorkerDefColumn(
                                                                 WorkerDefColumn
                                                                         .workerDefColumnMapper
@@ -134,6 +140,22 @@ public class InvocationDao {
                                                         workerDefDao.getDetailsWithTransaction(
                                                                 invocation.getWorker()
                                                                         .getDefinition()
+                                                                        .getId(),
+                                                                transaction
+                                                        ).orElseThrow(NotFoundException::new)
+                                                )
+                                                .build()
+                                                : null
+                                )
+                                .setTask(
+                                        Objects.nonNull(invocation.getTask())
+                                        ? invocation.getTask()
+                                                .toBuilder()
+                                                .setSeries(
+                                                        dataSeriesDao.getDetails(
+                                                                Objects.requireNonNull(invocation
+                                                                        .getTask()
+                                                                        .getSeries())
                                                                         .getId(),
                                                                 transaction
                                                         ).orElseThrow(NotFoundException::new)
@@ -190,14 +212,18 @@ public class InvocationDao {
                         .eq(WORKER_DEFINITION_COLUMN.ID)
                 )
                 .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(
                         Invocation.mapper
-                                .withTask(Task.mapper.withWorkerDef(WorkerDef.mapper))
+                                .withTask(Task.mapper
+                                        .withWorkerDef(WorkerDef.mapper)
+                                        .withSeries(DataSeries.mapper
+                                                .withDataConnection(DataConnection.mapper))
+                                )
                                 .withWorker(Worker.mapper.withDefinition(WorkerDef.mapper))
                                 .collectingWithColumnSelectors(
                                         ColumnSelector.invocationColumnSelectorMapper
@@ -218,6 +244,21 @@ public class InvocationDao {
                                                 workerDefDao.getDetailsWithTransaction(
                                                         invocation.getWorker()
                                                                 .getDefinition()
+                                                                .getId(),
+                                                        transaction
+                                                ).orElseThrow(NotFoundException::new)
+                                        )
+                                        .build()
+                                        : null
+                        )
+                        .setTask(
+                                Objects.nonNull(invocation.getTask())
+                                        ? invocation.getTask()
+                                        .toBuilder()
+                                        .setSeries(
+                                                dataSeriesDao.getDetails(
+                                                        Objects.requireNonNull(invocation.getTask()
+                                                                .getSeries())
                                                                 .getId(),
                                                         transaction
                                                 ).orElseThrow(NotFoundException::new)
@@ -473,14 +514,15 @@ public class InvocationDao {
                 .leftJoin(INVOCATION_COLUMN_SELECTOR)
                 .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
                 .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .where(TASK.TASK_TYPE.eq(String.valueOf(TaskType.sync)))
                 .fetchStream()
                 .collect(
                         Invocation.mapper
-                                .withTask(Task.mapper.withWorkerDef(
-                                        WorkerDef.mapper
-                                        )
+                                .withTask(Task.mapper
+                                        .withWorkerDef(WorkerDef.mapper)
+                                        .withSeries(DataSeries.mapper
+                                                .withDataConnection(DataConnection.mapper))
                                 )
                                 .withWorker(Worker.mapper.withDefinition(
                                         WorkerDef.mapper
@@ -488,7 +530,9 @@ public class InvocationDao {
                                 )
                                 .collectingManyWithColumnSelectors(
                                         ColumnSelector.invocationColumnSelectorMapper
-                                                .withSeries(DataSeries.mapper)
+                                                .withSeries(DataSeries.mapper
+                                                        .withDataConnection(DataConnection.mapper)
+                                                )
                                 )
                 )
                 .stream()

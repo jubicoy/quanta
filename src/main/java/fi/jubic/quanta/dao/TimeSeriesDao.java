@@ -226,8 +226,8 @@ public class TimeSeriesDao {
     public void deleteRowsWithTableName(
             String tableName,
             String column,
-            Timestamp time1,
-            Timestamp time2,
+            Instant time1,
+            Instant time2,
             Configuration transaction
     ) {
         deleteRows(tableName, column, time1, time2, transaction);
@@ -236,8 +236,8 @@ public class TimeSeriesDao {
     private void deleteRows(
             String tableName,
             String column,
-            Timestamp time1,
-            Timestamp time2,
+            Instant time1,
+            Instant time2,
             Configuration transaction
     ) {
         String command = String.format(
