@@ -446,10 +446,13 @@ public class TaskController {
                     )
                     .build());
 
+            Invocation running = invocationDao.getDetails(invocation.getId())
+                    .orElseThrow(NotFoundException::new);
+
             invocationDao.update(
                     invocation.getId(),
                     optionalInvocation -> taskDomain
-                            .updateInvocationStatus(invocation, InvocationStatus.Completed)
+                            .updateInvocationStatus(running, InvocationStatus.Completed)
             );
         }
 
