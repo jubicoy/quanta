@@ -99,7 +99,7 @@ public class ImportWorkerImporter implements Importer {
         ImportWorkerDataConnectionConfiguration configuration =
                 Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
                         .visit(new DataConnectionConfiguration
-                        .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
+                                .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
 
                             @Override
                             public ImportWorkerDataConnectionConfiguration onImportWorker(
@@ -123,9 +123,9 @@ public class ImportWorkerImporter implements Importer {
 
         Worker worker = workerDao.search(
                 new WorkerQuery()
-                .withWorkerDefId(workerDef.getId())
-                .withStatus(WorkerStatus.Accepted)
-                .withNotDeleted(true)
+                        .withWorkerDefId(workerDef.getId())
+                        .withStatus(WorkerStatus.Accepted)
+                        .withNotDeleted(true)
         )
                 .stream()
                 .findFirst()
@@ -192,11 +192,11 @@ public class ImportWorkerImporter implements Importer {
                     importWorkerDataSample.get().getColumns().forEach(column ->
                             columnList.add(
                                     OutputColumn.builder()
-                                    .setId(column.getId())
-                                    .setColumnName(column.getName())
-                                    .setIndex(column.getIndex())
-                                    .setType(column.getType())
-                                    .build()
+                                            .setId(column.getId())
+                                            .setColumnName(column.getName())
+                                            .setIndex(column.getIndex())
+                                            .setType(column.getType())
+                                            .build()
                             )
                     );
 
@@ -205,22 +205,26 @@ public class ImportWorkerImporter implements Importer {
                     importWorkerDataSample.get().getColumns().forEach(column ->
                             selectors.add(
                                     ColumnSelector.builder()
-                                    .setId(column.getId())
-                                    .setColumnName(column.getName())
-                                    .setType(column.getType())
-                                    .setColumnIndex(column.getIndex())
-                                    .setSeries(dataSeries)
-                                    .build()
+                                            .setId(column.getId())
+                                            .setColumnName(column.getName())
+                                            .setType(column.getType())
+                                            .setColumnIndex(column.getIndex())
+                                            .setSeries(dataSeries)
+                                            .build()
                             )
                     );
 
                     invocationDao.createOutputColumns(inv.getId(), columnList);
                     invocationDao.createColumnSelectors(inv.getId(), selectors);
 
-                    break;
+                    return DataSample.builder()
+                            .setDataSeries(dataSeries)
+                            .setData(importWorkerDataSample.get().getData())
+                            .build();
+
                 }
             }
-
+/*
             while (true) {
                 Thread.sleep(5000);
 
@@ -268,9 +272,12 @@ public class ImportWorkerImporter implements Importer {
 
             }
 
+ */
+
         }
         catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return null;
         }
     }
 
