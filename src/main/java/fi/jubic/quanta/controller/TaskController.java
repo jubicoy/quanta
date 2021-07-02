@@ -305,8 +305,7 @@ public class TaskController {
             Invocation invocation,
             List<Measurement> measurements
     ) {
-        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)
-                || invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+        if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
 
             invocationDao.update(
                     invocation.getId(),

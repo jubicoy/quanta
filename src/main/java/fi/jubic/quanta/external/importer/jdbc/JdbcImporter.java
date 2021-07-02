@@ -131,7 +131,7 @@ public class JdbcImporter implements Importer {
             justification = "The method is accessing user-owned data with given queries."
     )
     @Override
-    public DataSample getSample(DataSeries dataSeries, int rows, String ignored, String ignored2) {
+    public DataSample getSample(DataSeries dataSeries, int rows) {
         final JdbcDataConnectionConfiguration jdbcConnectionConfig;
         jdbcConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
         final JdbcDataSeriesConfiguration jdbcSeriesConfig;

@@ -18,7 +18,7 @@ public interface Importer {
 
     DataConnection getWithEmptyLogin(DataConnection dataConnection);
 
-    DataSample getSample(DataSeries dataSeries, int rows, String start, String end);
+    DataSample getSample(DataSeries dataSeries, int rows);
 
     Stream<List<String>> getRows(DataSeries dataSeries);
 

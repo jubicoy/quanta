@@ -54,7 +54,7 @@ public class JsonIngestImporter implements Importer, Ingester {
     }
 
     @Override
-    public DataSample getSample(DataSeries dataSeries, int rows, String ignored, String ignored2) {
+    public DataSample getSample(DataSeries dataSeries, int rows) {
         return DataSample
                 .builder()
                 .setDataSeries(dataSeries)

@@ -82,18 +82,10 @@ public class ImportWorkerImporter implements Importer {
     }
 
     @Override
-    public DataSample getSample(DataSeries dataSeries, int rows, String start, String end) {
+    public DataSample getSample(DataSeries dataSeries, int rows) {
 
         String taskName = dataSeries.getId() + "-" + dataSeries.getName()
                 + "-" + System.currentTimeMillis();
-
-        Instant startTime = null;
-        Instant endTime = null;
-
-        if (start != null && end != null) {
-            startTime = Instant.parse(start);
-            endTime = Instant.parse(end);
-        }
 
         ImportWorkerDataConnectionConfiguration configuration =
                 Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
@@ -136,8 +128,6 @@ public class ImportWorkerImporter implements Importer {
                 .setWorkerDef(workerDef)
                 .setSeries(dataSeries)
                 .setTaskType(TaskType.IMPORT_SAMPLE)
-                .setSyncIntervalStartTime(startTime)
-                .setSyncIntervalEndTime(endTime)
                 .build();
 
         taskDao.create(task);
@@ -199,8 +189,6 @@ public class ImportWorkerImporter implements Importer {
                                             .build()
                             )
                     );
-
-                    invocationDao.createOutputColumns(inv.getId(), columnList);
 
                     Invocation running = invocationDao
                             .search(

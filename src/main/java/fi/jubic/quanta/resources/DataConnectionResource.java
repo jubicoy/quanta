@@ -73,11 +73,9 @@ public class DataConnectionResource {
     @Path("{id}/sample")
     public DataSample getSample(
             @PathParam("id") Long dataConnectionId,
-            @HeaderParam("start") String start,
-            @HeaderParam("end") String end,
             DataSeries dataSeries
     ) {
-        return dataController.getSample(dataConnectionId, dataSeries, start, end);
+        return dataController.getSample(dataConnectionId, dataSeries);
     }
 
     @POST

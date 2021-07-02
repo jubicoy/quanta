@@ -72,7 +72,7 @@ public class CsvImporter implements Importer {
             value = "PATH_TRAVERSAL_IN",
             justification = "Csv filename is not customizable AND also verified."
     )
-    public DataSample getSample(DataSeries dataSeries, int rows, String ignored, String ignored2) {
+    public DataSample getSample(DataSeries dataSeries, int rows) {
         final CsvDataConnectionConfiguration csvConnectionConfig;
         csvConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
         final CsvDataSeriesConfiguration csvSeriesConfig;
@@ -229,7 +229,7 @@ public class CsvImporter implements Importer {
 
             List<Column> columns = dataSeries.getColumns();
             if (columns == null || columns.isEmpty()) {
-                columns = getSample(dataSeries, 5, "", "").getDataSeries().getColumns();
+                columns = getSample(dataSeries, 5).getDataSeries().getColumns();
             }
 
             List<Integer> columnIndexes = columns
