@@ -14,25 +14,7 @@ import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.exception.AuthorizationException;
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.Anomaly;
-import fi.jubic.quanta.models.AnomalyQuery;
-import fi.jubic.quanta.models.ColumnSelector;
-import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.ImportWorkerDataSample;
-import fi.jubic.quanta.models.Invocation;
-import fi.jubic.quanta.models.InvocationQuery;
-import fi.jubic.quanta.models.InvocationStatus;
-import fi.jubic.quanta.models.Measurement;
-import fi.jubic.quanta.models.Pagination;
-import fi.jubic.quanta.models.SeriesResult;
-import fi.jubic.quanta.models.SeriesResultQuery;
-import fi.jubic.quanta.models.SeriesTable;
-import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.TaskQuery;
-import fi.jubic.quanta.models.TaskType;
-import fi.jubic.quanta.models.Worker;
-import fi.jubic.quanta.models.WorkerQuery;
-import fi.jubic.quanta.models.WorkerStatus;
+import fi.jubic.quanta.models.*;
 import fi.jubic.quanta.scheduled.CronRegistration;
 import fi.jubic.quanta.scheduled.SingleTriggerJob;
 import org.jooq.Configuration;
@@ -336,11 +318,7 @@ public class TaskController {
 
             DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
 
-                DataSeries invocationSeries = invocation.getColumnSelectors()
-                        .stream()
-                        .findFirst()
-                        .map(ColumnSelector::getSeries)
-                        .orElseThrow(IllegalStateException::new);
+                DataSeries invocationSeries = invocation.getTask().getSeries();
 
                 SeriesTable table = SeriesTable
                         .builder()
@@ -384,13 +362,13 @@ public class TaskController {
                 //we also recreate the table if there have been no completed invocations yet
                 if (oldInvocations.size() == 0
                         || !oldInvocations.get(oldInvocations.size() - 1)
-                        .getColumnSelectors()
+                        .getOutputColumns()
                         .stream()
-                        .map(ColumnSelector::getType)
+                        .map(OutputColumn::getType)
                         .collect(Collectors.toList()).equals(
-                                invocation.getColumnSelectors()
+                                invocation.getOutputColumns()
                                         .stream()
-                                        .map(ColumnSelector::getType)
+                                        .map(OutputColumn::getType)
                                         .collect(Collectors.toList())
                         )
                 ) {
