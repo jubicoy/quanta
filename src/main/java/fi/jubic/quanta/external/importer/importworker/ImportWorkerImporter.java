@@ -181,6 +181,13 @@ public class ImportWorkerImporter implements Importer {
 
                 if (importWorkerDataSample.isPresent()) {
 
+                    invocationDao.update(
+                            inv.getId(),
+                            optionalInvocation -> taskDomain
+                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
+                    );
+
+
                     List<OutputColumn> columnList = new ArrayList<>();
 
                     importWorkerDataSample.get().getColumns().forEach(column ->
@@ -210,6 +217,26 @@ public class ImportWorkerImporter implements Importer {
 
                     invocationDao.createOutputColumns(inv.getId(), columnList);
                     invocationDao.createColumnSelectors(inv.getId(), selectors);
+
+                    Invocation running = invocationDao
+                            .search(
+                                    new InvocationQuery()
+                                            .withTaskId(
+                                                    taskDao.getDetails(taskName)
+                                                            .orElseThrow(NotFoundException::new)
+                                                            .getId()
+                                            )
+                                            .withStatus(InvocationStatus.Running)
+                            )
+                            .stream()
+                            .findFirst()
+                            .orElseThrow(NotFoundException::new);
+
+                    invocationDao.update(
+                            running.getId(),
+                            optionalInvocation -> taskDomain
+                                    .updateInvocationStatus(running, InvocationStatus.Completed)
+                    );
 
                     return DataSample.builder()
                             .setDataSeries(dataSeries)
