@@ -231,7 +231,7 @@ public class ImportWorkerImporter implements Importer {
             ImportWorkerDataConnectionConfiguration configuration =
                     Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
                             .visit(new DataConnectionConfiguration
-                                    .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
+                                    .DefaultFunctionVisitor<>() {
 
                                 @Override
                                 public ImportWorkerDataConnectionConfiguration onImportWorker(
@@ -245,7 +245,8 @@ public class ImportWorkerImporter implements Importer {
                                         DataConnectionConfiguration configuration
                                 ) {
                                     throw new InputException(
-                                            "IMPORT_WORKER DataConnection has invalid configurations"
+                                            "IMPORT_WORKER DataConnection"
+                                                    + " has invalid configurations"
                                     );
                                 }
                             });
@@ -253,8 +254,11 @@ public class ImportWorkerImporter implements Importer {
             List<Invocation> invocations = invocationDao.search(
                     new InvocationQuery().withWorker(
                             workerDao.search(
-                                    new WorkerQuery().withWorkerDefId(configuration.getWorkerDefId())
-                            ).stream()
+                                    new WorkerQuery()
+                                            .withWorkerDefId(configuration.getWorkerDefId())
+                                            .withStatus(WorkerStatus.Pending)
+                            )
+                                    .stream()
                                     .findFirst()
                                     .get()
                                     .getId()
