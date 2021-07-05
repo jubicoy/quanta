@@ -226,8 +226,8 @@ public class ImportWorkerImporter implements Importer {
 
     @Override
     public Stream<List<String>> getRows(DataSeries dataSeries) {
-        try {
 
+        try {
             ImportWorkerDataConnectionConfiguration configuration =
                     Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
                             .visit(new DataConnectionConfiguration

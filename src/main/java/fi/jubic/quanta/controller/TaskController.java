@@ -306,6 +306,10 @@ public class TaskController {
     ) {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
 
+            List<OutputColumn> outputColumns = convertWorkerDefColumnsToOutputColumns(
+                    invocation.getWorker().getDefinition().getColumns()
+            );
+
             invocationDao.update(
                     invocation.getId(),
                     optionalInvocation -> taskDomain
@@ -362,13 +366,17 @@ public class TaskController {
                 //we also recreate the table if there have been no completed invocations yet
                 if (oldInvocations.size() == 0
                         || !oldInvocations.get(oldInvocations.size() - 1)
-                        .getOutputColumns()
+                        .getWorker()
+                        .getDefinition()
+                        .getColumns()
                         .stream()
-                        .map(OutputColumn::getType)
+                        .map(WorkerDefColumn::getType)
                         .collect(Collectors.toList()).equals(
-                                invocation.getOutputColumns()
+                                invocation.getWorker()
+                                        .getDefinition()
+                                        .getColumns()
                                         .stream()
-                                        .map(OutputColumn::getType)
+                                        .map(WorkerDefColumn::getType)
                                         .collect(Collectors.toList())
                         )
                 ) {
@@ -382,7 +390,7 @@ public class TaskController {
                     seriesTableDao.create(table, transaction);
                     timeSeriesDao.createTableWithOutputColumns(
                             table,
-                            invocation.getOutputColumns(),
+                            outputColumns,
                             transaction
                     );
                 }
@@ -404,7 +412,7 @@ public class TaskController {
 
             timeSeriesDao.insertDataWithOutputColumns(
                     createdSeries,
-                    invocation.getOutputColumns(),
+                    outputColumns,
                     timeSeriesDomain.convertFromMeasurement(
                             invocation,
                             newMeasurements
