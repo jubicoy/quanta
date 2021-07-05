@@ -301,6 +301,20 @@ public class DataController {
         );
     }
 
+    public List<List<String>> getResult(
+            Long dataConnectionId,
+            DataSeries dataSeries
+    ) {
+        DataConnection dataConnection = dataConnectionDao.getDetails(dataConnectionId)
+                .orElseThrow(() -> new InputException("No such DataConnection"));
+
+        if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
+            return importer.getRows(dataSeries).collect(Collectors.toList());
+
+        }
+        return null;
+    }
+
     public TypeMetadata getMetadata(String type) {
         DataConnectionType dataConnectionType = DataConnectionType.valueOf(type.toUpperCase());
         return importer.getMetadata(dataConnectionType);

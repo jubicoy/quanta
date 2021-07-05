@@ -78,6 +78,15 @@ public class DataConnectionResource {
     }
 
     @POST
+    @Path("{id}/result")
+    public List<List<String>> getResult(
+            @PathParam("id") Long dataConnectionId,
+            DataSeries dataSeries
+    ) {
+        return dataController.getResult(dataConnectionId, dataSeries);
+    }
+
+    @POST
     @Path("test")
     public Response test(
             DataConnection dataConnection

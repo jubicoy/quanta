@@ -14,26 +14,7 @@ import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.exception.AuthorizationException;
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.Anomaly;
-import fi.jubic.quanta.models.AnomalyQuery;
-import fi.jubic.quanta.models.ColumnSelector;
-import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.ImportWorkerDataSample;
-import fi.jubic.quanta.models.Invocation;
-import fi.jubic.quanta.models.InvocationQuery;
-import fi.jubic.quanta.models.InvocationStatus;
-import fi.jubic.quanta.models.Measurement;
-import fi.jubic.quanta.models.OutputColumn;
-import fi.jubic.quanta.models.Pagination;
-import fi.jubic.quanta.models.SeriesResult;
-import fi.jubic.quanta.models.SeriesResultQuery;
-import fi.jubic.quanta.models.SeriesTable;
-import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.TaskQuery;
-import fi.jubic.quanta.models.TaskType;
-import fi.jubic.quanta.models.Worker;
-import fi.jubic.quanta.models.WorkerQuery;
-import fi.jubic.quanta.models.WorkerStatus;
+import fi.jubic.quanta.models.*;
 import fi.jubic.quanta.scheduled.CronRegistration;
 import fi.jubic.quanta.scheduled.SingleTriggerJob;
 import org.jooq.Configuration;
@@ -104,7 +85,6 @@ public class TaskController {
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.seriesTableDao = seriesTableDao;
-
 
         this.dataController = dataController;
         this.schedulerController = schedulerController;
@@ -336,7 +316,9 @@ public class TaskController {
 
             DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
 
-                DataSeries invocationSeries = invocation.getTask().getSeries();
+                DataSeries invocationSeries = Objects.requireNonNull(
+                        invocation.getTask().getSeries()
+                );
 
                 SeriesTable table = SeriesTable
                         .builder()
@@ -349,7 +331,7 @@ public class TaskController {
 
                 //Get all completed invocations created with the worker currently being used
                 List<Invocation> oldInvocations = invocationDao.search(query.withWorker(
-                        invocation.getWorker().getId()
+                        Objects.requireNonNull(invocation.getWorker()).getId()
                 ))
                         .stream()
                         .filter(invocation1 -> invocation1
@@ -646,5 +628,25 @@ public class TaskController {
         }
 
         return null;
+    }
+
+    public List<OutputColumn> convertWorkerDefColumnsToOutputColumns(
+            List<WorkerDefColumn> workerDefColumns
+    ) {
+        List<OutputColumn> outputColumns = new ArrayList<>();
+
+        workerDefColumns.forEach(workerDefColumn ->
+                outputColumns.add(
+                        OutputColumn.builder()
+                        .setIndex(workerDefColumn.getIndex())
+                        .setType(workerDefColumn.getType())
+                        .setId(workerDefColumn.getId())
+                        .setColumnName(workerDefColumn.getName())
+                        .setAlias(workerDefColumn.getName())
+                        .build()
+                )
+        );
+
+        return outputColumns;
     }
 }
