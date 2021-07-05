@@ -39,11 +39,17 @@ import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 public class TaskDao {
     private final org.jooq.Configuration conf;
     private final WorkerDefDao workerDefDao;
+    private final DataSeriesDao dataSeriesDao;
 
     @Inject
-    TaskDao(fi.jubic.quanta.config.Configuration conf, WorkerDefDao workerDefDao) {
+    TaskDao(
+            fi.jubic.quanta.config.Configuration conf,
+            WorkerDefDao workerDefDao,
+            DataSeriesDao dataSeriesDao
+    ) {
         this.conf = conf.getJooqConfiguration().getConfiguration();
         this.workerDefDao = workerDefDao;
+        this.dataSeriesDao = dataSeriesDao;
     }
 
     public List<Task> search(TaskQuery query) {
@@ -77,13 +83,14 @@ public class TaskDao {
                         .eq(WORKER_DEFINITION_COLUMN.ID)
                 )
                 .leftJoin(DATA_SERIES)
-                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
+                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingManyWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
                                         .withSeries(
@@ -105,6 +112,14 @@ public class TaskDao {
                                                 transaction
                                         ).orElseThrow(NotFoundException::new)
                                         : null
+                        )
+                        .setSeries(
+                                Objects.nonNull(task.getSeries())
+                                        ? dataSeriesDao.getDetails(
+                                        task.getSeries().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
+                                : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(
@@ -145,13 +160,14 @@ public class TaskDao {
                         .eq(WORKER_DEFINITION_COLUMN.ID)
                 )
                 .leftJoin(DATA_SERIES)
-                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
+                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
                                         .withSeries(
@@ -172,6 +188,14 @@ public class TaskDao {
                                                 transaction
                                         ).orElseThrow(NotFoundException::new)
                                         : null
+                        )
+                        .setSeries(
+                                Objects.nonNull(task.getSeries())
+                                    ? dataSeriesDao.getDetails(
+                                            task.getSeries().getId(),
+                                            transaction
+                                    ).orElseThrow(NotFoundException::new)
+                                    : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(

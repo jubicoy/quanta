@@ -100,16 +100,16 @@ public class InvocationDao {
                                 .eq(WORKER_DEFINITION_COLUMN.ID)
                         )
                         .leftJoin(DATA_SERIES)
-                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                        .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                         .where(condition)
                         .limit(pagination.getLimit().orElse(10000))
                         .offset(pagination.getOffset().orElse(0))
                         .fetchStream()
                         .collect(
                                 Invocation.mapper
-                                        .withTask(Task.mapper.withWorkerDef(
-                                                WorkerDef.mapper
-                                                )
+                                        .withTask(Task.mapper
+                                                .withWorkerDef(WorkerDef.mapper)
+                                                .withSeries(DataSeries.mapper)
                                         )
                                         .withWorker(Worker.mapper.withDefinition(
                                                 WorkerDef.mapper
@@ -190,14 +190,17 @@ public class InvocationDao {
                         .eq(WORKER_DEFINITION_COLUMN.ID)
                 )
                 .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(
                         Invocation.mapper
-                                .withTask(Task.mapper.withWorkerDef(WorkerDef.mapper))
+                                .withTask(Task.mapper
+                                        .withWorkerDef(WorkerDef.mapper)
+                                        .withSeries(DataSeries.mapper)
+                                )
                                 .withWorker(Worker.mapper.withDefinition(WorkerDef.mapper))
                                 .collectingWithColumnSelectors(
                                         ColumnSelector.invocationColumnSelectorMapper
@@ -471,14 +474,14 @@ public class InvocationDao {
                 .leftJoin(INVOCATION_COLUMN_SELECTOR)
                 .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
                 .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .where(TASK.TASK_TYPE.eq(String.valueOf(TaskType.sync)))
                 .fetchStream()
                 .collect(
                         Invocation.mapper
-                                .withTask(Task.mapper.withWorkerDef(
-                                        WorkerDef.mapper
-                                        )
+                                .withTask(Task.mapper
+                                        .withWorkerDef(WorkerDef.mapper)
+                                        .withSeries(DataSeries.mapper)
                                 )
                                 .withWorker(Worker.mapper.withDefinition(
                                         WorkerDef.mapper
