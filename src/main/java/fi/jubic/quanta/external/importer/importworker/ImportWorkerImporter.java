@@ -256,7 +256,6 @@ public class ImportWorkerImporter implements Importer {
                             workerDao.search(
                                     new WorkerQuery()
                                             .withWorkerDefId(configuration.getWorkerDefId())
-                                            .withStatus(WorkerStatus.Pending)
                             )
                                     .stream()
                                     .findFirst()

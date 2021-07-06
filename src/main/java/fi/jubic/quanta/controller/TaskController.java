@@ -439,7 +439,6 @@ public class TaskController {
                     )
             );
 
-            //this needs to be picked up somewhere
             importWorkerDataSampleDao.putSample(invocation.getId(),
                     ImportWorkerDataSample.builder()
                     .setColumns(Collections.emptyList())
