@@ -83,7 +83,7 @@ public class DataConnectionResource {
             @PathParam("id") Long dataConnectionId,
             DataSeries dataSeries
     ) {
-        return dataController.getResult(dataConnectionId, dataSeries);
+        return dataController.getResult(dataSeries);
     }
 
     @POST

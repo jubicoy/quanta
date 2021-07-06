@@ -31,6 +31,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -302,17 +303,14 @@ public class DataController {
     }
 
     public List<List<String>> getResult(
-            Long dataConnectionId,
             DataSeries dataSeries
     ) {
-        DataConnection dataConnection = dataConnectionDao.getDetails(dataConnectionId)
-                .orElseThrow(() -> new InputException("No such DataConnection"));
 
         if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
             return importer.getRows(dataSeries).collect(Collectors.toList());
-
         }
-        return null;
+
+        return Collections.emptyList();
     }
 
     public TypeMetadata getMetadata(String type) {
