@@ -1,7 +1,6 @@
 package fi.jubic.quanta.models.response;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.sun.istack.Nullable;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Parameter;
@@ -16,7 +15,6 @@ public abstract class InvocationResponse {
 
     public abstract List<Parameter> getParameters();
 
-    @Nullable
     public abstract Task getTask();
 
     public abstract Builder toBuilder();
