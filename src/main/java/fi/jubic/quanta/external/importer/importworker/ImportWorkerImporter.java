@@ -176,19 +176,7 @@ public class ImportWorkerImporter implements Importer {
                                     .updateInvocationStatus(invocation, InvocationStatus.Running)
                     );
 
-
-                    List<OutputColumn> columnList = new ArrayList<>();
-
-                    importWorkerDataSample.get().getColumns().forEach(column ->
-                            columnList.add(
-                                    OutputColumn.builder()
-                                            .setId(column.getId())
-                                            .setColumnName(column.getName())
-                                            .setIndex(column.getIndex())
-                                            .setType(column.getType())
-                                            .build()
-                            )
-                    );
+                    //Add columns to workerDef here if they won't be declared during registration
 
                     Invocation running = invocationDao
                             .search(
