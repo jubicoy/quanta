@@ -144,8 +144,11 @@ public class DataController {
             return series;
         });
 
-        if (!createdSeries.getType().equals(DataConnectionType.JSON_INGEST) && !skipImportData) {
+        if (!createdSeries.getType().equals(DataConnectionType.JSON_INGEST)
+                && !createdSeries.getType().equals(DataConnectionType.IMPORT_WORKER)
+                && !skipImportData) {
             // JSON_INGEST DataSeries has no initial rows
+            // IMPORT_WORKER DataSeries cannot import data yet
             importData(createdSeries);
         }
 
