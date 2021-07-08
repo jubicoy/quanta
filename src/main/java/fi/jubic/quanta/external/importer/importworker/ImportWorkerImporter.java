@@ -172,12 +172,6 @@ public class ImportWorkerImporter implements Importer {
 
                 if (importWorkerDataSample.isPresent()) {
 
-                    invocationDao.update(
-                            inv.getId(),
-                            optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(invocation, InvocationStatus.Running)
-                    );
-
                     //If no columns are declared during registration, we add them from sample
                     if (workerDef.getColumns().isEmpty()) {
                         workerDefDao.createColumns(
@@ -252,6 +246,7 @@ public class ImportWorkerImporter implements Importer {
                             workerDao.search(
                                     new WorkerQuery()
                                             .withWorkerDefId(configuration.getWorkerDefId())
+                                            .withStatus(WorkerStatus.Accepted)
                             )
                                     .stream()
                                     .findFirst()
