@@ -353,7 +353,7 @@ public class TaskController {
 
                 InvocationQuery query = new InvocationQuery();
 
-                //Get all completed invocations created with the worker currently being used
+                //Get all completed import invocations created with the worker currently being used
                 List<Invocation> oldInvocations = invocationDao.search(query.withWorker(
                         Objects.requireNonNull(invocation.getWorker()).getId()
                 ))
@@ -361,6 +361,9 @@ public class TaskController {
                         .filter(invocation1 -> invocation1
                         .getStatus()
                         .equals(InvocationStatus.Completed))
+                        .filter(invocation1 -> invocation1
+                        .getTask().getTaskType()
+                        .equals(TaskType.IMPORT))
                         .collect(Collectors.toList());
 
                 if (invocation.getTask().getSyncIntervalStartTime() != null
@@ -377,29 +380,8 @@ public class TaskController {
                     newMeasurements.addAll(measurements);
                 }
 
-                //arranging old invocations by ID - earliest first
-                if (oldInvocations.size() > 0) {
-                    oldInvocations.sort(Comparator.comparing(Invocation::getId));
-                }
-
-                //If the last invocation has different columns as this one we recreate table
-                //we also recreate the table if there have been no completed invocations yet
-                if (oldInvocations.size() == 0
-                        || !oldInvocations.get(oldInvocations.size() - 1)
-                        .getWorker()
-                        .getDefinition()
-                        .getColumns()
-                        .stream()
-                        .map(WorkerDefColumn::getType)
-                        .collect(Collectors.toList()).equals(
-                                invocation.getWorker()
-                                        .getDefinition()
-                                        .getColumns()
-                                        .stream()
-                                        .map(WorkerDefColumn::getType)
-                                        .collect(Collectors.toList())
-                        )
-                ) {
+                //We recreate the table if this is the first completed IMPORT task
+                if (oldInvocations.size() == 0) {
 
                     seriesTableDao.deleteWithTableName(
                             invocationSeries.getTableName(), transaction
