@@ -5,8 +5,6 @@ import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
-import fi.jubic.quanta.domain.TaskDomain;
-import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.models.DataConnection;
@@ -46,26 +44,19 @@ public class ImportWorkerImporter implements Importer {
     private final WorkerDefDao workerDefDao;
     private final WorkerDao workerDao;
 
-    private final TaskDomain taskDomain;
-    private final WorkerDomain workerDomain;
-
     @Inject
     ImportWorkerImporter(
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             InvocationDao invocationDao,
             TaskDao taskDao,
             WorkerDefDao workerDefDao,
-            WorkerDao workerDao,
-            TaskDomain taskDomain,
-            WorkerDomain workerDomain) {
+            WorkerDao workerDao) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
         this.taskDao = taskDao;
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
-        this.taskDomain = taskDomain;
-        this.workerDomain = workerDomain;
     }
 
     @Override
@@ -179,26 +170,6 @@ public class ImportWorkerImporter implements Importer {
                                 importWorkerDataSample.get().getColumns()
                         );
                     }
-
-                    Invocation running = invocationDao
-                            .search(
-                                    new InvocationQuery()
-                                            .withTaskId(
-                                                    taskDao.getDetails(taskName)
-                                                            .orElseThrow(NotFoundException::new)
-                                                            .getId()
-                                            )
-                                            .withStatus(InvocationStatus.Running)
-                            )
-                            .stream()
-                            .findFirst()
-                            .orElseThrow(NotFoundException::new);
-
-                    invocationDao.update(
-                            running.getId(),
-                            optionalInvocation -> taskDomain
-                                    .updateInvocationStatus(running, InvocationStatus.Completed)
-                    );
 
                     return DataSample.builder()
                             .setDataSeries(dataSeries)

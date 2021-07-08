@@ -49,7 +49,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -330,11 +329,7 @@ public class TaskController {
                     invocation.getWorker().getDefinition().getColumns()
             );
 
-            invocationDao.update(
-                    invocation.getId(),
-                    optionalInvocation -> taskDomain
-                            .updateInvocationStatus(invocation, InvocationStatus.Running)
-            );
+            updateInvocationStatus(invocation, InvocationStatus.Running);
 
             List<Measurement> newMeasurements = new ArrayList<>();
 
@@ -433,14 +428,7 @@ public class TaskController {
                     )
                     .build());
 
-            Invocation running = invocationDao.getDetails(invocation.getId())
-                    .orElseThrow(NotFoundException::new);
-
-            invocationDao.update(
-                    invocation.getId(),
-                    optionalInvocation -> taskDomain
-                            .updateInvocationStatus(running, InvocationStatus.Completed)
-            );
+            updateInvocationStatus(invocation, InvocationStatus.Completed);
         }
 
 
@@ -629,14 +617,11 @@ public class TaskController {
     public Response submitDataSample(
             Invocation invocation,  ImportWorkerDataSample sample
     ) {
-        invocationDao.update(
-                invocation.getId(),
-                optionalInvocation -> taskDomain
-                        .updateInvocationStatus(invocation, InvocationStatus.Running)
-        );
-
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT_SAMPLE)) {
+
+            updateInvocationStatus(invocation, InvocationStatus.Running);
             importWorkerDataSampleDao.putSample(invocation.getId(), sample);
+            updateInvocationStatus(invocation, InvocationStatus.Completed);
 
             return Response.ok().build();
         }
