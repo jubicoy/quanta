@@ -6,6 +6,7 @@ import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.dao.WorkerDefDao;
 import fi.jubic.quanta.domain.TaskDomain;
+import fi.jubic.quanta.domain.WorkerDomain;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.models.DataConnection;
@@ -17,7 +18,6 @@ import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
-import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
@@ -32,7 +32,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -48,6 +47,7 @@ public class ImportWorkerImporter implements Importer {
     private final WorkerDao workerDao;
 
     private final TaskDomain taskDomain;
+    private final WorkerDomain workerDomain;
 
     @Inject
     ImportWorkerImporter(
@@ -56,7 +56,8 @@ public class ImportWorkerImporter implements Importer {
             TaskDao taskDao,
             WorkerDefDao workerDefDao,
             WorkerDao workerDao,
-            TaskDomain taskDomain) {
+            TaskDomain taskDomain,
+            WorkerDomain workerDomain) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
@@ -64,6 +65,7 @@ public class ImportWorkerImporter implements Importer {
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
         this.taskDomain = taskDomain;
+        this.workerDomain = workerDomain;
     }
 
     @Override
@@ -176,7 +178,13 @@ public class ImportWorkerImporter implements Importer {
                                     .updateInvocationStatus(invocation, InvocationStatus.Running)
                     );
 
-                    //Add columns to workerDef here if they won't be declared during registration
+                    //If no columns are declared during registration, we add them from sample
+                    if (workerDef.getColumns().isEmpty()) {
+                        workerDefDao.createColumns(
+                                workerDef,
+                                importWorkerDataSample.get().getColumns()
+                        );
+                    }
 
                     Invocation running = invocationDao
                             .search(
