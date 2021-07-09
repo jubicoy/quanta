@@ -16,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -108,6 +109,18 @@ public class DataConnectionResource {
                 dataConnectionId,
                 dataSeries,
                 skipImportData
+        );
+    }
+
+    @PUT
+    @Path("data-series/{id}")
+    public Response updateDataSeries(
+            @PathParam("id") Long dataSeriesId,
+            DataSeries dataSeries
+    ) {
+        return dataController.updateSeriesProperties(
+                dataSeriesId,
+                dataSeries
         );
     }
 

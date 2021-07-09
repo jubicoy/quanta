@@ -123,6 +123,19 @@ public class DataDomain {
                 .build();
     }
 
+    public DataSeries updateSeriesProperties(
+            DataSeries oldDataSeries, DataSeries newDataSeries
+    ) {
+        if (Objects.equals(oldDataSeries, newDataSeries)) {
+            return oldDataSeries;
+        }
+        return oldDataSeries.toBuilder()
+                .setDescription(newDataSeries.getDescription())
+                .setName(newDataSeries.getName())
+                .build();
+
+    }
+
     public DataConnection deleteDataConnection(DataConnection dataConnection) {
         return dataConnection.toBuilder()
                 .setDeletedAt(Instant.now())

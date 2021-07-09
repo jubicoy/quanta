@@ -30,6 +30,7 @@ import org.jooq.impl.DSL;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -226,6 +227,26 @@ public class DataController {
                 )
         );
 
+    }
+
+    public Response updateSeriesProperties(Long dataSeriesId, DataSeries dataSeries) {
+
+        Optional<DataSeries> oldSeries = dataSeriesDao.getDetails(dataSeriesId);
+
+        if (oldSeries.isPresent()) {
+            dataSeriesDao.update(
+                    dataSeriesId,
+                    dataSeries1 -> dataDomain.updateSeriesProperties(
+                            oldSeries.get(),
+                            dataSeries
+                    )
+            );
+        }
+        else {
+            return Response.status(404).build();
+        }
+
+        return Response.ok().build();
     }
 
     public List<DataSeries> searchSeries(DataSeriesQuery query) {
