@@ -7,11 +7,9 @@ package fi.jubic.quanta.db.tables;
 import fi.jubic.quanta.db.DefaultSchema;
 import fi.jubic.quanta.db.Indexes;
 import fi.jubic.quanta.db.Keys;
-import fi.jubic.quanta.db.tables.records.TaskColumnSelectorRecord;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 
 import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,7 +25,6 @@ import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.jooq.impl.TableImpl;
 
 
