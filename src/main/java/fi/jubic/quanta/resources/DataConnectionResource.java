@@ -112,6 +112,16 @@ public class DataConnectionResource {
     }
 
     @DELETE
+    @Path("data-series/{id}")
+    public DataSeries deleteDataSeries(
+            @PathParam("id") Long dataSeriesId
+    ) {
+        return dataController.deleteSeries(
+                dataSeriesId
+        );
+    }
+
+    @DELETE
     @Path("{id}")
     public DataConnection delete(
             @PathParam("id") Long dataConnectionId

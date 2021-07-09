@@ -134,4 +134,10 @@ public class DataDomain {
                 .setDeletedAt(Instant.now())
                 .build();
     }
+
+    public SeriesTable deleteSeriesTable(SeriesTable seriesTable) {
+        return seriesTable.toBuilder()
+                .setDeleteAt(Instant.now())
+                .build();
+    }
 }

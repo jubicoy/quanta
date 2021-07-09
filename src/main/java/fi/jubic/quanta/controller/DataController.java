@@ -423,6 +423,58 @@ public class DataController {
         return deletedDataConnection;
     }
 
+    public DataSeries deleteSeries(Long dataSeriesId) {
+        DataSeries deletedDataSeries = dataSeriesDao.update(
+                dataSeriesId,
+                dataSeries -> dataDomain.deleteDataSeries(
+                        dataSeries.orElseThrow(
+                                () -> new InputException(
+                                        "Can't delete a non-existing DataSeries"
+                                )
+                        )
+                )
+        );
+
+        List<Task> dataSeriesTasks = taskDao.search(
+                new TaskQuery().withDataSeriesId(deletedDataSeries.getId())
+                        .withNotDeleted(true)
+        );
+
+        dataSeriesTasks.forEach(
+                dataSeriesTask -> {
+                    Task deletedTask = taskDao.update(
+                            dataSeriesTask.getId(),
+                            task -> taskDomain.delete(
+                                    task.orElseThrow(
+                                            () -> new InputException(
+                                                    "Can't delete a non-existing Task"
+                                            )
+                                    )
+                            )
+                    );
+                    if (Objects.nonNull(deletedTask.getCronTrigger())) {
+                        schedulerController.deleteTask(
+                                deletedTask
+                        );
+                    }
+                }
+        );
+
+        seriesTableDao.update(
+                deletedDataSeries.getTableName(),
+                seriesTable -> dataDomain.deleteSeriesTable(
+                        seriesTable.orElseThrow(
+                                () -> new InputException(
+                                        "Can't delete a non-existing SeriesTable"
+                                )
+                        )
+                )
+        );
+
+        return deletedDataSeries;
+    }
+
+
     public Map<String, SingleTriggerJob> getSeriesTablesDeleteJobs() {
         return createMapOfSingleTriggerJobs(
                 seriesTableDao.getSeriesTablesHasDeleteAt(conf).stream()
