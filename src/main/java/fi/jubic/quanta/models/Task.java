@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +65,10 @@ public abstract class Task {
             .setCronTriggerAccessor(TASK.CRON_TRIGGER)
             .setTaskTriggerAccessor(TASK.TASK_TRIGGER)
             .setTaskTypeAccessor(TASK.TASK_TYPE, TaskType::toString, TaskType::parse)
-            .setDeletedAtAccessor(TASK.DELETED_AT, Timestamp::from, Timestamp::toInstant)
+            .setDeletedAtAccessor(
+                    TASK.DELETED_AT,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
             .build();
 }

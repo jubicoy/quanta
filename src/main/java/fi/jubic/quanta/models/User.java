@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.UserRecord;
+import fi.jubic.quanta.util.DateUtil;
 import fi.jubic.snoozy.auth.UserPrincipal;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 
 import static fi.jubic.quanta.db.Tables.USER;
@@ -49,9 +49,10 @@ public abstract class User implements UserPrincipal {
                     .setNameAccessor(USER.NAME)
                     .setPasswordHashAccessor(USER.PASSWORD_HASH)
                     .setSaltAccessor(USER.SALT)
-                    .setCreationDateAccessor(USER.CREATION_DATE,
-                            Timestamp::from,
-                            Timestamp::toInstant
+                    .setCreationDateAccessor(
+                            USER.CREATION_DATE,
+                            DateUtil::toLocalDateTime,
+                            DateUtil::toInstant
                     )
                     .build();
 }
