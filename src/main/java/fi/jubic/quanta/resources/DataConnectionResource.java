@@ -114,7 +114,7 @@ public class DataConnectionResource {
 
     @PUT
     @Path("data-series/{id}")
-    public Response updateDataSeries(
+    public DataSeries updateDataSeries(
             @PathParam("id") Long dataSeriesId,
             DataSeries dataSeries
     ) {

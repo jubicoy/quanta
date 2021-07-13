@@ -18,6 +18,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
+import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
@@ -30,8 +31,8 @@ import org.jooq.impl.DSL;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -229,24 +230,63 @@ public class DataController {
 
     }
 
-    public Response updateSeriesProperties(Long dataSeriesId, DataSeries dataSeries) {
+    public DataSeries updateSeriesProperties(Long dataSeriesId, DataSeries newSeries) {
 
-        Optional<DataSeries> oldSeries = dataSeriesDao.getDetails(dataSeriesId);
+        DataSeries oldSeries = dataSeriesDao.getDetails(dataSeriesId)
+                .orElseThrow(() -> new ApplicationException("Series does not exist"));
 
-        if (oldSeries.isPresent()) {
-            dataSeriesDao.update(
+        if (oldSeries.equals(newSeries)) {
+            return oldSeries;
+        }
+
+        dataSeriesDao.update(
+                dataSeriesId,
+                dataSeries1 -> dataDomain.updateSeriesProperties(
+                        oldSeries,
+                        newSeries
+                )
+        );
+
+        //if the old dataseries has different columns than the new one we update columns&table
+        if (!oldSeries.getColumns().equals(newSeries.getColumns())) {
+
+            dataSeriesDao.updateColumns(
                     dataSeriesId,
-                    dataSeries1 -> dataDomain.updateSeriesProperties(
-                            oldSeries.get(),
-                            dataSeries
+                    dataSeries -> dataDomain.updateSeriesColumns(
+                            oldSeries,
+                            newSeries
                     )
             );
-        }
-        else {
-            return Response.status(404).build();
+
+            SeriesTable table = SeriesTable
+                    .builder()
+                    .setId(-1L)
+                    .setTableName(oldSeries.getTableName())
+                    .setDataSeries(newSeries)
+                    .build();
+
+            timeSeriesDao.deleteTable(oldSeries, conf);
+
+            List<OutputColumn> outputColumns = new ArrayList<>();
+
+            newSeries.getColumns()
+                    .forEach(column -> outputColumns.add(
+                            OutputColumn.builder()
+                                    .setId(column.getId())
+                                    .setColumnName(column.getName())
+                                    .setIndex(column.getIndex())
+                                    .setType(column.getType())
+                                    .build()
+                    ));
+
+            timeSeriesDao.createTableWithOutputColumns(
+                    table,
+                    outputColumns,
+                    conf
+            );
         }
 
-        return Response.ok().build();
+        return newSeries;
     }
 
     public List<DataSeries> searchSeries(DataSeriesQuery query) {

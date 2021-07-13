@@ -4,7 +4,6 @@ import fi.jubic.quanta.dao.AnomalyDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
-import fi.jubic.quanta.dao.SeriesTableDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
@@ -69,7 +68,6 @@ public class TaskController {
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
-    private final SeriesTableDao seriesTableDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -88,7 +86,6 @@ public class TaskController {
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
-            SeriesTableDao seriesTableDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -103,7 +100,6 @@ public class TaskController {
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
-        this.seriesTableDao = seriesTableDao;
 
         this.dataController = dataController;
         this.schedulerController = schedulerController;
@@ -378,13 +374,8 @@ public class TaskController {
                 //We recreate the table if this is the first completed IMPORT task
                 if (oldInvocations.size() == 0) {
 
-                    seriesTableDao.deleteWithTableName(
-                            invocationSeries.getTableName(), transaction
-                    );
-
                     timeSeriesDao.deleteTable(invocationSeries, transaction);
 
-                    seriesTableDao.create(table, transaction);
                     timeSeriesDao.createTableWithOutputColumns(
                             table,
                             outputColumns,

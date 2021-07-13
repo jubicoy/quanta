@@ -136,6 +136,18 @@ public class DataDomain {
 
     }
 
+    public DataSeries updateSeriesColumns(
+            DataSeries oldDataSeries, DataSeries newDataSeries
+    ) {
+        if (Objects.equals(oldDataSeries.getColumns(), newDataSeries.getColumns())) {
+            return oldDataSeries;
+        }
+        return oldDataSeries.toBuilder()
+                .setColumns(newDataSeries.getColumns())
+                .build();
+
+    }
+
     public DataConnection deleteDataConnection(DataConnection dataConnection) {
         return dataConnection.toBuilder()
                 .setDeletedAt(Instant.now())
