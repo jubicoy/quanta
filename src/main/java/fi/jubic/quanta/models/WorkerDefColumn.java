@@ -18,7 +18,7 @@ public abstract class WorkerDefColumn {
     public abstract String getName();
 
     @Nullable
-    public abstract Type getType();
+    public abstract Type getValueType();
 
     public abstract String getDescription();
 
@@ -39,7 +39,7 @@ public abstract class WorkerDefColumn {
         return new Builder()
                 .setId(-1L)
                 .setName("")
-                .setType(
+                .setValueType(
                         Type.builder()
                                 .setClassName(className)
                                 .setFormat(null)
@@ -60,7 +60,7 @@ public abstract class WorkerDefColumn {
             .builder(WORKER_DEFINITION_COLUMN)
             .setIdAccessor(WORKER_DEFINITION_COLUMN.ID)
             .setNameAccessor(WORKER_DEFINITION_COLUMN.NAME)
-            .setTypeAccessor(new Type.TypeAccessor<>(
+            .setValueTypeAccessor(new Type.TypeAccessor<>(
                     WORKER_DEFINITION_COLUMN.CLASS,
                     WORKER_DEFINITION_COLUMN.FORMAT,
                     WORKER_DEFINITION_COLUMN.NULLABLE

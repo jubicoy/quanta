@@ -30,7 +30,7 @@ export default ({ workerColumns }: Props) => (
         .map((column, index) => (
           <TableRow key={index}>
             <TableCell>{column.name}</TableCell>
-            <TableCell>{column.type.className}</TableCell>
+            <TableCell>{column.valueType.className}</TableCell>
             <TableCell>{column.description}</TableCell>
           </TableRow>
         ))

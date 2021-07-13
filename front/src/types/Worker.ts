@@ -31,7 +31,7 @@ export interface WorkerDefQuery {
 
 export interface WorkerDefColumn {
   id: number;
-  type: Type;
+  valueType: Type;
   name: string;
   description: string;
   columnType: WorkerDefColumnType;
@@ -54,7 +54,7 @@ export function mapWorkerDefInputColumnWithoutSelector (
 ): WorkerDefColumn {
   return {
     id: inputColumn.id,
-    type: inputColumn.type,
+    valueType: inputColumn.valueType,
     name: inputColumn.name,
     description: inputColumn.description,
     columnType: inputColumn.columnType,
@@ -89,7 +89,7 @@ export function mapWorkerDefColumnToOutputColumn (
     id: -1,
     index: workerDefOutputColumn.index,
     columnName: workerDefOutputColumn.name,
-    type: workerDefOutputColumn.type
+    type: workerDefOutputColumn.valueType
   };
 }
 
@@ -100,7 +100,7 @@ export function mapWorkerDefColumnWithAliasToOutputColumn (
     id: -1,
     index: workerDefColumnWithAlias.index,
     columnName: workerDefColumnWithAlias.name,
-    type: workerDefColumnWithAlias.type,
+    type: workerDefColumnWithAlias.valueType,
     alias: workerDefColumnWithAlias.alias ?? undefined
   };
 }

@@ -1001,14 +1001,14 @@ public class TimeSeriesDomain {
                 .stream()
                 .findFirst()
                 .get()
-                .getType()
+                .getValueType()
                 .getFormat() != null
         ) {
             formatter = DateTimeFormatter.ofPattern(Objects.requireNonNull(workerDefOutputColumns
                     .stream()
                     .findFirst()
                     .get()
-                    .getType()
+                    .getValueType()
                     .getFormat())
             );
         }

@@ -128,7 +128,7 @@ export const WorkerDefConfiguration = ({
   ): Column[] {
     if (dataConnection && dataConnection.series.length > 0) {
       return dataConnection.series[0].columns
-        .filter(column => isSupportedType(column.type, inputColumn.type));
+        .filter(column => isSupportedType(column.type, inputColumn.valueType));
     }
     return [];
   }
@@ -375,7 +375,7 @@ export const WorkerDefConfiguration = ({
                 .map((inputColumn, inputIndex) => (
                   <TableRow key={inputIndex}>
                     <TableCell>{inputColumn.name}</TableCell>
-                    <TableCell>{inputColumn.type.className}</TableCell>
+                    <TableCell>{inputColumn.valueType.className}</TableCell>
                     <TableCell>{inputColumn.description}</TableCell>
                     <TableCell>
                       {editable && (
@@ -397,7 +397,7 @@ export const WorkerDefConfiguration = ({
                               dataConnection
                                 ? [
                                   <MenuItem key={-1} value={undefined}>-</MenuItem>,
-                                  supportedModifiers(inputColumn.type)
+                                  supportedModifiers(inputColumn.valueType)
                                     .map((modifier, idx) => (
                                       <MenuItem key={idx} value={modifier}>{modifier}</MenuItem>
                                     ))
@@ -444,7 +444,7 @@ export const WorkerDefConfiguration = ({
                   .map((inputColumn, inputIndex) => (
                     <TableRow key={inputIndex}>
                       <TableCell>{inputColumn.name}</TableCell>
-                      <TableCell>{inputColumn.type.className}</TableCell>
+                      <TableCell>{inputColumn.valueType.className}</TableCell>
                       <TableCell>{inputColumn.description}</TableCell>
                     </TableRow>
                   ))
@@ -472,7 +472,7 @@ export const WorkerDefConfiguration = ({
                   (outputColumn, outputIndex) => (
                     <TableRow key={outputIndex}>
                       <TableCell>{outputColumn.name}</TableCell>
-                      <TableCell>{outputColumn.type.className}</TableCell>
+                      <TableCell>{outputColumn.valueType.className}</TableCell>
                       <TableCell>{outputColumn.description}</TableCell>
                       <TableCell style={{
                         minWidth: '440px'
@@ -498,7 +498,7 @@ export const WorkerDefConfiguration = ({
                   .map((outputColumn, outputIndex) => (
                     <TableRow key={outputIndex}>
                       <TableCell>{outputColumn.name}</TableCell>
-                      <TableCell>{outputColumn.type.className}</TableCell>
+                      <TableCell>{outputColumn.valueType.className}</TableCell>
                       <TableCell>{outputColumn.description}</TableCell>
                     </TableRow>
                   ))
