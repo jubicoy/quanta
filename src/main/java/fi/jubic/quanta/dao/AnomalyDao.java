@@ -14,7 +14,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.tables.DetectionResult.DETECTION_RESULT;
+import static fi.jubic.quanta.db.tables.Anomaly.ANOMALY;
 
 @Singleton
 public class AnomalyDao {
@@ -28,7 +28,7 @@ public class AnomalyDao {
     public List<Anomaly> search(AnomalyQuery query) {
         Condition condition = Stream
                 .of(
-                        query.getInvocationId().map(DETECTION_RESULT.INVOCATION_ID::eq)
+                        query.getInvocationId().map(ANOMALY.INVOCATION_ID::eq)
                 )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -36,7 +36,7 @@ public class AnomalyDao {
                 .orElseGet(DSL::trueCondition);
 
         return DSL.using(conf)
-                .selectFrom(DETECTION_RESULT)
+                .selectFrom(ANOMALY)
                 .where(condition)
                 .fetchStream()
                 .map(Anomaly.mapper::map)
@@ -49,7 +49,7 @@ public class AnomalyDao {
                     .batchInsert(
                             anomalies.stream()
                                     .map(anomaly -> Anomaly.mapper.write(
-                                            DSL.using(transaction).newRecord(DETECTION_RESULT),
+                                            DSL.using(transaction).newRecord(ANOMALY),
                                             anomaly
                                     ))
                                     .peek(record -> record.setInvocationId(invocation.getId()))

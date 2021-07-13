@@ -7,9 +7,9 @@ import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.DataSeriesRecord;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -100,7 +100,11 @@ public abstract class DataSeries {
             .setNameAccessor(DATA_SERIES.NAME)
             .setDescriptionAccessor(DATA_SERIES.DESCRIPTION)
             .setTableNameAccessor(DATA_SERIES.TABLE_NAME)
-            .setDeletedAtAccessor(DATA_SERIES.DELETED_AT, Timestamp::from, Timestamp::toInstant)
+            .setDeletedAtAccessor(
+                    DATA_SERIES.DELETED_AT,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
             .setTypeAccessor(
                     DATA_SERIES.TYPE,
                     DataConnectionType::name,

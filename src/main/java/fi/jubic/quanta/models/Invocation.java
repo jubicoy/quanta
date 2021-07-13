@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.InvocationRecord;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -73,8 +73,20 @@ public abstract class Invocation {
             .setStatusAccessor(INVOCATION.STATUS, InvocationStatus::name, InvocationStatus::valueOf)
             .setTaskAccessor(INVOCATION.TASK_ID, Task::getId)
             .setWorkerAccessor(INVOCATION.WORKER_ID, Worker::getId)
-            .setStartTimeAccessor(INVOCATION.STARTING_TIME, Timestamp::from, Timestamp::toInstant)
-            .setEndTimeAccessor(INVOCATION.ENDING_TIME, Timestamp::from, Timestamp::toInstant)
-            .setDeletedAtAccessor(INVOCATION.DELETED_AT, Timestamp::from, Timestamp::toInstant)
+            .setStartTimeAccessor(
+                    INVOCATION.STARTING_TIME,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
+            .setEndTimeAccessor(
+                    INVOCATION.ENDING_TIME,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
+            .setDeletedAtAccessor(
+                    INVOCATION.DELETED_AT,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
             .build();
 }
