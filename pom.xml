@@ -80,7 +80,7 @@
             | invocation
             | invocation_column_selector
             | invocation_output_column
-            | detection_result
+            | anomaly
             | series_result
             | user
             | external_client

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.SeriesTableRecord;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 
 import static fi.jubic.quanta.db.Tables.SERIES_TABLE;
@@ -38,6 +38,10 @@ public abstract class SeriesTable {
             .setIdAccessor(SERIES_TABLE.ID)
             .setTableNameAccessor(SERIES_TABLE.TABLE_NAME)
             .setDataSeriesAccessor(SERIES_TABLE.DATA_SERIES_ID, DataSeries::getId)
-            .setDeleteAtAccessor(SERIES_TABLE.DELETE_AT, Timestamp::from, Timestamp::toInstant)
+            .setDeleteAtAccessor(
+                    SERIES_TABLE.DELETE_AT,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
+            )
             .build();
 }

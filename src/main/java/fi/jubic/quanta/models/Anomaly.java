@@ -3,16 +3,17 @@ package fi.jubic.quanta.models;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
-import fi.jubic.quanta.db.tables.records.DetectionResultRecord;
+import fi.jubic.quanta.db.tables.records.AnomalyRecord;
+import fi.jubic.quanta.util.DateUtil;
 
-import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.Map;
 
-import static fi.jubic.quanta.db.tables.DetectionResult.DETECTION_RESULT;
+import static fi.jubic.quanta.db.tables.Anomaly.ANOMALY;
 
 @EasyValue
 @JsonDeserialize(builder = Anomaly.Builder.class)
@@ -24,13 +25,13 @@ public abstract class Anomaly {
 
     public abstract Instant getEnd();
 
-    public abstract List<Measurement> getValues();
+    public abstract Measurement getSample();
 
     public abstract String getClassification();
 
     public abstract Double getProbability();
 
-    public abstract Delta getDeltaMax();
+    public abstract Map<String, Object> getMetadata();
 
     public abstract Builder toBuilder();
 
@@ -39,70 +40,77 @@ public abstract class Anomaly {
     }
 
     public static class Builder extends EasyValue_Anomaly.Builder {
-
+        @Override
+        public Anomaly.Builder defaults(Anomaly.Builder builder) {
+            return builder
+                    .setId(0L)
+                    .setMetadata(Collections.emptyMap());
+        }
     }
 
-    public static final AnomalyRecordMapper<DetectionResultRecord> mapper = AnomalyRecordMapper
-            .builder(DETECTION_RESULT)
-            .setIdAccessor(DETECTION_RESULT.ID)
+    public static final AnomalyRecordMapper<AnomalyRecord> mapper = AnomalyRecordMapper
+            .builder(ANOMALY)
+            .setIdAccessor(ANOMALY.ID)
             .setStartAccessor(
-                    DETECTION_RESULT.STARTING_TIME,
-                    Timestamp::from,
-                    Timestamp::toInstant
+                    ANOMALY.STARTING_TIME,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
             )
             .setEndAccessor(
-                    DETECTION_RESULT.ENDING_TIME,
-                    Timestamp::from,
-                    Timestamp::toInstant
+                    ANOMALY.ENDING_TIME,
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
             )
-            .setValuesAccessor(
-                    DETECTION_RESULT.VALUES,
-                    Anomaly::valuesToString,
-                    Anomaly::valuesFromString
+            .setSampleAccessor(
+                    ANOMALY.SAMPLE,
+                    Anomaly::sampleToString,
+                    Anomaly::sampleFromString
             )
-            .setClassificationAccessor(DETECTION_RESULT.CLASSIFICATION)
-            .setProbabilityAccessor(DETECTION_RESULT.PROBABILITY)
-            .setDeltaMaxAccessor(
-                    DETECTION_RESULT.DELTA_MAX,
-                    Anomaly::deltaToString,
-                    Anomaly::deltaFromString
+            .setClassificationAccessor(ANOMALY.CLASSIFICATION)
+            .setProbabilityAccessor(ANOMALY.PROBABILITY)
+            .setMetadataAccessor(
+                    ANOMALY.METADATA,
+                    Anomaly::metadataToString,
+                    Anomaly::metadataFromString
             )
             .build();
 
     private static final ObjectMapper valueMapper = new ObjectMapper();
 
-    private static String valuesToString(List<Measurement> values) {
+    static {
+        valueMapper.registerModule(new JSR310Module());
+    }
+
+    private static String sampleToString(Measurement sample) {
         try {
-            return valueMapper.writeValueAsString(values);
+            return valueMapper.writeValueAsString(sample);
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private static List<Measurement> valuesFromString(String string) {
+    private static Measurement sampleFromString(String string) {
         try {
-            return Arrays.asList(
-                    valueMapper.readValue(string, Measurement[].class)
-            );
+            return valueMapper.readValue(string, Measurement.class);
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private static String deltaToString(Delta delta) {
+    private static String metadataToString(Map<String, Object> metadata) {
         try {
-            return valueMapper.writeValueAsString(delta);
+            return valueMapper.writeValueAsString(metadata);
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private static Delta deltaFromString(String string) {
+    private static Map<String, Object> metadataFromString(String string) {
         try {
-            return valueMapper.readValue(string, Delta.class);
+            return valueMapper.readValue(string, Map.class);
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);

@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.WorkerDefinitionRecord;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
@@ -55,8 +55,8 @@ public abstract class WorkerDef {
             .setDescriptionAccessor(WORKER_DEFINITION.DESCRIPTION)
             .setDeletedAtAccessor(
                     WORKER_DEFINITION.DELETED_AT,
-                    Timestamp::from,
-                    Timestamp::toInstant
+                    DateUtil::toLocalDateTime,
+                    DateUtil::toInstant
             )
             .build();
 }
