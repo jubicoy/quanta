@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Changed
 - Upgraded to `snoozy-starter` 0.7.4.
+- Apply limit/offset pagination to all data fetches.
 
 ## [0.3.0] - 2021-03-19
 ### Added
