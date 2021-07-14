@@ -109,7 +109,7 @@ public class TimeSeriesController {
                 )
         ).collect(Collectors.toList());
 
-        return getWorkerInputs(selections, invocation);
+        return getWorkerInputs(selections, invocation, pagination);
     }
 
     public List<Measurement> loadInvocationDataFromSeriesResult(
@@ -146,10 +146,14 @@ public class TimeSeriesController {
                         )
                 ).collect(Collectors.toList());
 
-        return getWorkerOutputs(selections, invocation);
+        return getWorkerOutputs(selections, invocation, pagination);
     }
 
-    public List<QueryResult> externalQuery(TimeSeriesQuery query, String externalClientToken) {
+    public List<QueryResult> externalQuery(
+            TimeSeriesQuery query,
+            String externalClientToken,
+            Pagination pagination
+    ) {
         TimeSeriesQuery validatedQuery = timeSeriesDomain.validateQuery(query);
         ExternalClient externalClient = externalClientDomain.validate(
                 externalClientDao
@@ -166,18 +170,22 @@ public class TimeSeriesController {
         if (selectors.isEmpty()) {
             throw new NotFoundException();
         }
-        return query(validatedQuery, selectors);
+        return query(validatedQuery, selectors, pagination);
     }
 
-    public List<QueryResult> query(TimeSeriesQuery query) {
+    public List<QueryResult> query(
+            TimeSeriesQuery query,
+            Pagination pagination
+    ) {
         TimeSeriesQuery validatedQuery = timeSeriesDomain.validateQuery(query);
         List<TimeSeriesQuerySelector> selectors = timeSeriesDomain.parseSelectors(validatedQuery);
-        return query(validatedQuery, selectors);
+        return query(validatedQuery, selectors, pagination);
     }
 
     public List<QueryResult> query(
             TimeSeriesQuery validatedQuery,
-            List<TimeSeriesQuerySelector> selectors
+            List<TimeSeriesQuerySelector> selectors,
+            Pagination pagination
     ) {
         Map<String, List<TimeSeriesQuerySelector>> dataSeriesSelections =
                 timeSeriesDomain.parseDataSeriesSelections(selectors);
@@ -262,7 +270,8 @@ public class TimeSeriesController {
                         timeSeriesDao.query(
                                 validatedQuery,
                                 selection,
-                                getDataSeriesFromSelector(selection)
+                                getDataSeriesFromSelector(selection),
+                                pagination
                         )
                                 .entrySet()
                                 .stream()
@@ -443,7 +452,8 @@ public class TimeSeriesController {
 
     private List<Map<String, Object>> getWorkerInputs(
             List<TimeSeriesSelector> selections,
-            Invocation invocation
+            Invocation invocation,
+            Pagination pagination
     ) {
         TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery()
                 .withStart(Instant.EPOCH)
@@ -459,7 +469,8 @@ public class TimeSeriesController {
                                 finalTimeSeriesQuery[0],
                                 selection,
                                 invocation.getColumnSelectors(),
-                                false
+                                false,
+                                pagination
                         )
                                 .entrySet()
                                 .stream()
@@ -481,7 +492,8 @@ public class TimeSeriesController {
 
     private List<Measurement> getWorkerOutputs(
             List<TimeSeriesResultOutputSelector> selections,
-            Invocation invocation
+            Invocation invocation,
+            Pagination pagination
     ) {
         TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery()
                 .withStart(Instant.EPOCH)
@@ -497,7 +509,8 @@ public class TimeSeriesController {
                                 finalTimeSeriesQuery[0],
                                 selection,
                                 invocation.getOutputColumns(),
-                                false
+                                false,
+                                pagination
                         )
                                 .entrySet()
                                 .stream()

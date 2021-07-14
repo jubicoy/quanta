@@ -1,6 +1,7 @@
 package fi.jubic.quanta.resources.external;
 
 import fi.jubic.quanta.controller.TimeSeriesController;
+import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.QueryResult;
 import fi.jubic.quanta.models.TimeSeriesQuery;
 
@@ -32,8 +33,9 @@ public class TimeSeriesResource {
     @Produces(MediaType.APPLICATION_JSON)
     public List<QueryResult> queryJson(
             @HeaderParam("Client-Token") String clientToken,
-            @BeanParam TimeSeriesQuery query
+            @BeanParam TimeSeriesQuery query,
+            @BeanParam Pagination pagination
     ) {
-        return timeSeriesController.externalQuery(query, clientToken);
+        return timeSeriesController.externalQuery(query, clientToken, pagination);
     }
 }
