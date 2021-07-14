@@ -148,6 +148,20 @@ public class TimeSeriesDao {
         );
     }
 
+    public void createTableWithOutputColumns(
+            SeriesTable seriesTable,
+            List<OutputColumn> outputColumns,
+            Configuration transaction
+    ) {
+        createTableWithOutputColumns(
+                seriesTable.getTableName(),
+                outputColumns.stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                transaction
+        );
+    }
+
     private void createTableWithOutputColumns(
             String tableName,
             List<OutputColumn> outputColumns,

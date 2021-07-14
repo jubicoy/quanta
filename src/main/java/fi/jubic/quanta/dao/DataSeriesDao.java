@@ -132,6 +132,51 @@ public class DataSeriesDao {
         }
     }
 
+    public DataSeries updateColumns(
+            Long id,
+            Function<Optional<DataSeries>, DataSeries> updater
+    ) {
+        try {
+            return DSL.using(conf).transactionResult(transaction -> {
+                DataSeries dataSeries = updater.apply(getDetails(id));
+
+                if (dataSeries.getColumns() != null) {
+
+                    DSL.using(transaction)
+                            .deleteFrom(COLUMN)
+                            .where(COLUMN.DATA_SERIES_ID.eq(dataSeries.getId()))
+                            .execute();
+
+                    DSL.using(transaction)
+                            .batchInsert(
+                                    dataSeries.getColumns()
+                                            .stream()
+                                            .map(column ->
+                                                    Column
+                                                            .seriesColumnMapper.write(
+                                                            DSL.using(transaction).newRecord(
+                                                                    COLUMN
+                                                            ),
+                                                            column
+                                                    )
+                                            )
+                                            .peek(record -> record.setDataSeriesId(
+                                                    dataSeries.getId())
+                                            )
+                                            .collect(Collectors.toList())
+                            )
+                            .execute();
+                }
+
+                return getDetails(id)
+                        .orElseThrow(IllegalStateException::new);
+            });
+        }
+        catch (DataAccessException exception) {
+            throw new ApplicationException("Could not update a DataSeries", exception);
+        }
+    }
+
     private Optional<DataSeries> getBy(Condition condition, Configuration transaction) {
         return DSL.using(transaction)
                 .select()
