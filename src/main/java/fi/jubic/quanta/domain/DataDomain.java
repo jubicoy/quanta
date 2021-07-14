@@ -118,6 +118,31 @@ public class DataDomain {
                 .build();
     }
 
+    public DataSeries updateSeriesProperties(
+            DataSeries oldDataSeries, DataSeries newDataSeries
+    ) {
+        if (Objects.equals(oldDataSeries, newDataSeries)) {
+            return oldDataSeries;
+        }
+        return oldDataSeries.toBuilder()
+                .setDescription(newDataSeries.getDescription())
+                .setName(newDataSeries.getName())
+                .build();
+
+    }
+
+    public DataSeries updateSeriesColumns(
+            DataSeries oldDataSeries, DataSeries newDataSeries
+    ) {
+        if (Objects.equals(oldDataSeries.getColumns(), newDataSeries.getColumns())) {
+            return oldDataSeries;
+        }
+        return oldDataSeries.toBuilder()
+                .setColumns(newDataSeries.getColumns())
+                .build();
+
+    }
+
     public DataConnection deleteDataConnection(DataConnection dataConnection) {
         return dataConnection.toBuilder()
                 .setDeletedAt(Instant.now())
@@ -127,6 +152,12 @@ public class DataDomain {
     public DataSeries deleteDataSeries(DataSeries dataSeries) {
         return dataSeries.toBuilder()
                 .setDeletedAt(Instant.now())
+                .build();
+    }
+
+    public SeriesTable deleteSeriesTable(SeriesTable seriesTable) {
+        return seriesTable.toBuilder()
+                .setDeleteAt(Instant.now())
                 .build();
     }
 }

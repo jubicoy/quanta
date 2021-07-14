@@ -569,9 +569,9 @@
             </column>
             <column name="task_id" type="bigint">
                 <constraints
-                    nullable="false"
-                    foreignKeyName="fk_task_parameter_task_id"
-                    references="task(id)"
+                        nullable="false"
+                        foreignKeyName="fk_task_parameter_task_id"
+                        references="task(id)"
                 />
             </column>
         </createTable>
@@ -588,9 +588,9 @@
             </column>
             <column name="invocation_id" type="bigint">
                 <constraints
-                    nullable="false"
-                    foreignKeyName="fk_invocation_parameter"
-                    references="invocation(id)"
+                        nullable="false"
+                        foreignKeyName="fk_invocation_parameter"
+                        references="invocation(id)"
                 />
             </column>
         </createTable>
@@ -605,12 +605,22 @@
             </column>
             <column name="user_id" type="bigint">
                 <constraints
-                    nullable="false"
-                    foreignKeyName="fk_external_client_user_id"
-                    references="user(id)"
+                        nullable="false"
+                        foreignKeyName="fk_external_client_user_id"
+                        references="user(id)"
                 />
             </column>
         </addColumn>
         <dropNotNullConstraint tableName="external_client" columnName="task_id" />
+    </changeSet>
+    <changeSet id="10" author="Arvo Koskikallio &lt;arvo.koskikallio@jubic.fi&gt;">
+        <addColumn tableName="task" >
+            <column name="data_series_id" type="bigint">
+                <constraints
+                        nullable="true"
+                        foreignKeyName="fk_task_data_series_id"
+                        references="data_series(id)" />
+            </column>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>

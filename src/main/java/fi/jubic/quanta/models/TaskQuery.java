@@ -21,6 +21,10 @@ public class TaskQuery {
     @Nullable
     private Boolean hasCronTrigger;
 
+    @QueryParam("dataSeriesId")
+    @Nullable
+    private Long dataSeriesId;
+
     @QueryParam("notDeleted")
     @Nullable
     private Boolean notDeleted;
@@ -34,12 +38,14 @@ public class TaskQuery {
             @Nullable Long workerDefId,
             @Nullable Long triggeredById,
             @Nullable Boolean hasCronTrigger,
+            @Nullable Long dataSeriesId,
             @Nullable Boolean notDeleted
     ) {
         this.connectionId = connectionId;
         this.workerDefId = workerDefId;
         this.triggeredById = triggeredById;
         this.hasCronTrigger = hasCronTrigger;
+        this.dataSeriesId = dataSeriesId;
         this.notDeleted = notDeleted;
     }
 
@@ -59,6 +65,10 @@ public class TaskQuery {
         return Optional.ofNullable(hasCronTrigger);
     }
 
+    public Optional<Long> getDataSeriesId() {
+        return Optional.ofNullable(dataSeriesId);
+    }
+
     public Optional<Boolean> getNotDeleted() {
         return Optional.ofNullable(notDeleted);
     }
@@ -69,6 +79,7 @@ public class TaskQuery {
                 this.workerDefId,
                 this.triggeredById,
                 this.hasCronTrigger,
+                this.dataSeriesId,
                 this.notDeleted
         );
     }
@@ -79,6 +90,7 @@ public class TaskQuery {
                 workerDefId,
                 this.triggeredById,
                 this.hasCronTrigger,
+                this.dataSeriesId,
                 this.notDeleted
         );
     }
@@ -89,6 +101,7 @@ public class TaskQuery {
                 this.workerDefId,
                 triggeredById,
                 this.hasCronTrigger,
+                this.dataSeriesId,
                 this.notDeleted
         );
     }
@@ -99,9 +112,22 @@ public class TaskQuery {
                 this.workerDefId,
                 this.triggeredById,
                 hasCronTrigger,
+                this.dataSeriesId,
                 this.notDeleted
         );
     }
+
+    public TaskQuery withDataSeriesId(Long dataSeriesId) {
+        return new TaskQuery(
+                this.connectionId,
+                this.workerDefId,
+                this.triggeredById,
+                this.hasCronTrigger,
+                dataSeriesId,
+                this.notDeleted
+        );
+    }
+
 
     public TaskQuery withNotDeleted(Boolean notDeleted) {
         return new TaskQuery(
@@ -109,6 +135,7 @@ public class TaskQuery {
                 this.workerDefId,
                 this.triggeredById,
                 this.hasCronTrigger,
+                this.dataSeriesId,
                 notDeleted
         );
     }
