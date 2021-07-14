@@ -367,7 +367,8 @@ public class TimeSeriesDao {
     public Map<List<?>, List<Measurement>> query(
             TimeSeriesQuery query,
             TimeSeriesSelector selection,
-            DataSeries selectionDataSeries
+            DataSeries selectionDataSeries,
+            Pagination pagination
     ) {
         Field<?> timeField;
         String selectorPrefix;
@@ -427,7 +428,8 @@ public class TimeSeriesDao {
                     selectColumns,
                     filters,
                     columns,
-                    query
+                    query,
+                    pagination
             );
         }
 
@@ -440,7 +442,8 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(resultOutputFilters, query),
-                    true
+                    true,
+                    pagination
             );
         }
 
@@ -466,7 +469,8 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(resultOutputFilters, query),
-                    true
+                    true,
+                    pagination
             );
         }
         return query(
@@ -476,7 +480,8 @@ public class TimeSeriesDao {
                 selection.getGroupings(),
                 selectColumns,
                 columns,
-                buildCondition(filters, query)
+                buildCondition(filters, query),
+                pagination
         );
 
     }
@@ -500,7 +505,8 @@ public class TimeSeriesDao {
             List<TimeSeriesGroupSelector> groupings,
             List<TimeSeriesColumnSelector> selectColumns,
             List<Column> columns,
-            Condition condition
+            Condition condition,
+            Pagination pagination
     ) {
         List<Field<?>> groupingFields = groupings.stream()
                 .map(groupSelector ->
@@ -583,7 +589,8 @@ public class TimeSeriesDao {
                     distinctFields,
                     groupingFields,
                     columns,
-                    condition
+                    condition,
+                    pagination
             );
         }
 
@@ -594,7 +601,8 @@ public class TimeSeriesDao {
                 selectFields,
                 groupingFields,
                 columns,
-                condition
+                condition,
+                pagination
         );
     }
 
@@ -605,7 +613,8 @@ public class TimeSeriesDao {
             List<Field<?>> selectFields,
             List<Field<?>> groupingFields,
             List<Column> columns,
-            Condition condition
+            Condition condition,
+            Pagination pagination
     ) {
         return DSL.using(conf)
                 .select(
@@ -625,6 +634,8 @@ public class TimeSeriesDao {
                                 .map(Field::asc)
                                 .collect(Collectors.toList())
                 )
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchGroups(
                         groupingFields.toArray(new Field[0])
                 )
@@ -658,7 +669,8 @@ public class TimeSeriesDao {
             List<Field<?>> distinctFields,
             List<Field<?>> groupingFields,
             List<Column> columns,
-            Condition condition
+            Condition condition,
+            Pagination pagination
     ) {
         return  DSL.using(conf)
                 .select(
@@ -673,7 +685,8 @@ public class TimeSeriesDao {
                 .orderBy(
                         distinctFields
                 )
-                .limit(1000)
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchGroups(
                         groupingFields.toArray(new Field[0])
                 )
@@ -721,7 +734,8 @@ public class TimeSeriesDao {
             List<TimeSeriesResultOutputColumnSelector> selectColumns,
             List<OutputColumn> outputColumns,
             Condition condition,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         List<Field<?>> groupingFields = groupings.stream()
                 .map(groupSelector ->
@@ -820,7 +834,8 @@ public class TimeSeriesDao {
                     distinctFields,
                     groupingFields,
                     outputColumns,
-                    condition
+                    condition,
+                    pagination
             );
         }
 
@@ -831,7 +846,8 @@ public class TimeSeriesDao {
                 selectFields,
                 groupingFields,
                 outputColumns,
-                condition
+                condition,
+                pagination
         );
     }
 
@@ -842,7 +858,8 @@ public class TimeSeriesDao {
             List<Field<?>> selectFields,
             List<Field<?>> groupingFields,
             List<OutputColumn> outputColumns,
-            Condition condition
+            Condition condition,
+            Pagination pagination
     ) {
         return DSL.using(conf)
                 .select(
@@ -862,6 +879,8 @@ public class TimeSeriesDao {
                                 .map(Field::asc)
                                 .collect(Collectors.toList())
                 )
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchGroups(
                         groupingFields.toArray(new Field[0])
                 )
@@ -895,7 +914,8 @@ public class TimeSeriesDao {
             List<Field<?>> distinctFields,
             List<Field<?>> groupingFields,
             List<OutputColumn> outputColumns,
-            Condition condition
+            Condition condition,
+            Pagination pagination
     ) {
         return DSL.using(conf)
                 .select(
@@ -912,7 +932,8 @@ public class TimeSeriesDao {
                 .orderBy(
                         distinctFields
                 )
-                .limit(1000)
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchGroups(
                         groupingFields.toArray(new Field[0])
                 )
@@ -943,7 +964,8 @@ public class TimeSeriesDao {
             TimeSeriesQuery query,
             TimeSeriesSelector selection,
             List<ColumnSelector> columnSelectors,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         Field<?> timeField;
         String selectorPrefix;
@@ -969,7 +991,8 @@ public class TimeSeriesDao {
                     filters,
                     columnSelectors,
                     query,
-                    filterNonNumericalValues
+                    filterNonNumericalValues,
+                    pagination
             );
         }
 
@@ -994,7 +1017,8 @@ public class TimeSeriesDao {
                 selectColumns,
                 columnSelectors,
                 buildCondition(filters, query),
-                filterNonNumericalValues
+                filterNonNumericalValues,
+                pagination
         );
     }
 
@@ -1019,7 +1043,8 @@ public class TimeSeriesDao {
             List<TimeSeriesColumnSelector> selectColumns,
             List<ColumnSelector> columnSelectors,
             Condition condition,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         List<Field<?>> groupingFields = groupings.stream()
                 .map(groupSelector ->
@@ -1099,6 +1124,8 @@ public class TimeSeriesDao {
                                 .map(Field::asc)
                                 .collect(Collectors.toList())
                 )
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchGroups(
                         groupingFields.toArray(new Field[0])
                 )
@@ -1129,7 +1156,8 @@ public class TimeSeriesDao {
             TimeSeriesQuery query,
             TimeSeriesResultOutputSelector selection,
             List<OutputColumn> outputColumns,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         Field<?> timeField;
         String selectorPrefix;
@@ -1161,7 +1189,8 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(filters, query),
-                    filterNonNumericalValues
+                    filterNonNumericalValues,
+                    pagination
             );
         }
 
@@ -1186,7 +1215,8 @@ public class TimeSeriesDao {
                 selectResultOutputColumns,
                 outputColumns,
                 buildConditionResultOutput(filters, query),
-                filterNonNumericalValues
+                filterNonNumericalValues,
+                pagination
         );
     }
 
@@ -1197,7 +1227,8 @@ public class TimeSeriesDao {
             List<TimeSeriesColumnSelector> selectColumns,
             List<TimeSeriesFilter> filters,
             List<Column> columns,
-            TimeSeriesQuery query
+            TimeSeriesQuery query,
+            Pagination pagination
     ) {
         List<Field<?>> selectFields = selectColumns.stream()
                 .filter(columnSelector -> {
@@ -1232,6 +1263,8 @@ public class TimeSeriesDao {
                 .from(DSL.table(DSL.name(tableName)))
                 .where(buildCondition(filters, query))
                 .orderBy(timeField.asc())
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchStream()
                 .map(record -> mapToMeasurement(
                         record,
@@ -1258,7 +1291,8 @@ public class TimeSeriesDao {
             List<TimeSeriesResultOutputColumnSelector> selectColumns,
             List<OutputColumn> outputColumns,
             Condition condition,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         List<Field<?>> selectFields = selectColumns.stream()
                 .filter(columnSelector -> {
@@ -1303,6 +1337,8 @@ public class TimeSeriesDao {
                 .from(DSL.table(DSL.name(tableName)))
                 .where(condition)
                 .orderBy(timeField.asc())
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchStream()
                 .map(record -> mapToMeasurementWithOutputColumns(
                         record,
@@ -1330,7 +1366,8 @@ public class TimeSeriesDao {
             List<TimeSeriesFilter> filters,
             List<ColumnSelector> columnSelectors,
             TimeSeriesQuery query,
-            Boolean filterNonNumericalValues
+            Boolean filterNonNumericalValues,
+            Pagination pagination
     ) {
         List<Field<?>> selectFields = selectColumns.stream()
                 .filter(columnSelector -> {
@@ -1372,6 +1409,8 @@ public class TimeSeriesDao {
                 .from(DSL.table(DSL.name(tableName)))
                 .where(buildCondition(filters, query))
                 .orderBy(timeField.asc())
+                .offset(pagination.getOffset().orElse(0))
+                .limit(pagination.getLimit().orElse(Integer.MAX_VALUE))
                 .fetchStream()
                 .map(record -> mapToWorkerInputFormat(
                         record,

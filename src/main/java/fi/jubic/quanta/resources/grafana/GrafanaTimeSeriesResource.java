@@ -4,6 +4,7 @@ import fi.jubic.quanta.controller.DataController;
 import fi.jubic.quanta.controller.TimeSeriesController;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
+import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.QueryResult;
 import fi.jubic.quanta.models.TimeSeriesQuery;
 import fi.jubic.quanta.models.request.grafana.GrafanaQueryRequest;
@@ -60,7 +61,8 @@ public class GrafanaTimeSeriesResource {
     @Path("/query")
     @POST
     public List<GrafanaQueryResponse> query(
-            GrafanaQueryRequest grafanaQueryRequest
+            GrafanaQueryRequest grafanaQueryRequest,
+            @BeanParam Pagination pagination
     ) {
         Map<String, String> dataSource1 = grafanaQueryRequest.getTargets().get(0);
         String target = dataSource1.get("target");
@@ -90,7 +92,8 @@ public class GrafanaTimeSeriesResource {
                                         .withEnd(grafanaQueryRequest.getRange().getTo())
                                         .withIntervalSeconds(
                                                 grafanaQueryRequest.getIntervalMs() / 1000
-                                        )
+                                        ),
+                                        pagination
                                 )
                                 .stream()
                                 .findFirst()
