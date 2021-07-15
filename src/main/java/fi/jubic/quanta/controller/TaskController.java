@@ -378,13 +378,8 @@ public class TaskController {
                 //We recreate the table if this is the first completed IMPORT task
                 if (oldInvocations.size() == 0) {
 
-                    seriesTableDao.deleteWithTableName(
-                            invocationSeries.getTableName(), transaction
-                    );
-
                     timeSeriesDao.deleteTable(invocationSeries, transaction);
 
-                    seriesTableDao.create(table, transaction);
                     timeSeriesDao.createTableWithOutputColumns(
                             table,
                             outputColumns,
