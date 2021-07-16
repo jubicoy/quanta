@@ -1703,28 +1703,15 @@ public class TimeSeriesDao {
 
             String valueKey = columnSelectorOfIndex.getWorkerDefColumn().getName();
 
-            if (
-                    columnSelectorOfIndex
-                            .getType()
-                            .getClassName()
-                            == Instant.class
-            ) {
-                values.put(
-                        valueKey,
-                        record.get(TIME_BUCKET_FIELD).toInstant()
-                );
-            }
-            else {
-                values.put(
-                        valueKey,
-                        record.get(
-                                offset + selectIndex,
-                                columnSelectorOfIndex
-                                        .getType()
-                                        .getClassName()
-                        )
-                );
-            }
+            values.put(
+                    valueKey,
+                    record.get(
+                            offset + selectIndex,
+                            columnSelectorOfIndex
+                                    .getType()
+                                    .getClassName()
+                    )
+            );
         }
 
         if (values.isEmpty()) return Optional.empty();
