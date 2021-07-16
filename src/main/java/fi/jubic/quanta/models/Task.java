@@ -37,9 +37,6 @@ public abstract class Task {
     public abstract TaskType getTaskType();
 
     @Nullable
-    public abstract DataSeries getSeries();
-
-    @Nullable
     public abstract Instant getDeletedAt();
 
     @Nullable
@@ -57,7 +54,6 @@ public abstract class Task {
             return builder
                     .setWorkerDef(null)
                     .setColumnSelectors(Collections.emptyList())
-                    .setSeries(null)
                     .setOutputColumns(Collections.emptyList());
         }
     }
@@ -69,10 +65,6 @@ public abstract class Task {
             .setCronTriggerAccessor(TASK.CRON_TRIGGER)
             .setTaskTriggerAccessor(TASK.TASK_TRIGGER)
             .setTaskTypeAccessor(TASK.TASK_TYPE, TaskType::toString, TaskType::parse)
-            .setSeriesAccessor(
-                    TASK.DATA_SERIES_ID,
-                    DataSeries::getId
-            )
             .setDeletedAtAccessor(TASK.DELETED_AT, Timestamp::from, Timestamp::toInstant)
             .build();
 }
