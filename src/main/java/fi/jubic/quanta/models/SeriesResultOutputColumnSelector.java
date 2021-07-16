@@ -31,12 +31,13 @@ public abstract class SeriesResultOutputColumnSelector implements SeriesSelector
 
         @Override
         public SeriesResultOutputColumnSelector build() {
-            if (!getIsLatest() && getInvocationNumber() < 1) {
+            var result = super.build();
+            if (!result.getIsLatest() && result.getInvocationNumber() < 1) {
                 throw new IllegalArgumentException(
                         "Selector is missing reference to Invocation"
                 );
             }
-            return super.build();
+            return result;
         }
     }
 
