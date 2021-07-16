@@ -35,7 +35,9 @@ public abstract class WorkerParameter {
     public static class Builder extends EasyValue_WorkerParameter.Builder {
         @Override
         public WorkerParameter.Builder defaults(WorkerParameter.Builder builder) {
-            return builder.setId(-1L);
+            return builder
+                    .setId(-1L)
+                    .setNullable(false);
         }
     }
 

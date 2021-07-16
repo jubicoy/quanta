@@ -25,6 +25,11 @@ public abstract class SeriesResultColumnSelector implements SeriesSelector {
 
     public static class Builder extends EasyValue_SeriesResultColumnSelector.Builder {
         @Override
+        public Builder defaults(Builder builder) {
+            return builder.setIsLatest(false);
+        }
+
+        @Override
         public SeriesResultColumnSelector build() {
             if (!getIsLatest() && getInvocationNumber() < 1) {
                 throw new IllegalArgumentException(

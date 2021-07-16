@@ -32,7 +32,10 @@ public abstract class Type {
     }
 
     public static class Builder extends EasyValue_Type.Builder {
-
+        @Override
+        public Builder defaults(Builder builder) {
+            return builder.setNullable(false);
+        }
     }
 
     public static class TypeAccessor<R extends Record> implements JooqFieldAccessor<R, Type> {

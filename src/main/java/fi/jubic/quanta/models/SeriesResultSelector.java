@@ -18,6 +18,11 @@ public abstract class SeriesResultSelector {
 
     public static class Builder extends EasyValue_SeriesResultSelector.Builder {
         @Override
+        public Builder defaults(Builder builder) {
+            return builder.setIsLatest(false);
+        }
+
+        @Override
         public SeriesResultSelector build() {
             if (!getIsLatest() && getInvocationNumber() < 1) {
                 throw new IllegalArgumentException(
