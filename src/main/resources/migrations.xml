@@ -613,14 +613,4 @@
         </addColumn>
         <dropNotNullConstraint tableName="external_client" columnName="task_id" />
     </changeSet>
-    <changeSet id="10" author="Arvo Koskikallio &lt;arvo.koskikallio@jubic.fi&gt;">
-        <addColumn tableName="task" >
-            <column name="data_series_id" type="bigint">
-                <constraints
-                        nullable="true"
-                        foreignKeyName="fk_task_data_series_id"
-                        references="data_series(id)" />
-            </column>
-        </addColumn>
-    </changeSet>
 </databaseChangeLog>
