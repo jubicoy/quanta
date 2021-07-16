@@ -20,7 +20,6 @@ public interface Importer {
 
     DataConnection validate(DataConnection dataConnection);
 
-    DataConnection getWithEmptyLogin(DataConnection dataConnection);
 
     DataSample getSample(DataSeries dataSeries, int rows);
 

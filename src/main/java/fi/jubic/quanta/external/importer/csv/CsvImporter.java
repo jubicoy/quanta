@@ -64,10 +64,6 @@ public class CsvImporter implements Importer {
         return dataConnection;
     }
 
-    @Override
-    public DataConnection getWithEmptyLogin(DataConnection dataConnection) {
-        return dataConnection;
-    }
 
     @Override
     @SuppressFBWarnings(

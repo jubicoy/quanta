@@ -1,24 +1,13 @@
 package fi.jubic.quanta.resources;
 
 import fi.jubic.quanta.controller.DataController;
-import fi.jubic.quanta.models.DataConnection;
-import fi.jubic.quanta.models.DataConnectionQuery;
-import fi.jubic.quanta.models.DataSample;
-import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.*;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -50,8 +39,13 @@ public class DataConnectionResource {
     public DataConnection getDetails(
             @PathParam("id") Long id
     ) {
-        return dataController.getConnectionDetailsWithEmptyLogin(id)
+        return dataController.getConnectionDetails(id)
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @PUT
+    public DataConnection updateDataConnection(DataConnection dataConnection) {
+        return dataController.updateDataConnection(dataConnection);
     }
 
     @GET

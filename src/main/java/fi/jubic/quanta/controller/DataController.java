@@ -26,6 +26,7 @@ import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import org.jooq.impl.DSL;
+import org.quartz.CronExpression;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -87,7 +88,7 @@ public class DataController {
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
         return dataConnectionDao.search(query)
                 .stream()
-                .map(importer::getWithEmptyLogin)
+                // .map(importer::getWithEmptyLogin)
                 .collect(Collectors.toList());
     }
 
@@ -95,10 +96,6 @@ public class DataController {
         return dataConnectionDao.getDetails(connectionId);
     }
 
-    public Optional<DataConnection> getConnectionDetailsWithEmptyLogin(Long connectionId) {
-        return dataConnectionDao.getDetails(connectionId)
-                .map(importer::getWithEmptyLogin);
-    }
 
     public Optional<DataConnectionMetadata> getConnectionMetadata(Long connectionId) {
         return getConnectionDetails(connectionId)
@@ -106,13 +103,28 @@ public class DataController {
     }
 
     public DataConnection create(DataConnection dataConnection) {
-        return importer.getWithEmptyLogin(
-                dataConnectionDao.create(
+        return dataConnectionDao.create(
                         importer.validate(
                                 dataDomain.create(dataConnection)
                         )
+        );
+    }
+
+    public DataConnection updateDataConnection(DataConnection dataConnection) {
+        DataConnection existingDataConnection = dataConnectionDao.getDetails(dataConnection.getId())
+                .orElseThrow(() -> new ApplicationException("DataConnection does not exist"));
+
+        DataConnection updatedDataConnection = dataConnectionDao.update(
+                dataConnection.getId(),
+                optionalDataConnection -> dataDomain.updateDataConnection(
+                        optionalDataConnection.orElseThrow(
+                                () -> new ApplicationException("Can't update non-existing DataConnection")
+                        ),
+                        dataConnection
                 )
         );
+
+        return updatedDataConnection;
     }
 
     public DataSeries create(

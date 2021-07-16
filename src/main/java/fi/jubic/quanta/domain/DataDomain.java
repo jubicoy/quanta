@@ -1,11 +1,7 @@
 package fi.jubic.quanta.domain;
 
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.DataConnection;
-import fi.jubic.quanta.models.DataConnectionType;
-import fi.jubic.quanta.models.DataSeries;
-import fi.jubic.quanta.models.DataSeriesConfiguration;
-import fi.jubic.quanta.models.SeriesTable;
+import fi.jubic.quanta.models.*;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
@@ -121,6 +117,18 @@ public class DataDomain {
         }
         return oldSeriesTable.toBuilder()
                 .setDeleteAt(newSeriesTable.getDeleteAt())
+                .build();
+    }
+
+    public DataConnection updateDataConnection(DataConnection oldConnection, DataConnection newConnection) {
+        if (Objects.equals(oldConnection, newConnection)) {
+            return oldConnection;
+        }
+
+        return newConnection.toBuilder()
+                .setName(newConnection.getName())
+                .setDescription(newConnection.getDescription())
+                .setConfiguration(newConnection.getConfiguration())
                 .build();
     }
 
