@@ -85,28 +85,7 @@ public class MainImporter implements Importer {
                 });
     }
 
-    @Override
-    public DataConnection getWithEmptyLogin(DataConnection dataConnection) {
-        return dataConnection.getConfiguration()
-                .visit(new DataConnectionConfiguration.FunctionVisitor<DataConnection>() {
-                    @Override
-                    public DataConnection onCsv(CsvDataConnectionConfiguration ignored) {
-                        return csvImporter.getWithEmptyLogin(dataConnection);
-                    }
-
-                    @Override
-                    public DataConnection onJdbc(
-                            JdbcDataConnectionConfiguration jdbcConfiguration
-                    ) {
-                        return jdbcImporter.getWithEmptyLogin(dataConnection);
-                    }
-
-                    @Override
-                    public DataConnection onJson(JsonIngestDataConnectionConfiguration ignored) {
-                        return jsonImporter.getWithEmptyLogin(dataConnection);
-                    }
-                });
-    }
+    
 
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {

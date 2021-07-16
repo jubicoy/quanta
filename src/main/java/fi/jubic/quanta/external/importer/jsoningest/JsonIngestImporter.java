@@ -47,10 +47,7 @@ public class JsonIngestImporter implements Importer, Ingester {
         return dataConnection;
     }
 
-    @Override
-    public DataConnection getWithEmptyLogin(DataConnection dataConnection) {
-        return dataConnection;
-    }
+
 
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
