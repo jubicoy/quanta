@@ -5,6 +5,8 @@ import * as client from '../client';
 interface DataConnectionContext {
   dataConnection: null | DataConnection;
   deleteDataConnection: () => Promise<DataConnection>;
+  updateDataConnection: (updatedDataConnection: DataConnection | null) => Promise<DataConnection>;
+  setDataConnection: (dataConnection: DataConnection) => void;
 }
 
 export const useDataConnection = (id: number): DataConnectionContext => {
@@ -29,8 +31,18 @@ export const useDataConnection = (id: number): DataConnectionContext => {
     [id]
   );
 
+  const updateDataConnection = useCallback(
+    (updatedDataConnection: DataConnection) => {
+      client.updateDataConnection(updatedDataConnection)
+        .then(setDataConnection);
+    },
+    []
+  );
+
   return {
     dataConnection,
-    deleteDataConnection
+    deleteDataConnection,
+    setDataConnection,
+    updateDataConnection
   };
 };

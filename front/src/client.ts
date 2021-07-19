@@ -253,6 +253,26 @@ export const submitDataConnection = (
     .then(res => res.json());
 };
 
+export const updateDataConnection = (
+  dataConnection: DataConnection
+): Promise<DataConnection> => {
+  return testDataConnection(dataConnection)
+    .then(() => window
+      .fetch(
+        '/api/data-connections',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': localStorage.getItem('token') || ''
+          },
+          body: JSON.stringify(dataConnection)
+        }
+      ))
+    .then(checkResponse)
+    .then((res) => res.json());
+};
+
 // Submit DataSeries
 export const submitDataSeries = (
   dataConnectionId: number,
