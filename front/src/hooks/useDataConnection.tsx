@@ -33,7 +33,7 @@ export const useDataConnection = (id: number): DataConnectionContext => {
 
   const updateDataConnection = useCallback(
     (updatedDataConnection: DataConnection) => {
-      client.updateDataConnection(updatedDataConnection)
+      return client.updateDataConnection(updatedDataConnection)
         .then(setDataConnection);
     },
     []

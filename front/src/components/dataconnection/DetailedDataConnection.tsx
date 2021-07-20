@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import hljs from 'highlight.js';
-import { useDataConnection, useRouter } from '../../hooks';
+import { useDataConnection, useRouter, useDrivers } from '../../hooks';
 
 import {
   Table,
@@ -39,21 +39,21 @@ import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
 import EditIcon from '@material-ui/icons/EditOutlined';
 import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
 import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
+import FindReplaceIcon from '@material-ui/icons/FindReplace';
 import {
   JsonIngestDataConnectionConfiguration,
   JdbcDataConnectionConfiguration,
-  JdbcDriver,
-  TypeMetadata,
-  DataConnection
+  JdbcDataSeriesConfiguration,
+  DataConnection,
+  DataSeries
 } from '../../types';
 
-import { getTypeMetadata } from '../../client';
 import { commonStyles } from '../common';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
     paper: {
-      margin: theme.spacing(2, 0)
+      margin: theme.spacing(3, 0)
     },
     wrapper: {
       padding: '10px'
@@ -141,7 +141,7 @@ interface TableCellProps {
   editable: boolean;
   name: string;
   value: string;
-  onChange: (e: React.ChangeEvent<{ name?: string | undefined; value: unknown }>) => void;
+  onChange: (e: React.ChangeEvent<{ name: string | undefined; value: unknown }>) => void;
   driverClassOptions?: JSX.Element[] | null;
   driverJarOptions?: JSX.Element[] | null;
 }
@@ -153,6 +153,10 @@ export default ({ match: { params } }: Props) => {
     setDataConnection,
     updateDataConnection
   } = useDataConnection(params.id);
+  const {
+    drivers,
+    driverJarOptions
+  } = useDrivers();
   const classes = useStyles();
   const { history } = useRouter();
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
@@ -161,24 +165,7 @@ export default ({ match: { params } }: Props) => {
 
   const [isEditMode, setEditMode] = useState<boolean>(false);
 
-  const [previousConnection, setPreviousConnection] = useState<DataConnection| null>(null);
-
-  const [drivers, setDrivers] = useState<JdbcDriver[]>([]);
-
-  useEffect(() => {
-    // Get drivers from server
-    if (drivers.length === 0) {
-      getTypeMetadata('JDBC')
-        .then((result: TypeMetadata) => {
-          if (
-            result.jdbcTypeMetadata
-            && result.jdbcTypeMetadata.drivers.length > 0
-          ) {
-            setDrivers(result.jdbcTypeMetadata.drivers);
-          }
-        });
-    }
-  }, [drivers.length]);
+  const [previousConnection, setPreviousConnection] = useState<DataConnection | null>(dataConnection);
 
   useEffect(() => {
     if (dataConnection && previousConnection === null) {
@@ -204,7 +191,7 @@ export default ({ match: { params } }: Props) => {
     setOpenDeleteDialog(false);
   };
 
-  const onChange = (e: React.ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
+  const onChange = (e: React.ChangeEvent<{ name: string | undefined; value: unknown }>) => {
     if (!e) {
       return undefined;
     }
@@ -213,16 +200,16 @@ export default ({ match: { params } }: Props) => {
     if (name === 'name' || name === 'description') {
       setDataConnection({
         ...dataConnection,
-        [name]: value
+        [name as string]: value
       });
     }
     else if (name === 'driverJar' && dataConnection.type === 'JDBC') {
       setDataConnection({
         ...dataConnection,
         configuration: {
-          ...dataConnection.configuration,
-          driverJar: value as string,
-          driverClass: driver && driver.classes.length >= 1 ? driver.classes[0] : ''
+          ...dataConnection.configuration as JdbcDataConnectionConfiguration,
+          'driverJar': value as string,
+          'driverClass': (driver && driver.classes.length >= 1) ? driver.classes[0] : ''
         }
       });
     }
@@ -231,7 +218,7 @@ export default ({ match: { params } }: Props) => {
         ...dataConnection,
         configuration: {
           ...dataConnection.configuration,
-          [name]: value
+          [name as string]: value
         }
       });
     }
@@ -240,9 +227,7 @@ export default ({ match: { params } }: Props) => {
     setEditMode(false);
     // then and catch here
     // print error here
-    updateDataConnection(dataConnection).then(() => setPreviousConnection(dataConnection)).catch((e: Error) => {
-      console.log(e);
-    });
+    updateDataConnection(dataConnection).then((result) => setPreviousConnection(result));
   };
 
   const cancelEdit = () => {
@@ -253,24 +238,6 @@ export default ({ match: { params } }: Props) => {
   const dataSeries = dataConnection.series;
 
   const dataConfiguration = dataConnection.configuration;
-
-  const selectedDriver = drivers.find(
-    (driver) => driver.jar === dataConfiguration.driverJar
-  );
-
-  const driverJarOptions = drivers.map((driver, idx) => (
-    <MenuItem key={idx} value={driver.jar}>
-      {driver.jar}
-    </MenuItem>
-  ));
-
-  const driverClassOptions = selectedDriver
-    ? selectedDriver.classes.map((driverClass: string, idx: number) => (
-      <MenuItem key={idx} value={driverClass}>
-        {driverClass}
-      </MenuItem>
-    ))
-    : [];
 
   if (dataConnection.deletedAt) {
     return (
@@ -283,6 +250,17 @@ export default ({ match: { params } }: Props) => {
       </>
     );
   }
+
+  const selectedDriver = drivers.find(
+    (driver) => driver.jar === (dataConfiguration as JdbcDataConnectionConfiguration).driverJar
+  );
+  const driverClassOptions = selectedDriver
+    ? selectedDriver.classes.map((driverClass: string, idx: number) => (
+      <MenuItem key={idx} value={driverClass}>
+        {driverClass}
+      </MenuItem>
+    ))
+    : [];
 
   const renderDataConnectionDetails = () => {
     switch (dataConnection.type) {
@@ -366,7 +344,7 @@ export default ({ match: { params } }: Props) => {
                     name='password'
                     onChange={onChange}
                     type={showPassword ? 'text' : 'password'}
-                    value={dataConfiguration.password}
+                    value={(dataConfiguration as JdbcDataConnectionConfiguration).password}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position='end'>
@@ -495,14 +473,27 @@ export default ({ match: { params } }: Props) => {
       </div>
       <div className={classes.wrapper}>
         <Paper className={classes.paper}>{renderDataConnectionDetails()}</Paper>
+        <Link href={`/data-connections/${dataConnection.id}/${encodeURI(dataConnection.name)}/series/new`}>
+          <Fab
+            className={clsx(common.floatRight)}
+            variant='extended'
+            color='primary'
+          >
+            <Icon className={common.icon}>
+              add
+            </Icon>
+            Create New
+          </Fab>
+        </Link>
         <T variant='h4'>Data series details</T>
         {dataSeries.length <= 0 ? (
           <i>No Data Series available</i>
         ) : (
-          dataSeries.map((series, i) => (
+          dataSeries.map((series: DataSeries, i) => (
             <div key={i}>
               <Paper className={classes.paper}>
                 <div className={classes.tableTitle}>
+
                   <T variant='body1'>
                     <b>Name: </b>
                     {series.name}
@@ -521,13 +512,21 @@ export default ({ match: { params } }: Props) => {
                       <b>SQL Query: </b>
                       <div
                         dangerouslySetInnerHTML={{
-                          __html: hljs.highlight(series.configuration.query, {
+                          __html: hljs.highlight((series.configuration as JdbcDataSeriesConfiguration).query, {
                             language: 'sql'
                           }).value
                         }}
                       />
                     </T>
                   </>}
+                  <Fab
+                    className={clsx(common.floatRight)}
+                    variant='extended'
+                    color='primary'
+                    // onClick={handleClickOpenDeleteDialog}
+                  >
+                    <FindReplaceIcon style={{ marginRight: '5px' }} /> Replace
+                  </Fab>
                 </div>
                 <>
                   <TableRow>
