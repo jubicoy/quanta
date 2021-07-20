@@ -24,7 +24,7 @@ public class Configuration implements ServerConfigurator {
                     JooqConfiguration jooqConfiguration,
             @ConfigProperty(value = "SERVER_FILE_PATH", defaultValue = "/tmp")
                     String filePath,
-            @ConfigProperty(value = "SERVER_JDBC_PATH", defaultValue = "/tmp")
+            @ConfigProperty(value = "SERVER_JDBC_PATH", defaultValue = "C:\\")
                     String jdbcPath,
             @ConfigProperty(value = "SERVER_PERSIST_OLD_SERIES_TABLES", defaultValue = "3600")
                     Integer persistOldSeriesTables,

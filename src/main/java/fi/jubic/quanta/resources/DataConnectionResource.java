@@ -105,4 +105,5 @@ public class DataConnectionResource {
                 dataConnectionId
         );
     }
+    // maybe @Path("{id}/data-series/data_series_id")
 }
