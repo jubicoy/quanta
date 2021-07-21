@@ -4,5 +4,6 @@ public enum DataConnectionType {
     CSV,
     JDBC,
     JSON_INGEST,
+    IMPORT_WORKER,
     INVALID
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataSeriesConfiguration;
 
@@ -11,7 +12,8 @@ import fi.jubic.quanta.models.configuration.JsonIngestDataSeriesConfiguration;
 @JsonSubTypes({
         @JsonSubTypes.Type(CsvDataSeriesConfiguration.class),
         @JsonSubTypes.Type(JdbcDataSeriesConfiguration.class),
-        @JsonSubTypes.Type(JsonIngestDataSeriesConfiguration.class)
+        @JsonSubTypes.Type(JsonIngestDataSeriesConfiguration.class),
+        @JsonSubTypes.Type(ImportWorkerDataSeriesConfiguration.class)
 })
 public abstract class DataSeriesConfiguration {
     @JsonIgnore
@@ -26,6 +28,8 @@ public abstract class DataSeriesConfiguration {
         T onJdbc(JdbcDataSeriesConfiguration jdbcConfiguration);
 
         T onJson(JsonIngestDataSeriesConfiguration ignored);
+
+        T onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration);
     }
 
     public abstract static class DefaultFunctionVisitor<T> implements FunctionVisitor<T> {
@@ -44,6 +48,11 @@ public abstract class DataSeriesConfiguration {
             return otherwise(jsonConfiguration);
         }
 
+        @Override
+        public T onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+            return otherwise(importWorkerConfiguration);
+        }
+
         public abstract T otherwise(DataSeriesConfiguration configuration);
     }
 
@@ -53,6 +62,8 @@ public abstract class DataSeriesConfiguration {
         void onJdbc(JdbcDataSeriesConfiguration jdbcConfiguration);
 
         void onJson(JsonIngestDataSeriesConfiguration jsonConfiguration);
+
+        void onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration);
     }
 
     public abstract static class DefaultConsumerVisitor implements ConsumerVisitor {
@@ -69,6 +80,11 @@ public abstract class DataSeriesConfiguration {
         @Override
         public void onJson(JsonIngestDataSeriesConfiguration jsonConfiguration) {
             otherwise(jsonConfiguration);
+        }
+
+        @Override
+        public void onImportWorker(ImportWorkerDataSeriesConfiguration importWorkerConfiguration) {
+            otherwise(importWorkerConfiguration);
         }
 
         public abstract void otherwise(DataSeriesConfiguration configuration);

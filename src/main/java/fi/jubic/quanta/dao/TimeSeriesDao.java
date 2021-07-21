@@ -148,6 +148,20 @@ public class TimeSeriesDao {
         );
     }
 
+    public void createTableWithOutputColumns(
+            SeriesTable seriesTable,
+            List<OutputColumn> outputColumns,
+            Configuration transaction
+    ) {
+        createTableWithOutputColumns(
+                seriesTable.getTableName(),
+                outputColumns.stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                transaction
+        );
+    }
+
     private void createTableWithOutputColumns(
             String tableName,
             List<OutputColumn> outputColumns,
@@ -205,6 +219,33 @@ public class TimeSeriesDao {
         String command = String.format(
                 "DROP TABLE \"%s\"",
                 Sql.sanitize(tableName)
+        );
+        DSL.using(transaction).execute(command);
+    }
+
+    public void deleteRowsWithTableName(
+            String tableName,
+            String column,
+            Timestamp time1,
+            Timestamp time2,
+            Configuration transaction
+    ) {
+        deleteRows(tableName, column, time1, time2, transaction);
+    }
+
+    private void deleteRows(
+            String tableName,
+            String column,
+            Timestamp time1,
+            Timestamp time2,
+            Configuration transaction
+    ) {
+        String command = String.format(
+                "DELETE FROM \"%s\" WHERE \"%s\" BETWEEN '%s' AND '%s'",
+                Sql.sanitize(tableName),
+                Sql.sanitize(column),
+                time1,
+                time2
         );
         DSL.using(transaction).execute(command);
     }
@@ -292,6 +333,21 @@ public class TimeSeriesDao {
     ) {
         return insertDataWithOutputColumns(
                 seriesResult.getTableName(),
+                outputColumns
+                        .stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                data
+        );
+    }
+
+    public long insertDataWithOutputColumns(
+            DataSeries dataSeries,
+            List<OutputColumn> outputColumns,
+            Stream<List<String>> data
+    ) {
+        return insertDataWithOutputColumns(
+                dataSeries.getTableName(),
                 outputColumns
                         .stream()
                         .sorted(Comparator.comparingInt(OutputColumn::getIndex))

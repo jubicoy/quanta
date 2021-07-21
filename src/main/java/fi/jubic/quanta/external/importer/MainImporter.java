@@ -2,6 +2,7 @@ package fi.jubic.quanta.external.importer;
 
 import fi.jubic.quanta.external.Importer;
 import fi.jubic.quanta.external.importer.csv.CsvImporter;
+import fi.jubic.quanta.external.importer.importworker.ImportWorkerImporter;
 import fi.jubic.quanta.external.importer.jdbc.JdbcImporter;
 import fi.jubic.quanta.external.importer.jsoningest.JsonIngestImporter;
 import fi.jubic.quanta.models.DataConnection;
@@ -12,6 +13,8 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
@@ -29,16 +32,19 @@ public class MainImporter implements Importer {
     private final Importer csvImporter;
     private final Importer jdbcImporter;
     private final Importer jsonImporter;
+    private final Importer importWorkerImporter;
 
     @Inject
     public MainImporter(
             CsvImporter csvImporter,
             JdbcImporter jdbcImporter,
-            JsonIngestImporter jsonImporter
+            JsonIngestImporter jsonImporter,
+            ImportWorkerImporter importWorkerImporter
     ) {
         this.csvImporter = csvImporter;
         this.jdbcImporter = jdbcImporter;
         this.jsonImporter = jsonImporter;
+        this.importWorkerImporter = importWorkerImporter;
     }
 
     @Override
@@ -58,6 +64,11 @@ public class MainImporter implements Importer {
                     @Override
                     public Boolean onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.test(dataConnection);
+                    }
+
+                    @Override
+                    public Boolean onImportWorker(ImportWorkerDataConnectionConfiguration ignored) {
+                        return importWorkerImporter.test(dataConnection);
                     }
                 });
     }
@@ -82,6 +93,13 @@ public class MainImporter implements Importer {
                     public DataConnection onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.validate(dataConnection);
                     }
+
+                    @Override
+                    public DataConnection onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.validate(dataConnection);
+                    }
                 });
     }
 
@@ -105,6 +123,13 @@ public class MainImporter implements Importer {
                     public DataConnection onJson(JsonIngestDataConnectionConfiguration ignored) {
                         return jsonImporter.getWithEmptyLogin(dataConnection);
                     }
+
+                    @Override
+                    public DataConnection onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getWithEmptyLogin(dataConnection);
+                    }
                 });
     }
 
@@ -126,6 +151,11 @@ public class MainImporter implements Importer {
                     public DataSample onJson(JsonIngestDataSeriesConfiguration ignored) {
                         return jsonImporter.getSample(dataSeries, rows);
                     }
+
+                    @Override
+                    public DataSample onImportWorker(ImportWorkerDataSeriesConfiguration ignored) {
+                        return importWorkerImporter.getSample(dataSeries, rows);
+                    }
                 });
     }
 
@@ -138,6 +168,8 @@ public class MainImporter implements Importer {
                 return jdbcImporter.getMetadata(type);
             case JSON_INGEST:
                 return jsonImporter.getMetadata(type);
+            case IMPORT_WORKER:
+                return importWorkerImporter.getMetadata(type);
             default:
                 throw new IllegalStateException();
         }
@@ -165,6 +197,13 @@ public class MainImporter implements Importer {
                     ) {
                         return jsonImporter.getConnectionMetadata(dataConnection);
                     }
+
+                    @Override
+                    public DataConnectionMetadata onImportWorker(
+                            ImportWorkerDataConnectionConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getConnectionMetadata(dataConnection);
+                    }
                 });
     }
 
@@ -188,8 +227,13 @@ public class MainImporter implements Importer {
                     public Stream<List<String>> onJson(JsonIngestDataSeriesConfiguration ignored) {
                         return jsonImporter.getRows(dataSeries);
                     }
+
+                    @Override
+                    public Stream<List<String>> onImportWorker(
+                            ImportWorkerDataSeriesConfiguration ignored
+                    ) {
+                        return importWorkerImporter.getRows(dataSeries);
+                    }
                 });
     }
-
-
 }

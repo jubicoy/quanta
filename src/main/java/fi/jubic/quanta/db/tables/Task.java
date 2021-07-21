@@ -87,6 +87,21 @@ public class Task extends TableImpl<TaskRecord> {
     public final TableField<TaskRecord, String> TASK_TYPE = createField("task_type", org.jooq.impl.SQLDataType.VARCHAR(32).nullable(false).defaultValue(org.jooq.impl.DSL.field("'process'::character varying", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
 
     /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Long> DATA_SERIES_ID = createField("data_series_id", org.jooq.impl.SQLDataType.BIGINT, this, "");
+
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Timestamp> SYNC_INTERVAL_START_TIME = createField("sync_interval_start_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
+
+    /**
+     * The column <code>task.data_series_id</code>.
+     */
+    public final TableField<TaskRecord, Timestamp> SYNC_INTERVAL_END_TIME = createField("sync_interval_end_time", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");
+
+    /**
      * The column <code>task.deleted_at</code>.
      */
     public final TableField<TaskRecord, Timestamp> DELETED_AT = createField("deleted_at", org.jooq.impl.SQLDataType.TIMESTAMP, this, "");

@@ -57,6 +57,7 @@ public class AuthenticationResource {
         }
 
         Token<User> token = new Token<>(user);
+        token.setToken("3eac300a-1729-40a7-8d65-56a4b44475f9");
         authenticator.addToken(token);
 
         return token;

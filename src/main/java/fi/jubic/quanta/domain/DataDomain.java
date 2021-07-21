@@ -7,6 +7,7 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataSeriesConfiguration;
@@ -74,6 +75,11 @@ public class DataDomain {
 
                     @Override
                     public void onJson(JsonIngestDataSeriesConfiguration ignored) {
+                        // No validation
+                    }
+
+                    @Override
+                    public void onImportWorker(ImportWorkerDataSeriesConfiguration ignored) {
                         // No validation
                     }
                 });
