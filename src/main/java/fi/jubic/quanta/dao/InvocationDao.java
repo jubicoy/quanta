@@ -274,8 +274,10 @@ public class InvocationDao {
                                                         DSL.using(transaction)
                                                                 .newRecord(INVOCATION),
                                                         invocation.toBuilder()
-                                                        .setInvocationNumber(nextInvocationNumber)
-                                                        .build()
+                                                                .setInvocationNumber(
+                                                                        nextInvocationNumber
+                                                                )
+                                                                .build()
                                                 )
                                         )
                                         .returning(INVOCATION.ID)

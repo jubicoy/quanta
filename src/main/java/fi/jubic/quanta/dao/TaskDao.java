@@ -57,7 +57,8 @@ public class TaskDao {
                         ),
                         query.getNotDeleted().map(
                                 hasCronTrigger -> TASK.DELETED_AT.isNull()
-                        )
+                        ),
+                        query.getDataSeriesId().map(TASK_COLUMN_SELECTOR.DATA_SERIES_ID::eq)
                 )
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -100,9 +101,9 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(
@@ -167,9 +168,9 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(

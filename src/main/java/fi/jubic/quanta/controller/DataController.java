@@ -18,6 +18,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
+import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
@@ -31,6 +32,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -224,6 +226,65 @@ public class DataController {
 
     }
 
+    public DataSeries updateSeriesProperties(Long dataSeriesId, DataSeries newSeries) {
+
+        DataSeries oldSeries = dataSeriesDao.getDetails(dataSeriesId)
+                .orElseThrow(() -> new ApplicationException("Series does not exist"));
+
+        if (oldSeries.equals(newSeries)) {
+            return oldSeries;
+        }
+
+        dataSeriesDao.update(
+                dataSeriesId,
+                dataSeries1 -> dataDomain.updateSeriesProperties(
+                        oldSeries,
+                        newSeries
+                )
+        );
+
+        //if the old dataseries has different columns than the new one we update columns&table
+        if (!oldSeries.getColumns().equals(newSeries.getColumns())) {
+
+            dataSeriesDao.updateColumns(
+                    dataSeriesId,
+                    dataSeries -> dataDomain.updateSeriesColumns(
+                            oldSeries,
+                            newSeries
+                    )
+            );
+
+            SeriesTable table = SeriesTable
+                    .builder()
+                    .setId(-1L)
+                    .setTableName(oldSeries.getTableName())
+                    .setDataSeries(newSeries)
+                    .build();
+
+            timeSeriesDao.deleteTable(oldSeries, conf);
+
+            List<OutputColumn> outputColumns = new ArrayList<>();
+
+            newSeries.getColumns()
+                    .forEach(column -> outputColumns.add(
+                            OutputColumn.builder()
+                                    .setId(column.getId())
+                                    .setColumnName(column.getName())
+                                    .setIndex(column.getIndex())
+                                    .setType(column.getType())
+                                    .build()
+                    ));
+
+            timeSeriesDao.createTableWithOutputColumns(
+                    table,
+                    outputColumns,
+                    conf
+            );
+        }
+
+        return newSeries;
+    }
+
     public List<DataSeries> searchSeries(DataSeriesQuery query) {
         return dataSeriesDao.search(query);
     }
@@ -401,6 +462,57 @@ public class DataController {
         );
 
         return deletedDataConnection;
+    }
+
+    public DataSeries deleteSeries(Long dataSeriesId) {
+        DataSeries deletedDataSeries = dataSeriesDao.update(
+                dataSeriesId,
+                dataSeries -> dataDomain.deleteDataSeries(
+                        dataSeries.orElseThrow(
+                                () -> new InputException(
+                                        "Can't delete a non-existing DataSeries"
+                                )
+                        )
+                )
+        );
+
+        List<Task> dataSeriesTasks = taskDao.search(
+                new TaskQuery().withDataSeriesId(deletedDataSeries.getId())
+                        .withNotDeleted(true)
+        );
+
+        dataSeriesTasks.forEach(
+                dataSeriesTask -> {
+                    Task deletedTask = taskDao.update(
+                            dataSeriesTask.getId(),
+                            task -> taskDomain.delete(
+                                    task.orElseThrow(
+                                            () -> new InputException(
+                                                    "Can't delete a non-existing Task"
+                                            )
+                                    )
+                            )
+                    );
+                    if (Objects.nonNull(deletedTask.getCronTrigger())) {
+                        schedulerController.deleteTask(
+                                deletedTask
+                        );
+                    }
+                }
+        );
+
+        seriesTableDao.update(
+                deletedDataSeries.getTableName(),
+                seriesTable -> dataDomain.deleteSeriesTable(
+                        seriesTable.orElseThrow(
+                                () -> new InputException(
+                                        "Can't delete a non-existing SeriesTable"
+                                )
+                        )
+                )
+        );
+
+        return deletedDataSeries;
     }
 
     public Map<String, SingleTriggerJob> getSeriesTablesDeleteJobs() {
