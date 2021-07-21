@@ -613,4 +613,9 @@
         </addColumn>
         <dropNotNullConstraint tableName="external_client" columnName="task_id" />
     </changeSet>
+    <changeSet id="10" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <renameColumn tableName="detection_result" oldColumnName="values" newColumnName="sample" />
+        <renameColumn tableName="detection_result" oldColumnName="delta_max" newColumnName="metadata" />
+        <renameTable oldTableName="detection_result" newTableName="anomaly" />
+    </changeSet>
 </databaseChangeLog>

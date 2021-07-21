@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.ExternalClientRecord;
+import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
-import java.sql.Timestamp;
 import java.time.Instant;
 
 import static fi.jubic.quanta.db.tables.ExternalClient.EXTERNAL_CLIENT;
@@ -48,9 +48,10 @@ public abstract class ExternalClient {
                     .setDescriptionAccessor(EXTERNAL_CLIENT.DESCRIPTION)
                     .setUserAccessor(EXTERNAL_CLIENT.USER_ID, User::getId)
                     .setTaskAccessor(EXTERNAL_CLIENT.TASK_ID, Task::getId)
-                    .setDeletedAtAccessor(EXTERNAL_CLIENT.DELETED_AT,
-                        Timestamp::from,
-                        Timestamp::toInstant
+                    .setDeletedAtAccessor(
+                            EXTERNAL_CLIENT.DELETED_AT,
+                            DateUtil::toLocalDateTime,
+                            DateUtil::toInstant
                     )
                     .build();
 }
