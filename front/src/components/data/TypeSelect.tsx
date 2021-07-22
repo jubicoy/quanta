@@ -17,7 +17,7 @@ import {
   SupportedColumnClasses,
   DEFAULT_COLUMN
 } from '../../types';
-import { _DataConnectionConfiguratorContext } from './DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../context';
 
 interface TypeProps {
   editingIndex: number;

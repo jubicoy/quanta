@@ -22,7 +22,7 @@ import {
 } from '../../client';
 import { useRouter } from '../../hooks';
 
-import { _DataConnectionConfiguratorContext } from './DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../context';
 import { dataStyles } from './DataStyles';
 import { CsvPreview } from './csv';
 import { JdbcPreview } from './jdbc';
@@ -64,6 +64,7 @@ export const DataConnectionPreview = ({
   const {
     dataConnection,
     dataSeries,
+    onSubmitDataSeriesSuccess,
 
     setSuccess,
     setError,
@@ -89,6 +90,7 @@ export const DataConnectionPreview = ({
       setDisableConfirm(true);
       submitDataSeries(dataSeries.dataConnection.id, dataSeries, false)
         .then((dataSeries: DataSeries) => {
+          onSubmitDataSeriesSuccess();
           reset();
           if (dataSeries.dataConnection) {
             setDisableConfirm(false);
@@ -108,6 +110,7 @@ export const DataConnectionPreview = ({
       setDisableConfirm(true);
       submitDataSeries(dataSeries.dataConnection.id, dataSeries, true)
         .then((dataSeries: DataSeries) => {
+          onSubmitDataSeriesSuccess();
           reset();
           if (dataSeries.dataConnection) {
             setDisableConfirm(false);

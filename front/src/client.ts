@@ -269,9 +269,25 @@ export const updateDataConnection = (
           body: JSON.stringify(dataConnection)
         }
       ))
-    .then(checkResponse)
-    .then((res) => res.json());
+    .then(res => checkResponse(res))
+    .then(res => res.json());
 };
+
+// DataSeries
+
+export const getDataSeries = (id: number): Promise<DataSeries> => window
+  .fetch(
+    `/api/data-connections/data-series/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
 
 // Submit DataSeries
 export const submitDataSeries = (
@@ -294,6 +310,20 @@ export const submitDataSeries = (
     .then(res => checkResponse(res))
     .then(res => res.json());
 };
+
+export const deleteDataSeries = (id: number): Promise<DataSeries> => window
+  .fetch(
+    `/api/data-connections/data-series/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
 
 // Get DataConnection metadata (tables)
 export const getDataConnectionMetadata = (

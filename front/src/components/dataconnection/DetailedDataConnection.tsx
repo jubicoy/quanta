@@ -238,7 +238,7 @@ export default ({ match: { params } }: Props) => {
       setSuccess('Update data connection successfully!');
     }).catch((e: Error) => {
       setError('Invalid information', e);
-      history.push(`/data-connections/${dataConnection.id}`);
+      setDataConnection(previousConnection);
     });
   };
 
@@ -503,7 +503,7 @@ export default ({ match: { params } }: Props) => {
         {dataSeries.length <= 0 ? (
           <i>No Data Series available</i>
         ) : (
-          dataSeries.map((series: DataSeries, i) => (
+          dataSeries.filter(series => series.deletedAt === null).map((series: DataSeries, i) => (
             <div key={i}>
               <Paper className={classes.paper}>
                 <div className={classes.tableTitle}>
@@ -533,14 +533,15 @@ export default ({ match: { params } }: Props) => {
                       />
                     </T>
                   </>}
-                  {dataConnection.type === 'JDBC' && <Fab
-                    className={clsx(common.floatRight)}
-                    variant='extended'
-                    color='primary'
-                    // onClick={handleClickOpenDeleteDialog}
-                  >
-                    <FindReplaceIcon style={{ marginRight: '5px' }} /> Replace
-                  </Fab>}
+                  <Link href={`/data-series/${series.id}/replace`}>
+                    {dataConnection.type === 'JDBC' && <Fab
+                      className={clsx(common.floatRight)}
+                      variant='extended'
+                      color='primary'
+                    >
+                      <FindReplaceIcon style={{ marginRight: '5px' }} /> Replace
+                    </Fab>}
+                  </Link>
                 </div>
                 <>
                   <TableRow>

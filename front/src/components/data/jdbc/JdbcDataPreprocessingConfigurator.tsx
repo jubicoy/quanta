@@ -13,7 +13,7 @@ import {
   Typography
 } from '@material-ui/core';
 
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 
 import {
   sample,
@@ -67,7 +67,7 @@ export const JdbcDataPreprocessingConfigurator = () => {
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [dataSeries]);
 
   useEffect(() => {
     setComplete(

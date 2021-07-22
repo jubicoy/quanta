@@ -1,7 +1,11 @@
 package fi.jubic.quanta.domain;
 
 import fi.jubic.quanta.exception.InputException;
-import fi.jubic.quanta.models.*;
+import fi.jubic.quanta.models.DataConnection;
+import fi.jubic.quanta.models.DataConnectionType;
+import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.DataSeriesConfiguration;
+import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
@@ -17,6 +21,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("checkstyle:LineLength")
 @Singleton
 public class DataDomain {
     private static final String NAMING_PATTERN_REGEX = "^[a-zA-Z0-9-_]+$";
@@ -120,7 +125,8 @@ public class DataDomain {
                 .build();
     }
 
-    public DataConnection updateDataConnection(DataConnection oldConnection, DataConnection newConnection) {
+    public DataConnection updateDataConnection(DataConnection oldConnection,
+                                               DataConnection newConnection) {
         if (Objects.equals(oldConnection, newConnection)) {
             return oldConnection;
         }

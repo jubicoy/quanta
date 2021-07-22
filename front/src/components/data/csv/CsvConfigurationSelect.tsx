@@ -5,7 +5,7 @@ import {
   Typography
 } from '@material-ui/core';
 
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 
 import {
   CsvDataSeriesConfiguration,

@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 
 import {
   Card,
@@ -14,18 +14,16 @@ import {
 } from '@material-ui/core';
 import {
   JdbcDataConnectionConfiguration,
-  JdbcDriver,
   DefaultJdbcDataConnectionConfiguration,
-  TypeMetadata,
   DataConnectionMetadata,
   DataSeries,
   DataConnection
 } from '../../../types';
 import {
   submitDataConnection,
-  getTypeMetadata,
   getDataConnectionMetadata
 } from '../../../client';
+import { useDrivers } from '../../../hooks';
 import StepperButtons from '../StepperButtons';
 
 // Set JDBC configurations
@@ -40,31 +38,16 @@ export const JdbcDataConnectionConfigurator = () => {
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
-  const [drivers, setDrivers] = useState<JdbcDriver[]>([]);
+  const {
+    drivers,
+    driverJarOptions
+  } = useDrivers();
   const [complete, setComplete] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Set default config
   // Called once at start
   useEffect(() => {
-    // Get drivers from server
-    if (drivers.length === 0) {
-      getTypeMetadata('JDBC')
-        .then((result: TypeMetadata) => {
-          if (result.jdbcTypeMetadata
-            && result.jdbcTypeMetadata.drivers.length > 0
-          ) {
-            setDrivers(result.jdbcTypeMetadata.drivers);
-          }
-          else {
-            setError('No JDBC driver found', new Error(''));
-          }
-        })
-        .catch(e => {
-          setError('Failed to get JDBC metadata', e);
-        });
-    }
-
     // Set default JDBC DataSeries if need
     if (
       dataSeries.dataConnection
@@ -122,10 +105,6 @@ export const JdbcDataConnectionConfigurator = () => {
     || DefaultJdbcDataConnectionConfiguration;
 
   const selectedDriver = drivers.find(driver => driver.jar === currentJdbcConfiguration.driverJar);
-
-  const driverJarOptions = drivers.map((driver, idx) =>
-    <MenuItem key={idx} value={driver.jar}>{driver.jar}</MenuItem>
-  );
 
   const driverClassOptions = selectedDriver
     ? selectedDriver.classes.map((driverClass: string, idx: number) =>

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 
 import { FileSelect } from '..';
 

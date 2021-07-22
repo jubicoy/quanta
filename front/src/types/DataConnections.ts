@@ -51,6 +51,7 @@ export interface DataSeries {
   id: number;
   name: string;
   type: DataConnectionType;
+  deletedAt?: string;
   description: string;
   columns: Column[];
   dataConnection?: DataConnection;
