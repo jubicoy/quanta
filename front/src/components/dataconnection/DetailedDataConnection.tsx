@@ -47,7 +47,7 @@ import {
   DataConnection,
   DataSeries
 } from '../../types';
-
+import { useAlerts } from '../../alert';
 import { commonStyles } from '../common';
 
 const useStyles = makeStyles((theme) =>
@@ -161,7 +161,7 @@ export default ({ match: { params } }: Props) => {
   const { history } = useRouter();
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [showColumns, setShowColumns] = useState<boolean>(false);
+  const [showColumns, setShowColumns] = useState<number>(-1);
 
   const [isEditMode, setEditMode] = useState<boolean>(false);
 
@@ -182,6 +182,14 @@ export default ({ match: { params } }: Props) => {
   if (!dataConnection) {
     return <LinearProgress variant='query' />;
   }
+  // Alert handlers
+  const alertContext = useAlerts('DATA-IMPORT');
+  const setSuccess = (heading: string) => {
+    alertContext.alertSuccess(heading, '');
+  };
+  const setError = (heading: string, error: Error) => {
+    alertContext.alertError(heading, error.message);
+  };
 
   const handleClickOpenDeleteDialog = () => {
     setOpenDeleteDialog(true);
@@ -225,9 +233,13 @@ export default ({ match: { params } }: Props) => {
   };
   const saveEdit = () => {
     setEditMode(false);
-    // then and catch here
-    // print error here
-    updateDataConnection(dataConnection).then((result) => setPreviousConnection(result));
+    updateDataConnection(dataConnection).then((result) => {
+      setPreviousConnection(result);
+      setSuccess('Update data connection successfully!');
+    }).catch((e: Error) => {
+      setError('Invalid information', e);
+      history.push(`/data-connections/${dataConnection.id}`);
+    });
   };
 
   const cancelEdit = () => {
@@ -474,7 +486,7 @@ export default ({ match: { params } }: Props) => {
       <div className={classes.wrapper}>
         <Paper className={classes.paper}>{renderDataConnectionDetails()}</Paper>
         <Link href={`/data-connections/${dataConnection.id}/${encodeURI(dataConnection.name)}/series/new`}>
-          <Fab
+          {dataConnection.type === 'JDBC' && <Fab
             className={clsx(common.floatRight)}
             variant='extended'
             color='primary'
@@ -483,9 +495,11 @@ export default ({ match: { params } }: Props) => {
               add
             </Icon>
             Create New
-          </Fab>
+
+          </Fab>}
         </Link>
         <T variant='h4'>Data series details</T>
+
         {dataSeries.length <= 0 ? (
           <i>No Data Series available</i>
         ) : (
@@ -519,14 +533,14 @@ export default ({ match: { params } }: Props) => {
                       />
                     </T>
                   </>}
-                  <Fab
+                  {dataConnection.type === 'JDBC' && <Fab
                     className={clsx(common.floatRight)}
                     variant='extended'
                     color='primary'
                     // onClick={handleClickOpenDeleteDialog}
                   >
                     <FindReplaceIcon style={{ marginRight: '5px' }} /> Replace
-                  </Fab>
+                  </Fab>}
                 </div>
                 <>
                   <TableRow>
@@ -540,9 +554,9 @@ export default ({ match: { params } }: Props) => {
                       <IconButton
                         edge='start'
                         size='small'
-                        onClick={() => setShowColumns(!showColumns)}
+                        onClick={() => showColumns !== i ? setShowColumns(i) : setShowColumns(-1)}
                       >
-                        {showColumns ? (
+                        {showColumns === i ? (
                           <KeyboardArrowUpIcon />
                         ) : (
                           <KeyboardArrowDownIcon />
@@ -552,7 +566,7 @@ export default ({ match: { params } }: Props) => {
                   </TableRow>
                   <TableRow>
                     <TableCell className={classes.tableCell} colSpan={8}>
-                      <Collapse in={showColumns}>
+                      <Collapse in={showColumns === i}>
                         <Box margin={3}>
                           <Table size='small' aria-label='purchases'>
                             <TableHead>

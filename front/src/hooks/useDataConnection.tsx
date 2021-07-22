@@ -5,12 +5,12 @@ import * as client from '../client';
 interface DataConnectionContext {
   dataConnection: null | DataConnection;
   deleteDataConnection: () => Promise<DataConnection>;
-  updateDataConnection: (updatedDataConnection: DataConnection | null) => Promise<DataConnection>;
-  setDataConnection: (dataConnection: DataConnection) => void;
+  updateDataConnection: (updatedDataConnection: DataConnection) => Promise<DataConnection>;
+  setDataConnection: (dataConnection: DataConnection | null) => void;
 }
 
 export const useDataConnection = (id: number): DataConnectionContext => {
-  const [dataConnection, setDataConnection] = useState<DataConnection| null>(null);
+  const [dataConnection, setDataConnection] = useState<null | DataConnection>(null);
 
   useEffect(
     () => {
@@ -34,7 +34,10 @@ export const useDataConnection = (id: number): DataConnectionContext => {
   const updateDataConnection = useCallback(
     (updatedDataConnection: DataConnection) => {
       return client.updateDataConnection(updatedDataConnection)
-        .then(setDataConnection);
+        .then(connection => {
+          setDataConnection(connection);
+          return connection;
+        });
     },
     []
   );
