@@ -101,9 +101,9 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                        task.getWorkerDef().getId(),
-                                        transaction
-                                ).orElseThrow(NotFoundException::new)
+                                                task.getWorkerDef().getId(),
+                                                transaction
+                                        ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(
@@ -168,9 +168,9 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                        task.getWorkerDef().getId(),
-                                        transaction
-                                ).orElseThrow(NotFoundException::new)
+                                                task.getWorkerDef().getId(),
+                                                transaction
+                                        ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setOutputColumns(
