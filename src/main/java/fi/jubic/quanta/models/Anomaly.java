@@ -1,6 +1,7 @@
 package fi.jubic.quanta.models;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
@@ -8,6 +9,7 @@ import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.AnomalyRecord;
 import fi.jubic.quanta.util.DateUtil;
+import org.jooq.JSONB;
 
 import java.time.Instant;
 import java.util.Collections;
@@ -25,7 +27,7 @@ public abstract class Anomaly {
 
     public abstract Instant getEnd();
 
-    public abstract Measurement getSample();
+    public abstract Map<String, Object> getSample();
 
     public abstract String getClassification();
 
@@ -41,7 +43,7 @@ public abstract class Anomaly {
 
     public static class Builder extends EasyValue_Anomaly.Builder {
         @Override
-        public Anomaly.Builder defaults(Anomaly.Builder builder) {
+        public Builder defaults(Builder builder) {
             return builder
                     .setId(0L)
                     .setMetadata(Collections.emptyMap());
@@ -63,15 +65,15 @@ public abstract class Anomaly {
             )
             .setSampleAccessor(
                     ANOMALY.SAMPLE,
-                    Anomaly::sampleToString,
-                    Anomaly::sampleFromString
+                    Anomaly::mapToJsonb,
+                    Anomaly::mapFromJsonb
             )
             .setClassificationAccessor(ANOMALY.CLASSIFICATION)
             .setProbabilityAccessor(ANOMALY.PROBABILITY)
             .setMetadataAccessor(
                     ANOMALY.METADATA,
-                    Anomaly::metadataToString,
-                    Anomaly::metadataFromString
+                    Anomaly::mapToJsonb,
+                    Anomaly::mapFromJsonb
             )
             .build();
 
@@ -81,36 +83,19 @@ public abstract class Anomaly {
         valueMapper.registerModule(new JSR310Module());
     }
 
-    private static String sampleToString(Measurement sample) {
+    private static JSONB mapToJsonb(Map<String, Object> map) {
         try {
-            return valueMapper.writeValueAsString(sample);
+            String objectToString = valueMapper.writeValueAsString(map);
+            return JSONB.jsonb(objectToString);
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
     }
 
-    private static Measurement sampleFromString(String string) {
+    private static Map<String, Object> mapFromJsonb(JSONB jsonb) {
         try {
-            return valueMapper.readValue(string, Measurement.class);
-        }
-        catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static String metadataToString(Map<String, Object> metadata) {
-        try {
-            return valueMapper.writeValueAsString(metadata);
-        }
-        catch (JsonProcessingException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    private static Map<String, Object> metadataFromString(String string) {
-        try {
-            return valueMapper.readValue(string, Map.class);
+            return valueMapper.readValue(jsonb.data(), new TypeReference<Map<String, Object>>() {});
         }
         catch (JsonProcessingException e) {
             throw new IllegalStateException(e);

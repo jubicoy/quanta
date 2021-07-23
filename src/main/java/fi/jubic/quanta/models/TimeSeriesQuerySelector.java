@@ -38,15 +38,15 @@ public abstract class TimeSeriesQuerySelector {
     @Nullable
     public abstract TimeSeriesModifier getModifier();
 
-    public TimeSeriesQueryType getType() {
+    public QueryType getType() {
         if (getDataSeriesColumnSelector() != null) {
-            return TimeSeriesQueryType.series;
+            return QueryType.series;
         }
         else if (getSeriesResultColumnSelector() != null) {
-            return TimeSeriesQueryType.result;
+            return QueryType.result;
         }
         else if (getSeriesResultOutputColumnSelector() != null) {
-            return TimeSeriesQueryType.result_output;
+            return QueryType.result_output;
         }
         throw new IllegalStateException();
     }
@@ -87,8 +87,8 @@ public abstract class TimeSeriesQuerySelector {
                     && getSeriesResultColumnSelector() == null
                     && getSeriesResultOutputColumnSelector() == null
             ) {
-                throw new IllegalArgumentException("Missing any DataSeries, SeriesResult or "
-                        + "SeriesResultOutput.");
+                throw new IllegalArgumentException("Missing any DataSeries, SeriesResult, "
+                        + "or SeriesResultOutput.");
             }
 
             return super.build();

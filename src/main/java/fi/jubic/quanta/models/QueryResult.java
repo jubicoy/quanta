@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easyvalue.EasyValue;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 @EasyValue
@@ -26,6 +27,14 @@ public abstract class QueryResult {
     }
 
     public static class Builder extends EasyValue_QueryResult.Builder {
+
+        @Override
+        public Builder defaults(Builder builder) {
+            return builder
+                    .setMeasurements(Collections.emptyList())
+                    .setQueryFilters(Collections.emptyList());
+        }
+
         @Override
         public QueryResult build() {
             if (getDataSeriesId() == null && getSeriesResultId() == null) {
