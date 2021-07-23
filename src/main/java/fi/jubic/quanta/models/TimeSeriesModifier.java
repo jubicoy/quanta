@@ -5,6 +5,7 @@ public enum TimeSeriesModifier {
     min,
     max,
     sum,
+    count,
     group_by,
     where,
     distinct;
@@ -15,9 +16,23 @@ public enum TimeSeriesModifier {
             case "min": return min;
             case "max": return max;
             case "sum": return sum;
+            case "count": return count;
             case "group_by": return group_by;
             case "where": return where;
             case "distinct": return  distinct;
+
+            default: return null;
+        }
+    }
+
+    public static TimeSeriesModifier aggregation(String timeSeriesModifier) {
+        switch (timeSeriesModifier.toLowerCase()) {
+            case "avg": return avg;
+            case "min": return min;
+            case "max": return max;
+            case "sum": return sum;
+            case "count": return count;
+            case "distinct": return distinct;
 
             default: return null;
         }

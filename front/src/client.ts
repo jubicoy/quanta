@@ -358,7 +358,8 @@ export const queryTimeSeries = (
       method: 'GET',
       headers: {
         'Content-type': 'application/json',
-        'Authorization': localStorage.getItem('token') || ''
+        'Authorization': localStorage.getItem('token') || '',
+        'Accept': 'application/json'
       }
     }
   )

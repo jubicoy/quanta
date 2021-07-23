@@ -1,7 +1,9 @@
 package fi.jubic.quanta.resources;
 
+import fi.jubic.quanta.controller.AnomalyController;
 import fi.jubic.quanta.controller.TimeSeriesController;
 import fi.jubic.quanta.external.exporter.CsvExporter;
+import fi.jubic.quanta.models.AnomalyResult;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.QueryResult;
 import fi.jubic.quanta.models.TimeSeriesQuery;
@@ -23,13 +25,16 @@ import java.util.List;
 public class TimeSeriesResource {
     private final TimeSeriesController timeSeriesController;
     private final CsvExporter csvExporter;
+    private final AnomalyController anomalyController;
 
     @Inject
     TimeSeriesResource(
             TimeSeriesController timeSeriesController,
+            AnomalyController anomalyController,
             CsvExporter csvExporter
     ) {
         this.timeSeriesController = timeSeriesController;
+        this.anomalyController = anomalyController;
         this.csvExporter = csvExporter;
     }
 
@@ -55,5 +60,15 @@ public class TimeSeriesResource {
                         )
                 )
                 .build();
+    }
+
+    @GET
+    @Path("anomaly")
+    @Produces(MediaType.APPLICATION_JSON)
+    public AnomalyResult queryAnomaly(
+            @BeanParam TimeSeriesQuery query,
+            @BeanParam Pagination pagination
+    ) {
+        return anomalyController.query(query, pagination);
     }
 }

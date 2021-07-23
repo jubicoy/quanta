@@ -9,6 +9,7 @@ import fi.jubic.quanta.models.DataSeriesColumnSelector;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Measurement;
 import fi.jubic.quanta.models.OutputColumn;
+import fi.jubic.quanta.models.QueryType;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.SeriesResultColumnSelector;
 import fi.jubic.quanta.models.SeriesResultOutputColumnSelector;
@@ -20,7 +21,6 @@ import fi.jubic.quanta.models.TimeSeriesGroupSelector;
 import fi.jubic.quanta.models.TimeSeriesModifier;
 import fi.jubic.quanta.models.TimeSeriesQuery;
 import fi.jubic.quanta.models.TimeSeriesQuerySelector;
-import fi.jubic.quanta.models.TimeSeriesQueryType;
 import fi.jubic.quanta.models.TimeSeriesResultOutputColumnSelector;
 import fi.jubic.quanta.models.TimeSeriesResultOutputFilter;
 import fi.jubic.quanta.models.TimeSeriesResultOutputGroupSelector;
@@ -68,8 +68,8 @@ public class TimeSeriesDomain {
             return matchers
                     .stream()
                     .map(matcher -> {
-                        TimeSeriesQueryType type = Enum.valueOf(
-                                TimeSeriesQueryType.class,
+                        QueryType type = Enum.valueOf(
+                                QueryType.class,
                                 matcher.group(2)
                         );
                         TimeSeriesModifier modifier = Optional
@@ -86,10 +86,10 @@ public class TimeSeriesDomain {
 
                         if (
                                 Objects.nonNull(modifier)
-                                && modifier.equals(TimeSeriesModifier.where)
-                                && (
+                                        && modifier.equals(TimeSeriesModifier.where)
+                                        && (
                                         Objects.isNull(filterCondition)
-                                        || filterCondition.length() <= 0
+                                                || filterCondition.length() <= 0
                                 )
                         ) {
                             throw new IllegalArgumentException(
@@ -102,7 +102,7 @@ public class TimeSeriesDomain {
                                 .setModifier(modifier)
                                 .setFilterCondition(filterCondition)
                                 .setAlias(matcher.group(7));
-                        if (type.equals(TimeSeriesQueryType.series)) {
+                        if (type.equals(QueryType.series)) {
                             return builder
                                     .setDataSeriesColumnSelector(
                                             DataSeriesColumnSelector.builder()
@@ -112,7 +112,7 @@ public class TimeSeriesDomain {
                                     )
                                     .build();
                         }
-                        else if (type.equals(TimeSeriesQueryType.result)) {
+                        else if (type.equals(QueryType.result)) {
                             return builder
                                     .setSeriesResultColumnSelector(
                                             SeriesResultColumnSelector.builder()
@@ -183,8 +183,8 @@ public class TimeSeriesDomain {
                 .filter(
                         selector -> {
                             if (
-                                    selector.getType().equals(TimeSeriesQueryType.result)
-                                    || selector.getType().equals(TimeSeriesQueryType.result_output)
+                                    selector.getType().equals(QueryType.result)
+                                    || selector.getType().equals(QueryType.result_output)
                             ) {
                                 return selector
                                         .getSelector()
@@ -204,7 +204,7 @@ public class TimeSeriesDomain {
     ) {
         return selectors
                 .stream()
-                .filter(selector -> selector.getType().equals(TimeSeriesQueryType.series))
+                .filter(selector -> selector.getType().equals(QueryType.series))
                 .collect(
                         Collectors.groupingBy(
                                 querySelector -> Objects
@@ -221,7 +221,7 @@ public class TimeSeriesDomain {
     ) {
         return selectors
                 .stream()
-                .filter(selector -> selector.getType().equals(TimeSeriesQueryType.result))
+                .filter(selector -> selector.getType().equals(QueryType.result))
                 .collect(
                         Collectors.groupingBy(
                                 querySelector -> {
@@ -243,7 +243,7 @@ public class TimeSeriesDomain {
             parseSeriesResultOutputSelections(List<TimeSeriesQuerySelector> selectors) {
         return selectors
                 .stream()
-                .filter(selector -> selector.getType().equals(TimeSeriesQueryType.result_output))
+                .filter(selector -> selector.getType().equals(QueryType.result_output))
                 .collect(
                         Collectors.groupingBy(
                                 querySelector -> {

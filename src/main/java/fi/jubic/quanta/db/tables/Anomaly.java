@@ -15,6 +15,7 @@ import java.util.List;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.JSONB;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Row8;
@@ -72,7 +73,7 @@ public class Anomaly extends TableImpl<AnomalyRecord> {
     /**
      * The column <code>anomaly.sample</code>.
      */
-    public final TableField<AnomalyRecord, String> SAMPLE = createField(DSL.name("sample"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<AnomalyRecord, JSONB> SAMPLE = createField(DSL.name("sample"), SQLDataType.JSONB.nullable(false), this, "");
 
     /**
      * The column <code>anomaly.classification</code>.
@@ -87,7 +88,7 @@ public class Anomaly extends TableImpl<AnomalyRecord> {
     /**
      * The column <code>anomaly.metadata</code>.
      */
-    public final TableField<AnomalyRecord, String> METADATA = createField(DSL.name("metadata"), SQLDataType.CLOB.nullable(false), this, "");
+    public final TableField<AnomalyRecord, JSONB> METADATA = createField(DSL.name("metadata"), SQLDataType.JSONB.nullable(false), this, "");
 
     private Anomaly(Name alias, Table<AnomalyRecord> aliased) {
         this(alias, aliased, null);
@@ -182,7 +183,7 @@ public class Anomaly extends TableImpl<AnomalyRecord> {
     // -------------------------------------------------------------------------
 
     @Override
-    public Row8<Long, Long, LocalDateTime, LocalDateTime, String, String, Double, String> fieldsRow() {
+    public Row8<Long, Long, LocalDateTime, LocalDateTime, JSONB, String, Double, JSONB> fieldsRow() {
         return (Row8) super.fieldsRow();
     }
 }

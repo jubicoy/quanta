@@ -639,4 +639,8 @@
             CREATE UNIQUE INDEX task_name_key ON task(name) WHERE deleted_at IS NULL;
         </sql>
     </changeSet>
+    <changeSet id="13" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <modifyDataType tableName="anomaly" columnName="sample" newDataType="jsonb" />
+        <modifyDataType tableName="anomaly" columnName="metadata" newDataType="jsonb" />
+    </changeSet>
 </databaseChangeLog>
