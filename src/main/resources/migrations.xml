@@ -632,5 +632,10 @@
                 <constraints nullable="true"/>
             </column>
         </addColumn>
+    <changeSet id="12" author="Binh Vo &lt;binh.vo@jubic.fi&gt;">
+        <dropUniqueConstraint constraintName="task_name_key" tableName="task"/>
+        <sql dbms="postgresql">
+            CREATE UNIQUE INDEX task_name_key ON task(name) WHERE deleted_at IS NULL;
+        </sql>
     </changeSet>
 </databaseChangeLog>

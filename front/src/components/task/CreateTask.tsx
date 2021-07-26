@@ -101,7 +101,7 @@ export default ({
 
   const nameArray = useMemo(
     () => {
-      return tasks?.map(task => task.name) || [];
+      return tasks?.filter(task => task.deletedAt === null).map(task => task.name) || [];
     },
     [tasks]
   );
