@@ -30,7 +30,7 @@ export default () => {
   const [connectionId, setConnectionId] = useState<number|undefined>(undefined);
   const [workerDefId, setWorkerDefId] = useState<number|undefined>(undefined);
   const [filter, setFilter] = useState<string>('Active');
-  
+
   const taskQuery = useMemo(
     () => ({
       connection: connectionId,
