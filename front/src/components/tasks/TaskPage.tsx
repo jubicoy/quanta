@@ -29,13 +29,15 @@ export default () => {
   const { workerDefs } = useWorkerDefs(workerDefQuery);
   const [connectionId, setConnectionId] = useState<number|undefined>(undefined);
   const [workerDefId, setWorkerDefId] = useState<number|undefined>(undefined);
+  const [filter, setFilter] = useState<string>('Active');
+  
   const taskQuery = useMemo(
     () => ({
       connection: connectionId,
       workerDef: workerDefId,
-      notDeleted: true
+      notDeleted: filter === 'Active' ? true : filter === 'Deleted' ? false : undefined
     }),
-    [connectionId, workerDefId]
+    [connectionId, workerDefId, filter]
   );
   const {
     tasks,
@@ -58,6 +60,19 @@ export default () => {
 
   return (
     <>
+      <Select
+        className={clsx(common.bottomMargin, common.floatRight)}
+        autoWidth
+        value={filter}
+        onChange={e => {
+          const value = e.target.value as string;
+          setFilter(value);
+        }}
+      >
+        <MenuItem value='Active'>Active Tasks</MenuItem>
+        <MenuItem value='Deleted'>Deleted Tasks</MenuItem>
+        <MenuItem value='All'>All Tasks</MenuItem>
+      </Select>
       <T variant='h4'>Tasks</T>
       <Paper className={clsx(common.padding, common.topMargin, common.bottomMargin)}>
         <Grid container spacing={2}>
