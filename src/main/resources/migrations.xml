@@ -632,6 +632,7 @@
                 <constraints nullable="true"/>
             </column>
         </addColumn>
+    </changeSet>
     <changeSet id="12" author="Binh Vo &lt;binh.vo@jubic.fi&gt;">
         <dropUniqueConstraint constraintName="task_name_key" tableName="task"/>
         <sql dbms="postgresql">
