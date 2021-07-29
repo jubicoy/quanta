@@ -62,7 +62,9 @@ public class TaskDao {
                                 hasCronTrigger -> TASK.CRON_TRIGGER.isNotNull()
                         ),
                         query.getNotDeleted().map(
-                                hasCronTrigger -> TASK.DELETED_AT.isNull()
+                                notDeleted -> notDeleted
+                                        ? TASK.DELETED_AT.isNull()
+                                        : TASK.DELETED_AT.isNotNull()
                         ),
                         query.getDataSeriesId().map(TASK_COLUMN_SELECTOR.DATA_SERIES_ID::eq)
                 )

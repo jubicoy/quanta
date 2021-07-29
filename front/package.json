@@ -14,7 +14,7 @@
   "author": "Jubic Oy",
   "license": "UNLICENSED",
   "devDependencies": {
-    "eslint-plugin-react-hooks": "^2.5.0",
+    "eslint-plugin-react-hooks": "3.0.0",
     "react-hot-loader": "4.6.3",
     "webpack-dev-server": "3.7.0"
   },

@@ -57,6 +57,7 @@ export default ({
         <TableBody>
           {tasks?.map((item: Task) => (
             <TableRow
+              selected={item.deletedAt !== null}
               key={item.id}
               hover
               onClick={() => goToDetails(item)}
