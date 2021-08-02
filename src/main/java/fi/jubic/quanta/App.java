@@ -1,12 +1,14 @@
 package fi.jubic.quanta;
 
-import fi.jubic.easyschedule.StartupScheduler;
+import fi.jubic.easyschedule.InMemoryScheduler;
 import fi.jubic.easyschedule.TaskScheduler;
 import fi.jubic.quanta.auth.AdminAuthenticationTask;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.models.QuantaAuthenticator;
 import fi.jubic.quanta.models.User;
-import fi.jubic.quanta.scheduled.ScheduledTask;
+import fi.jubic.quanta.scheduled.CronSchedulerTask;
+import fi.jubic.quanta.scheduled.SyncTaskSchedulerTask;
+import fi.jubic.quanta.scheduled.TimeSeriesTableCleanupTask;
 import fi.jubic.snoozy.Application;
 import fi.jubic.snoozy.AuthenticatedApplication;
 import fi.jubic.snoozy.MethodAccess;
@@ -37,7 +39,13 @@ public class App implements AuthenticatedApplication<User> {
     AdminAuthenticationTask adminAuthenticationTask;
 
     @Inject
-    ScheduledTask scheduledTask;
+    CronSchedulerTask cronSchedulerTask;
+
+    @Inject
+    SyncTaskSchedulerTask syncTaskSchedulerTask;
+
+    @Inject
+    TimeSeriesTableCleanupTask timeSeriesTableCleanupTask;
 
     @Inject
     @Resources
@@ -92,13 +100,13 @@ public class App implements AuthenticatedApplication<User> {
                 .getApp();
         Configuration configuration = app.getConfiguration();
 
-        TaskScheduler taskScheduler = new StartupScheduler()
+        TaskScheduler taskScheduler = new InMemoryScheduler(1)
                 .registerStartupTask(
                         app.adminAuthenticationTask
                 )
-                .registerStartupTask(
-                        app.scheduledTask
-                );
+                .registerTask("0/10 * * ? * * *", app.cronSchedulerTask)
+                .registerTask("0/10 * * ? * * *", app.syncTaskSchedulerTask)
+                .registerTask("0 0 0/2 ? * * *", app.timeSeriesTableCleanupTask);
 
         taskScheduler.start();
 
