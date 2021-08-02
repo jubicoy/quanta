@@ -17,7 +17,6 @@ import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.models.Anomaly;
 import fi.jubic.quanta.models.AnomalyQuery;
 import fi.jubic.quanta.models.Column;
-import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
@@ -35,11 +34,8 @@ import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerQuery;
 import fi.jubic.quanta.models.WorkerStatus;
-import fi.jubic.quanta.scheduled.CronRegistration;
-import fi.jubic.quanta.scheduled.SingleTriggerJob;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
-import org.quartz.CronExpression;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -49,11 +45,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Singleton
 public class TaskController {
@@ -70,9 +64,6 @@ public class TaskController {
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
     private final DataSeriesDao dataSeriesDao;
 
-    private final DataController dataController;
-    private final SchedulerController schedulerController;
-
     private final Configuration conf;
 
     @Inject
@@ -88,8 +79,6 @@ public class TaskController {
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             DataSeriesDao dataSeriesDao,
-            DataController dataController,
-            SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
     ) {
         this.taskDomain = taskDomain;
@@ -104,8 +93,6 @@ public class TaskController {
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.dataSeriesDao = dataSeriesDao;
 
-        this.dataController = dataController;
-        this.schedulerController = schedulerController;
         this.conf = configuration.getJooqConfiguration().getConfiguration();
     }
 
@@ -119,26 +106,16 @@ public class TaskController {
 
 
     public Task create(Task task) {
-        Task createdTask = taskDao.create(
+        return taskDao.create(
                 taskDomain.create(task)
         );
-
-        if (Objects.nonNull(createdTask.getCronTrigger())) {
-            schedulerController.scheduleTask(
-                    getCronTasksWithNames(),
-                    dataController.getSeriesTablesDeleteJobs(),
-                    createdTask
-            );
-        }
-
-        return createdTask;
     }
 
     public Task update(Task task) {
-        Task existingTask = taskDao.getDetails(task.getId())
+        taskDao.getDetails(task.getId())
                 .orElseThrow(() -> new ApplicationException("Task does not exist"));
 
-        Task updatedTask = taskDao.update(
+        return taskDao.update(
                 task.getId(),
                 optionalTask -> taskDomain.update(
                         optionalTask.orElseThrow(
@@ -147,57 +124,14 @@ public class TaskController {
                         task
                 )
         );
-        // Reschedule task if cron trigger has been changed
-        if (Objects.nonNull(existingTask.getCronTrigger())
-                && Objects.nonNull(updatedTask.getCronTrigger())
-                && !Objects.equals(existingTask.getCronTrigger(), updatedTask.getCronTrigger())
-        ) {
-            if (!CronExpression.isValidExpression(updatedTask.getCronTrigger())) {
-                throw new InputException("Cron expression is invalid ");
-            }
-
-            schedulerController.deleteTask(
-                    existingTask
-            );
-            schedulerController.scheduleTask(
-                    getCronTasksWithNames(),
-                    getAllSingleTriggerJobs(),
-                    updatedTask
-            );
-        }
-
-        // Unscheduling the task that has cron-trigger
-        if (Objects.nonNull(existingTask.getCronTrigger())
-                && Objects.isNull(updatedTask.getCronTrigger())) {
-            schedulerController.deleteTask(
-                    getCronTasksWithNames(),
-                    getAllSingleTriggerJobs(),
-                    existingTask
-            );
-        }
-        // Scheduling the task with cron-trigger
-        if (Objects.isNull(existingTask.getCronTrigger())
-                && Objects.nonNull(updatedTask.getCronTrigger())) {
-            if (!CronExpression.isValidExpression(updatedTask.getCronTrigger())) {
-                throw new InputException("Cron expression is invalid ");
-            }
-
-            schedulerController.scheduleTask(
-                    getCronTasksWithNames(),
-                    getAllSingleTriggerJobs(),
-                    updatedTask
-            );
-        }
-
-        return updatedTask;
     }
 
     public List<Invocation> searchInvocations(InvocationQuery query) {
         return invocationDao.search(query);
     }
 
-    public Invocation invoke(Long id) {
-        Task task = taskDao.getDetails(id)
+    public Invocation invoke(Long taskId) {
+        Task task = taskDao.getDetails(taskId)
                 .orElseThrow(() -> new ApplicationException("Task does not exist"));
 
         Invocation invocation;
@@ -219,27 +153,9 @@ public class TaskController {
                             .setStatus(InvocationStatus.Pending)
                             .build()
             );
-
-            if (task.getTaskType().equals(TaskType.sync)) {
-                schedulerController.scheduleSingleTriggerJob(
-                        getCronTasksWithNames(),
-                        getAllSingleTriggerJobs(),
-                        SingleTriggerJob.of(
-                                Instant.now(),
-                                syncDataSeries(invocation),
-                                getSyncJobName(invocation)
-                        )
-                );
-            }
         }
 
         return invocation;
-    }
-
-    public fi.jubic.easyschedule.Task invokeTask(Long id) {
-        return () -> {
-            invoke(id);
-        };
     }
 
     public Optional<Invocation> getInvocationDetails(Long id) {
@@ -465,121 +381,8 @@ public class TaskController {
         );
     }
 
-    public Map<String, CronRegistration> createMapOfCronRegistrations(Stream<Task> tasks) {
-        return tasks.map(task -> CronRegistration.of(
-                task.getCronTrigger(),
-                invokeTask(task.getId()),
-                task.getName()
-        ))
-                .collect(
-                        Collectors.toMap(
-                                CronRegistration::getTaskName,
-                                registration -> registration
-                        )
-                );
-    }
-
-    public Map<String, CronRegistration> getCronTasksWithNames() {
-        return createMapOfCronRegistrations(
-                search(new TaskQuery().withHasCronTrigger(true).withNotDeleted(true))
-                        .stream()
-                        .filter(task -> CronExpression.isValidExpression(task.getCronTrigger()))
-        );
-    }
-
-    public fi.jubic.easyschedule.Task syncDataSeries(
-            Invocation invocation
-    ) {
-        return () -> {
-            if (!invocation.getStatus().equals(InvocationStatus.Running)) {
-                updateInvocationStatus(
-                        invocation,
-                        InvocationStatus.Running
-                );
-            }
-
-            ColumnSelector firstColumnSelector = invocation
-                    .getColumnSelectors()
-                    .stream()
-                    .findFirst()
-                    .orElseThrow(IllegalStateException::new);
-
-            dataController.update(
-                    getCronTasksWithNames(),
-                    getLatestRunningOrPendingDataSyncJobs(Instant.now()),
-                    firstColumnSelector.getSeries()
-            );
-
-            updateInvocationStatus(
-                    invocation,
-                    InvocationStatus.Completed
-            );
-        };
-    }
-
-    public Map<String, SingleTriggerJob> createMapOfSingleTriggerJobs(
-            Stream<Invocation> invocationStream,
-            Instant startAt
-    ) {
-        return invocationStream.map(invocation -> SingleTriggerJob.of(
-                getSyncJobStartAt(invocation, startAt),
-                syncDataSeries(invocation),
-                getSyncJobName(invocation)
-        ))
-                .collect(
-                        Collectors.toMap(
-                                SingleTriggerJob::getJobName,
-                                registration -> registration
-                        )
-                );
-    }
-
-    public Map<String, SingleTriggerJob> getLatestRunningOrPendingDataSyncJobs(
-            Instant defaultStartAt
-    ) {
-        return createMapOfSingleTriggerJobs(
-                invocationDao.getLatestRunningOrPendingDataSyncInvocations().stream(),
-                defaultStartAt
-        );
-    }
-
-    public Map<String, SingleTriggerJob> getAllSingleTriggerJobs() {
-        return Stream.concat(
-                dataController.getSeriesTablesDeleteJobs()
-                        .entrySet()
-                        .stream(),
-                getLatestRunningOrPendingDataSyncJobs(Instant.now())
-                        .entrySet()
-                        .stream()
-        ).collect(
-                Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                )
-        );
-    }
-
-    public String getSyncJobName(
-            Invocation invocation
-    ) {
-        return "sync-"
-                + invocation.getTask().getName()
-                + "-"
-                + invocation.getInvocationNumber();
-    }
-
-    public Instant getSyncJobStartAt(
-            Invocation invocation,
-            Instant defaultStartAt
-    ) {
-        if (Objects.nonNull(invocation.getStartTime())) {
-            return invocation.getStartTime();
-        }
-        return defaultStartAt;
-    }
-
     public Task delete(Long id) {
-        Task deletedTask = taskDao.update(
+        return taskDao.update(
                 id,
                 task -> taskDomain.delete(
                         task.orElseThrow(
@@ -587,15 +390,6 @@ public class TaskController {
                         )
                 )
         );
-        if (Objects.nonNull(deletedTask.getCronTrigger())) {
-            schedulerController.deleteTask(
-                    getCronTasksWithNames(),
-                    getAllSingleTriggerJobs(),
-                    deletedTask
-            );
-        }
-
-        return deletedTask;
     }
 
     public Response submitDataSample(

@@ -23,8 +23,6 @@ import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
-import fi.jubic.quanta.scheduled.CronRegistration;
-import fi.jubic.quanta.scheduled.SingleTriggerJob;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
@@ -33,7 +31,6 @@ import javax.ws.rs.NotFoundException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,16 +39,14 @@ import java.util.stream.Stream;
 
 @Singleton
 public class DataController {
-    private final TimeSeriesDao timeSeriesDao;
     private final DataConnectionDao dataConnectionDao;
     private final DataSeriesDao dataSeriesDao;
     private final SeriesTableDao seriesTableDao;
     private final TaskDao taskDao;
+    private final TimeSeriesDao timeSeriesDao;
 
     private final Importer importer;
     private final Ingester ingester;
-
-    private final SchedulerController schedulerController;
 
     private final DataDomain dataDomain;
     private final TaskDomain taskDomain;
@@ -61,26 +56,24 @@ public class DataController {
 
     @Inject
     DataController(
-            TimeSeriesDao timeSeriesDao,
             DataConnectionDao dataConnectionDao,
             DataSeriesDao dataSeriesDao,
             SeriesTableDao seriesTableDao,
             TaskDao taskDao,
+            TimeSeriesDao timeSeriesDao,
             Importer importer,
             Ingester ingester,
-            SchedulerController schedulerController,
             DataDomain dataDomain,
             TaskDomain taskDomain,
             Configuration configuration
     ) {
-        this.timeSeriesDao = timeSeriesDao;
         this.dataConnectionDao = dataConnectionDao;
         this.dataSeriesDao = dataSeriesDao;
         this.seriesTableDao = seriesTableDao;
         this.taskDao = taskDao;
+        this.timeSeriesDao = timeSeriesDao;
         this.importer = importer;
         this.ingester = ingester;
-        this.schedulerController = schedulerController;
         this.dataDomain = dataDomain;
         this.taskDomain = taskDomain;
         this.conf = configuration.getJooqConfiguration().getConfiguration();
@@ -155,21 +148,25 @@ public class DataController {
         return createdSeries;
     }
 
-    public void update(
-            Map<String, CronRegistration> cronTasksWithNames,
-            Map<String, SingleTriggerJob> runningOrPendingDataSyncJobs,
-            DataSeries dataSeries
-    ) {
-        if (dataSeries.getType().equals(DataConnectionType.JSON_INGEST)
-                || dataSeries.getType().equals(DataConnectionType.CSV)) {
-            throw new ApplicationException("Unable to update DataSeries with DataConnectionType "
-                    + "of JSON_INGEST / CVS ");
-        }
-        // Creating and importing data to new table before updating the dataSeries in case
-        // the either of the operations fails
+    public void sync(DataSeries dataSeries, Task task) {
         DataSeries existingSeries = getSeriesDetailsByName(dataSeries.getName())
                 .orElseThrow(NotFoundException::new);
-        DataSeries dataSeriesWithNewTableName = existingSeries.toBuilder()
+
+        if (task.getSyncIntervalOffset() != null) {
+            Instant now = Instant.now();
+            syncIncremental(
+                    existingSeries,
+                    now.minusSeconds(task.getSyncIntervalOffset()),
+                    now
+            );
+        }
+        else {
+            syncReplace(existingSeries);
+        }
+    }
+
+    private void syncReplace(DataSeries dataSeries) {
+        DataSeries dataSeriesWithNewTableName = dataSeries.toBuilder()
                 .setTableName(
                         String.format(
                                 "series_%s",
@@ -187,7 +184,7 @@ public class DataController {
 
         // Updating the dataSeries with new table
         dataSeriesDao.update(
-                existingSeries.getId(),
+                dataSeries.getId(),
                 optionalSeries -> dataDomain.update(
                         optionalSeries.orElseThrow(
                                 () -> new ApplicationException(
@@ -199,33 +196,33 @@ public class DataController {
         );
 
         // Updating the old SeriesTable with deleteAt
-        SeriesTable updatedSeriesTable = updateSeriesTableWithDeleteAt(
-                existingSeries.getTableName()
+        updateSeriesTableWithDeleteAt(
+                dataSeries.getTableName()
         );
+    }
 
-        // Scheduling the deletion of old data series table
-        schedulerController.scheduleSingleTriggerJob(
-                cronTasksWithNames,
-                Stream.concat(
-                        runningOrPendingDataSyncJobs
-                                .entrySet()
-                                .stream(),
-                        getSeriesTablesDeleteJobs()
-                                .entrySet()
-                                .stream()
-                ).collect(
-                        Collectors.toMap(
-                                Map.Entry::getKey,
-                                Map.Entry::getValue
-                        )
-                ),
-                SingleTriggerJob.of(
-                        updatedSeriesTable.getDeleteAt(),
-                        deleteTableTask(updatedSeriesTable.getTableName()),
-                        getDeleteJobName(updatedSeriesTable)
-                )
-        );
+    private void syncIncremental(DataSeries dataSeries, Instant start, Instant end) {
+        var rows = importer.getRows(dataSeries)
+                .filter(row -> {
+                    var ts = Instant.parse(row.get(0));
+                    return ts.isAfter(start) && !ts.isAfter(end);
+                });
 
+        DSL.using(conf).transaction(transaction -> {
+            timeSeriesDao.deleteRowsWithTableName(
+                    dataSeries.getTableName(),
+                    "0",
+                    start,
+                    end,
+                    transaction
+            );
+
+            timeSeriesDao.insertData(
+                    dataSeries,
+                    rows,
+                    transaction
+            );
+        });
     }
 
     public List<DataSeries> searchSeries(DataSeriesQuery query) {
@@ -316,41 +313,21 @@ public class DataController {
         return importer.getMetadata(dataConnectionType);
     }
 
+    public void cleanupDeletedTables() {
+        seriesTableDao.getDeletedTables()
+                .forEach(seriesTable -> {
+                    DSL.using(conf).transaction(transaction -> {
+                        timeSeriesDao.deleteTableWithTableName(
+                                seriesTable.getTableName(),
+                                transaction
+                        );
 
-    private void deleteTables(String tableName) {
-        timeSeriesDao.deleteTableWithTableName(
-                tableName,
-                conf
-        );
-
-        seriesTableDao.deleteWithTableName(
-                tableName,
-                conf
-        );
-    }
-
-    public fi.jubic.easyschedule.Task deleteTableTask(String tableName) {
-        return () -> {
-            deleteTables(tableName);
-        };
-    }
-
-    public Map<String, SingleTriggerJob> createMapOfSingleTriggerJobs(
-            Stream<SeriesTable> seriesTableStream
-    ) {
-        return seriesTableStream.map(seriesTable ->
-                SingleTriggerJob.of(
-                        seriesTable.getDeleteAt(),
-                        deleteTableTask(seriesTable.getTableName()),
-                        getDeleteJobName(seriesTable)
-                )
-        )
-                .collect(
-                        Collectors.toMap(
-                                SingleTriggerJob::getJobName,
-                                registration -> registration
-                        )
-                );
+                        seriesTableDao.deleteWithTableName(
+                                seriesTable.getTableName(),
+                                transaction
+                        );
+                    });
+                });
     }
 
     public SeriesTable updateSeriesTableWithDeleteAt(
@@ -396,23 +373,16 @@ public class DataController {
         );
 
         dataConnectionTasks.forEach(
-                dataConnectionTask -> {
-                    Task deletedTask = taskDao.update(
-                            dataConnectionTask.getId(),
-                            task -> taskDomain.delete(
-                                    task.orElseThrow(
-                                            () -> new InputException(
-                                                    "Can't delete a non-existing Task"
-                                            )
-                                    )
-                            )
-                    );
-                    if (Objects.nonNull(deletedTask.getCronTrigger())) {
-                        schedulerController.deleteTask(
-                                deletedTask
-                        );
-                    }
-                }
+                dataConnectionTask -> taskDao.update(
+                        dataConnectionTask.getId(),
+                        task -> taskDomain.delete(
+                                task.orElseThrow(
+                                        () -> new InputException(
+                                                "Can't delete a non-existing Task"
+                                        )
+                                )
+                        )
+                )
         );
 
         return deletedDataConnection;
@@ -436,23 +406,16 @@ public class DataController {
         );
 
         dataSeriesTasks.forEach(
-                dataSeriesTask -> {
-                    Task deletedTask = taskDao.update(
-                            dataSeriesTask.getId(),
-                            task -> taskDomain.delete(
-                                    task.orElseThrow(
-                                            () -> new InputException(
-                                                    "Can't delete a non-existing Task"
-                                            )
-                                    )
-                            )
-                    );
-                    if (Objects.nonNull(deletedTask.getCronTrigger())) {
-                        schedulerController.deleteTask(
-                                deletedTask
-                        );
-                    }
-                }
+                dataSeriesTask -> taskDao.update(
+                        dataSeriesTask.getId(),
+                        task -> taskDomain.delete(
+                                task.orElseThrow(
+                                        () -> new InputException(
+                                                "Can't delete a non-existing Task"
+                                        )
+                                )
+                        )
+                )
         );
 
         seriesTableDao.update(
@@ -467,17 +430,5 @@ public class DataController {
         );
 
         return deletedDataSeries;
-    }
-
-    public Map<String, SingleTriggerJob> getSeriesTablesDeleteJobs() {
-        return createMapOfSingleTriggerJobs(
-                seriesTableDao.getSeriesTablesHasDeleteAt(conf).stream()
-        );
-    }
-
-    public String getDeleteJobName(
-            SeriesTable seriesTable
-    ) {
-        return "delete-" + seriesTable.getTableName();
     }
 }

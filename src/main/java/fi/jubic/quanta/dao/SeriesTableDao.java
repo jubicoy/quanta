@@ -86,6 +86,10 @@ public class SeriesTableDao {
         return getSeriesTables(SERIES_TABLE.DELETE_AT.isNotNull(), transaction);
     }
 
+    public List<SeriesTable> getDeletedTables() {
+        return getSeriesTables(SERIES_TABLE.DELETE_AT.isNotNull(), conf);
+    }
+
     public List<SeriesTable> getSeriesTables(
             Configuration transaction
     ) {

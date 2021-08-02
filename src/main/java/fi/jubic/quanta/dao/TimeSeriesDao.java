@@ -280,13 +280,22 @@ public class TimeSeriesDao {
             DataSeries dataSeries,
             Stream<List<String>> data
     ) {
+        return insertData(dataSeries, data, conf);
+    }
+
+    public long insertData(
+            DataSeries dataSeries,
+            Stream<List<String>> data,
+            Configuration transaction
+    ) {
         return insertData(
                 dataSeries.getTableName(),
                 dataSeries.getColumns()
                         .stream()
                         .sorted(Comparator.comparingInt(Column::getIndex))
                         .collect(Collectors.toList()),
-                data
+                data,
+                transaction
         );
     }
 
@@ -294,6 +303,15 @@ public class TimeSeriesDao {
             String tableName,
             List<Column> columns,
             Stream<List<String>> data
+    ) {
+        return insertData(tableName, columns, data, conf);
+    }
+
+    private long insertData(
+            String tableName,
+            List<Column> columns,
+            Stream<List<String>> data,
+            Configuration transaction
     ) {
         List<Type> types = columns.stream()
                 .map(Column::getType)
