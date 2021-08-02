@@ -24,7 +24,7 @@ export const dataStyles = makeStyles(theme =>
         backgroundColor: grey[300]
       },
       height: '200px',
-      width: '100%',
+      width: '90%',
       '& .MuiButton-label': {
         display: 'block',
         textAlign: 'center'
