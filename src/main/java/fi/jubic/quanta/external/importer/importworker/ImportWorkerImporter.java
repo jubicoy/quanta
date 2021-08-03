@@ -83,15 +83,11 @@ public class ImportWorkerImporter implements Importer {
     @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
 
-        //getting accurate details from DB
-        DataSeries series = dataSeriesDao.getDetails(dataSeries.getId())
-                .orElseThrow(NotFoundException::new);
-
-        String taskName = series.getId() + "-" + series.getName()
+        String taskName = dataSeries.getId() + "-" + dataSeries.getName()
                 + "-" + System.currentTimeMillis();
 
         ImportWorkerDataConnectionConfiguration configuration =
-                Objects.requireNonNull(series.getDataConnection()).getConfiguration()
+                Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
                         .visit(new DataConnectionConfiguration
                                 .DefaultFunctionVisitor<ImportWorkerDataConnectionConfiguration>() {
 
@@ -129,7 +125,7 @@ public class ImportWorkerImporter implements Importer {
                 .setId(-1L)
                 .setName(taskName)
                 .setWorkerDef(workerDef)
-                .setSeries(series)
+                .setSeries(dataSeries)
                 .setTaskType(TaskType.IMPORT_SAMPLE)
                 .build();
 
@@ -175,8 +171,8 @@ public class ImportWorkerImporter implements Importer {
                 if (importWorkerDataSample.isPresent()) {
 
                     //If the only declared column is timestamp (mandatory), we add the rest here
-                    if (series.getColumns().size() == 1
-                            && series.getColumns().stream()
+                    if (dataSeries.getColumns().size() == 1
+                            && dataSeries.getColumns().stream()
                             .findFirst()
                             .get().getType()
                             .getClassName()
@@ -195,18 +191,18 @@ public class ImportWorkerImporter implements Importer {
                                                         workerDefColumn.getValueType()
                                                 ).orElseThrow(NotFoundException::new))
                                                 .setId(workerDefColumn.getId())
-                                                .setSeries(series)
+                                                .setSeries(dataSeries)
                                                 .build()
                                 ));
 
                         dataSeriesDao.createColumns(
-                                series,
+                                dataSeries,
                                 seriesColumns.subList(1, seriesColumns.size())
                         );
                     }
 
                     return DataSample.builder()
-                            .setDataSeries(series)
+                            .setDataSeries(dataSeries)
                             .setData(importWorkerDataSample.get().getData())
                             .build();
 
