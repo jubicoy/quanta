@@ -147,16 +147,6 @@ public class InvocationDao {
                                                 .build()
                                                 : null
                                 )
-                                .setTask(
-                                        Objects.nonNull(invocation.getTask())
-                                                ? invocation.getTask()
-                                                .toBuilder()
-                                                .setSeries(invocation
-                                                        .getTask()
-                                                        .getSeries())
-                                                .build()
-                                                : null
-                                )
                                 .setOutputColumns(
                                         getInvocationOutputColumns(
                                                 invocation.getId(),
@@ -242,16 +232,6 @@ public class InvocationDao {
                                                         transaction
                                                 ).orElseThrow(NotFoundException::new)
                                         )
-                                        .build()
-                                        : null
-                        )
-                        .setTask(
-                                Objects.nonNull(invocation.getTask())
-                                        ? invocation.getTask()
-                                        .toBuilder()
-                                        .setSeries(invocation
-                                                .getTask()
-                                                .getSeries())
                                         .build()
                                         : null
                         )
