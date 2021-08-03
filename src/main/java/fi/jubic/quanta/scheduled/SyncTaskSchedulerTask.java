@@ -73,14 +73,20 @@ public class SyncTaskSchedulerTask implements fi.jubic.easyschedule.Task {
                 internalExecutor.submit(() -> {
                     try {
                         dataController.sync(dataSeries, invocation.getTask());
-                        taskController.updateInvocationStatus(invocation, InvocationStatus.Completed);
+                        taskController.updateInvocationStatus(
+                                invocation,
+                                InvocationStatus.Completed
+                        );
                     }
                     catch (RuntimeException exception) {
                         LOGGER.error(
                                 "Sync failed",
                                 exception
                         );
-                        taskController.updateInvocationStatus(invocation, InvocationStatus.Error);
+                        taskController.updateInvocationStatus(
+                                invocation,
+                                InvocationStatus.Error
+                        );
                     }
 
                     tryRunNextInvocation();

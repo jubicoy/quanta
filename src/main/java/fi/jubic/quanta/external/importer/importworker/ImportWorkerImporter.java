@@ -36,6 +36,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Singleton
@@ -47,6 +51,8 @@ public class ImportWorkerImporter implements Importer {
     private final WorkerDefDao workerDefDao;
     private final WorkerDao workerDao;
     private final DataSeriesDao dataSeriesDao;
+
+    private final ExecutorService executor;
 
     @Inject
     ImportWorkerImporter(
@@ -63,6 +69,8 @@ public class ImportWorkerImporter implements Importer {
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
         this.dataSeriesDao = dataSeriesDao;
+
+        this.executor = Executors.newFixedThreadPool(5);
     }
 
     @Override
@@ -205,70 +213,76 @@ public class ImportWorkerImporter implements Importer {
     }
 
     @Override
-    public Stream<List<String>> getRows(DataSeries dataSeries) {
+    public CompletableFuture<Void> getRows(
+            DataSeries dataSeries,
+            Consumer<Stream<List<String>>> consumer
+    ) {
+        ImportWorkerDataConnectionConfiguration configuration =
+                Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
+                        .visit(new DataConnectionConfiguration
+                                .DefaultFunctionVisitor<>() {
 
-        try {
-            ImportWorkerDataConnectionConfiguration configuration =
-                    Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()
-                            .visit(new DataConnectionConfiguration
-                                    .DefaultFunctionVisitor<>() {
+                            @Override
+                            public ImportWorkerDataConnectionConfiguration onImportWorker(
+                                    ImportWorkerDataConnectionConfiguration importConfiguration
+                            ) {
+                                return importConfiguration;
+                            }
 
-                                @Override
-                                public ImportWorkerDataConnectionConfiguration onImportWorker(
-                                        ImportWorkerDataConnectionConfiguration importConfiguration
-                                ) {
-                                    return importConfiguration;
-                                }
+                            @Override
+                            public ImportWorkerDataConnectionConfiguration otherwise(
+                                    DataConnectionConfiguration configuration
+                            ) {
+                                throw new InputException(
+                                        "IMPORT_WORKER DataConnection"
+                                                + " has invalid configurations"
+                                );
+                            }
+                        });
 
-                                @Override
-                                public ImportWorkerDataConnectionConfiguration otherwise(
-                                        DataConnectionConfiguration configuration
-                                ) {
-                                    throw new InputException(
-                                            "IMPORT_WORKER DataConnection"
-                                                    + " has invalid configurations"
-                                    );
-                                }
-                            });
+        List<Invocation> invocations = invocationDao.search(
+                new InvocationQuery().withWorker(
+                        workerDao.search(
+                                new WorkerQuery()
+                                        .withWorkerDefId(configuration.getWorkerDefId())
+                                        .withStatus(WorkerStatus.Accepted)
+                        )
+                                .stream()
+                                .findFirst()
+                                .get()
+                                .getId()
+                )
+        );
 
-            List<Invocation> invocations = invocationDao.search(
-                    new InvocationQuery().withWorker(
-                            workerDao.search(
-                                    new WorkerQuery()
-                                            .withWorkerDefId(configuration.getWorkerDefId())
-                                            .withStatus(WorkerStatus.Accepted)
-                            )
-                                    .stream()
-                                    .findFirst()
-                                    .get()
-                                    .getId()
-                    )
-            );
+        Invocation invocation = invocations.get(invocations.size() - 1);
 
-            Invocation invocation = invocations.get(invocations.size() - 1);
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    for (int i = 0; i < 120; i++) {
+                        try {
+                            Thread.sleep(5000);
 
-            for (int i = 0; i < 120; i++) {
-                Thread.sleep(5000);
+                            Optional<ImportWorkerDataSample> bigDataSample =
+                                    importWorkerDataSampleDao.takeSample(invocation.getId());
 
-                Optional<ImportWorkerDataSample> bigDataSample =
-                        importWorkerDataSampleDao.takeSample(invocation.getId());
-
-                if (bigDataSample.isPresent()) {
-
-                    return bigDataSample
-                            .get()
-                            .getData()
-                            .stream();
-                }
-
-
-            }
-            return null;
-        }
-        catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
+                            if (bigDataSample.isPresent()) {
+                                consumer.accept(
+                                        bigDataSample
+                                                .get()
+                                                .getData()
+                                                .stream()
+                                );
+                                return null;
+                            }
+                        }
+                        catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    return null;
+                },
+                executor
+        );
     }
 
     @Override

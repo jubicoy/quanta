@@ -44,6 +44,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -348,6 +349,15 @@ public class JdbcImporter implements Importer {
             onClose.run();
             throw new ApplicationException("Failed to get connection: " + e);
         }
+    }
+
+    @Override
+    public CompletableFuture<Void> getRows(
+            DataSeries dataSeries,
+            Consumer<Stream<List<String>>> consumer
+    ) {
+        consumer.accept(getRows(dataSeries));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

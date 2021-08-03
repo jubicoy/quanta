@@ -77,7 +77,7 @@ public class TimeSeriesDao {
     public List<String> listTables(Pagination pagination) {
         return seriesTableDao.getSeriesTables(conf)
                 .stream()
-                .map(seriesTable -> seriesTable.getTableName())
+                .map(SeriesTable::getTableName)
                 .collect(Collectors.toList());
     }
 
@@ -302,14 +302,6 @@ public class TimeSeriesDao {
     private long insertData(
             String tableName,
             List<Column> columns,
-            Stream<List<String>> data
-    ) {
-        return insertData(tableName, columns, data, conf);
-    }
-
-    private long insertData(
-            String tableName,
-            List<Column> columns,
             Stream<List<String>> data,
             Configuration transaction
     ) {
@@ -330,7 +322,7 @@ public class TimeSeriesDao {
                 .filter(Optional::isPresent)
                 .map(Optional::get);
 
-        return DSL.using(conf).connectionResult(connection -> {
+        return DSL.using(transaction).connectionResult(connection -> {
             try (InputStream is = new StreamInputStream(stream)) {
                 CopyManager copyManager = new CopyManager(
                         connection.unwrap(BaseConnection.class)

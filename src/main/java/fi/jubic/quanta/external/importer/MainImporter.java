@@ -25,6 +25,8 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Singleton
@@ -208,31 +210,38 @@ public class MainImporter implements Importer {
     }
 
     @Override
-    public Stream<List<String>> getRows(DataSeries dataSeries) {
+    public CompletableFuture<Void> getRows(
+            DataSeries dataSeries,
+            Consumer<Stream<List<String>>> consumer
+    ) {
         return dataSeries.getConfiguration()
-                .visit(new DataSeriesConfiguration.FunctionVisitor<Stream<List<String>>>() {
+                .visit(new DataSeriesConfiguration.FunctionVisitor<CompletableFuture<Void>>() {
                     @Override
-                    public Stream<List<String>> onCsv(CsvDataSeriesConfiguration ignored) {
-                        return csvImporter.getRows(dataSeries);
+                    public CompletableFuture<Void> onCsv(
+                            CsvDataSeriesConfiguration csvConfiguration
+                    ) {
+                        return csvImporter.getRows(dataSeries, consumer);
                     }
 
                     @Override
-                    public Stream<List<String>> onJdbc(
+                    public CompletableFuture<Void> onJdbc(
                             JdbcDataSeriesConfiguration jdbcConfiguration
                     ) {
-                        return jdbcImporter.getRows(dataSeries);
+                        return jdbcImporter.getRows(dataSeries, consumer);
                     }
 
                     @Override
-                    public Stream<List<String>> onJson(JsonIngestDataSeriesConfiguration ignored) {
-                        return jsonImporter.getRows(dataSeries);
+                    public CompletableFuture<Void> onJson(
+                            JsonIngestDataSeriesConfiguration ignored
+                    ) {
+                        return jsonImporter.getRows(dataSeries, consumer);
                     }
 
                     @Override
-                    public Stream<List<String>> onImportWorker(
+                    public CompletableFuture<Void> onImportWorker(
                             ImportWorkerDataSeriesConfiguration ignored
                     ) {
-                        return importWorkerImporter.getRows(dataSeries);
+                        return importWorkerImporter.getRows(dataSeries, consumer);
                     }
                 });
     }

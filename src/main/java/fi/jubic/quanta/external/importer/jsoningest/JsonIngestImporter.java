@@ -27,6 +27,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -73,6 +75,15 @@ public class JsonIngestImporter implements Importer, Ingester {
     @Override
     public Stream<List<String>> getRows(DataSeries dataSeries) {
         return Stream.empty();
+    }
+
+    @Override
+    public CompletableFuture<Void> getRows(
+            DataSeries dataSeries,
+            Consumer<Stream<List<String>>> consumer
+    ) {
+        consumer.accept(getRows(dataSeries));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
