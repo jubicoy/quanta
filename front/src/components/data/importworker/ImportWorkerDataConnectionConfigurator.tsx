@@ -73,7 +73,6 @@ export const ImportWorkerDataConnectionConfigurator = () => {
             ...DEFAULT_IMPORT_WORKER_DATA_SERIES,
             dataConnection: resDataConnection
           };
-
           /// Sample DataSeries
           sample(resDataConnection.id, sampleDataSeries)
             .then((response: SampleResponse) => {

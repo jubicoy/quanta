@@ -138,7 +138,7 @@ export const ImportWorkerPreview = () => {
           </TableHead>
           {importworkerConfigurations && (
             <TableBody>
-              {(Object.keys(importworkerConfigurations) as (keyof ImportWorkerDataSeriesConfiguration)[]).map((key, i) => {
+              {(Object.keys(importworkerConfigurations) as (keyof ImportWorkerDataSeriesConfiguration)[]).filter(k => k !== 'parameters').map((key, i) => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const value: any = importworkerConfigurations[key];
                 return (
@@ -146,6 +146,33 @@ export const ImportWorkerPreview = () => {
                     key={i}
                     title={key}
                     value={value ? value.toString() : ''}
+                  />
+                );
+              })}
+            </TableBody>
+          )}
+        </Table>
+      </Paper>
+      <div className={classes.header}>
+        <T component='span' variant='h5'>Parameters</T>
+      </div>
+      <Paper>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Name</TableCell>
+              <TableCell>Value</TableCell>
+            </TableRow>
+          </TableHead>
+          {importworkerConfigurations.parameters && (
+            <TableBody>
+              {(importworkerConfigurations as ImportWorkerDataSeriesConfiguration).parameters.map((p: any, i) => {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return (
+                  <TableRowItem
+                    key={i}
+                    title={p.name}
+                    value={p.value ? p.value : ''}
                   />
                 );
               })}

@@ -191,10 +191,12 @@ public class ImportWorkerImporter implements Importer {
                                             .setId(workerDefColumn.getId())
                                             .build()
                             ));
+                    ImportWorkerDataSeriesConfiguration importworkerConfig =
+                            (ImportWorkerDataSeriesConfiguration) dataSeries.getConfiguration();
 
-                    if (workerDef.getParameters() != null) {
+                    List<Parameter> seriesParameters = importworkerConfig.getParameters();
 
-                        List<Parameter> seriesParameters = new ArrayList<>();
+                    if (workerDef.getParameters() != null && seriesParameters.size() == 0) {
 
                         workerDef.getParameters().forEach(workerParameter -> seriesParameters.add(
                                 Parameter.builder()
