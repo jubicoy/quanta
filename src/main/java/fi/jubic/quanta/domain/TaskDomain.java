@@ -7,13 +7,11 @@ import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationStatus;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.Worker;
 import org.quartz.CronExpression;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.time.Instant;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -53,47 +51,6 @@ public class TaskDomain {
                 .setCronTrigger(newTask.getCronTrigger())
                 .setTaskTrigger(newTask.getTaskTrigger())
                 .setParameters(newTask.getParameters())
-                .build();
-    }
-
-    public Invocation createInvocation(Task task, List<Worker> workers) {
-        Worker worker = workers.stream()
-                // TODO: Select most suited worker.
-                .findFirst()
-                .orElseThrow(
-                        () -> new ApplicationException(
-                                "Could not invoke task: No available Workers."
-                        )
-                );
-
-        return Invocation.builder()
-                .setId(0L)
-                .setInvocationNumber(0L)
-                .setTask(task)
-                .setWorker(worker)
-                .setColumnSelectors(task.getColumnSelectors())
-                .setOutputColumns(task.getOutputColumns())
-                .setParameters(task.getParameters())
-                .setStatus(InvocationStatus.Pending)
-                .setStartTime(null)
-                .setEndTime(null)
-                .setDeletedAt(null)
-                .build();
-    }
-
-    public Invocation createInvocationWithoutWorker(Task task) {
-        return Invocation.builder()
-                .setId(0L)
-                .setInvocationNumber(0L)
-                .setTask(task)
-                .setWorker(null)
-                .setColumnSelectors(task.getColumnSelectors())
-                .setOutputColumns(task.getOutputColumns())
-                .setParameters(task.getParameters())
-                .setStatus(InvocationStatus.Pending)
-                .setStartTime(null)
-                .setEndTime(null)
-                .setDeletedAt(null)
                 .build();
     }
 

@@ -1,5 +1,6 @@
 package fi.jubic.quanta.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.DataConnectionRecord;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
 import fi.jubic.quanta.util.DateUtil;
 
 import javax.annotation.Nullable;
@@ -40,6 +42,27 @@ public abstract class DataConnection {
     public abstract Instant getDeletedAt();
 
     public abstract Builder toBuilder();
+
+    @JsonIgnore
+    public ImportWorkerDataConnectionConfiguration getImportWorkerConfiguration() {
+        return getConfiguration().visit(
+                new DataConnectionConfiguration.DefaultFunctionVisitor<>() {
+                    @Override
+                    public ImportWorkerDataConnectionConfiguration onImportWorker(
+                            ImportWorkerDataConnectionConfiguration importWorkerConfiguration
+                    ) {
+                        return importWorkerConfiguration;
+                    }
+
+                    @Override
+                    public ImportWorkerDataConnectionConfiguration otherwise(
+                            DataConnectionConfiguration configuration
+                    ) {
+                        throw new IllegalStateException("Unexpected configuration type");
+                    }
+                }
+        );
+    }
 
     public static Builder builder() {
         return new Builder();

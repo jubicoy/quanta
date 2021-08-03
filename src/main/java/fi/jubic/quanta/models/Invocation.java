@@ -54,6 +54,22 @@ public abstract class Invocation {
         return new Builder();
     }
 
+    public static Invocation invoke(Task task) {
+        return Invocation.builder()
+                .setId(0L)
+                .setInvocationNumber(0L)
+                .setTask(task)
+                .setWorker(null)
+                .setColumnSelectors(task.getColumnSelectors())
+                .setOutputColumns(task.getOutputColumns())
+                .setParameters(task.getParameters())
+                .setStatus(InvocationStatus.Pending)
+                .setStartTime(null)
+                .setEndTime(null)
+                .setDeletedAt(null)
+                .build();
+    }
+
     public static class Builder extends EasyValue_Invocation.Builder {
         @Override
         public Builder defaults(Builder builder) {
