@@ -27,6 +27,11 @@ import {
 } from './json';
 
 import {
+  ImportWorkerDataConnectionConfigurator,
+  ImportWorkerDataPreprocessingConfigurator
+} from './importworker';
+
+import {
   FileUploadResponse,
   DataConnection,
   DataSeries,
@@ -188,6 +193,13 @@ export const DataImportPage = () => {
         });
         break;
 
+      case 'IMPORT_WORKER':
+        setDataConnection({
+          ...dataConnection,
+          type: 'IMPORT_WORKER'
+        });
+        break;
+
       default:
         break;
     }
@@ -244,6 +256,8 @@ export const DataImportPage = () => {
                     return <JdbcDataConnectionConfigurator />;
                   case 'JSON_INGEST':
                     return <JsonIngestDataConnectionConfigurator />;
+                  case 'IMPORT_WORKER':
+                    return <ImportWorkerDataConnectionConfigurator />;
 
                   default:
                     return null;
@@ -256,7 +270,8 @@ export const DataImportPage = () => {
                     return <JdbcDataPreprocessingConfigurator />;
                   case 'JSON_INGEST':
                     return <JsonIngestDataPreprocessingConfigurator />;
-
+                  case 'IMPORT_WORKER':
+                    return <ImportWorkerDataPreprocessingConfigurator />;
                   default:
                     return null;
                 }

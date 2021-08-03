@@ -14,8 +14,8 @@ import {
   DEFAULT_JSON_INGEST_DATA_CONNECTION_CONFIGURATION,
   DEFAULT_JSON_INGEST_DATA_SERIES_CONFIGURATION,
   ImportWorkerDataConnectionConfiguration,
- ImportWorkerDataSeriesConfiguration,
- DefaultImportWorkerDataConnectionConfiguration,
+  ImportWorkerDataSeriesConfiguration,
+  DefaultImportWorkerDataConnectionConfiguration,
   DefaultImportWorkerDataSeriesConfiguration
 } from '.';
 import { JsonIngestDataSeriesConfiguration } from './JsonIngestConfigurations';
