@@ -41,7 +41,8 @@ public class CronSchedulerTask implements fi.jubic.easyschedule.Task {
                     CronExpression expression;
                     try {
                         expression = new CronExpression(task.getCronTrigger());
-                    } catch (ParseException e) {
+                    }
+                    catch (ParseException e) {
                         return false;
                     }
 
@@ -67,7 +68,7 @@ public class CronSchedulerTask implements fi.jubic.easyschedule.Task {
                     }
 
                     Invocation invocation = optionalInvocation.get();
-                    if (ACTIVE_STATUSES.contains(invocation.getStatus())){
+                    if (ACTIVE_STATUSES.contains(invocation.getStatus())) {
                         return false;
                     }
 
