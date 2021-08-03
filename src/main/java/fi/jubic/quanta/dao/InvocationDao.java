@@ -51,16 +51,13 @@ import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 public class InvocationDao {
     private final org.jooq.Configuration conf;
     private final WorkerDefDao workerDefDao;
-    private final DataSeriesDao dataSeriesDao;
 
     @Inject
     InvocationDao(
             fi.jubic.quanta.config.Configuration conf,
-            WorkerDefDao workerDefDao,
-            DataSeriesDao dataSeriesDao) {
+            WorkerDefDao workerDefDao) {
         this.conf = conf.getJooqConfiguration().getConfiguration();
         this.workerDefDao = workerDefDao;
-        this.dataSeriesDao = dataSeriesDao;
     }
 
     public List<Invocation> search(InvocationQuery query) {
@@ -144,16 +141,6 @@ public class InvocationDao {
                                                                 transaction
                                                         ).orElseThrow(NotFoundException::new)
                                                 )
-                                                .build()
-                                                : null
-                                )
-                                .setTask(
-                                        Objects.nonNull(invocation.getTask())
-                                                ? invocation.getTask()
-                                                .toBuilder()
-                                                .setSeries(invocation
-                                                        .getTask()
-                                                        .getSeries())
                                                 .build()
                                                 : null
                                 )
@@ -242,16 +229,6 @@ public class InvocationDao {
                                                         transaction
                                                 ).orElseThrow(NotFoundException::new)
                                         )
-                                        .build()
-                                        : null
-                        )
-                        .setTask(
-                                Objects.nonNull(invocation.getTask())
-                                        ? invocation.getTask()
-                                        .toBuilder()
-                                        .setSeries(invocation
-                                                .getTask()
-                                                .getSeries())
                                         .build()
                                         : null
                         )
