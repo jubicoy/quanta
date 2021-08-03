@@ -1,6 +1,7 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.dao.AnomalyDao;
+import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
@@ -67,6 +68,7 @@ public class TaskController {
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
+    private final DataSeriesDao dataSeriesDao;
 
     private final DataController dataController;
     private final SchedulerController schedulerController;
@@ -85,6 +87,7 @@ public class TaskController {
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
+            DataSeriesDao dataSeriesDao,
             DataController dataController,
             SchedulerController schedulerController,
             fi.jubic.quanta.config.Configuration configuration
@@ -99,6 +102,7 @@ public class TaskController {
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
+        this.dataSeriesDao = dataSeriesDao;
 
         this.dataController = dataController;
         this.schedulerController = schedulerController;
@@ -320,8 +324,13 @@ public class TaskController {
     ) {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
 
+            //TODO - get series columns straight from invocation
             List<OutputColumn> outputColumns = convertSeriesColumnsToOutputColumns(
-                    Objects.requireNonNull(invocation.getTask().getSeries()).getColumns()
+                    dataSeriesDao.getDetails(
+                            Objects.requireNonNull(invocation.getTask().getSeries().getId())
+                            )
+                            .orElseThrow(NotFoundException::new)
+                            .getColumns()
             );
 
             updateInvocationStatus(invocation, InvocationStatus.Running);
@@ -333,28 +342,6 @@ public class TaskController {
                 DataSeries invocationSeries = Objects.requireNonNull(
                         invocation.getTask().getSeries()
                 );
-
-                SeriesTable table = SeriesTable
-                        .builder()
-                        .setId(-1L)
-                        .setTableName(invocationSeries.getTableName())
-                        .setDataSeries(invocationSeries)
-                        .build();
-
-                InvocationQuery query = new InvocationQuery();
-
-                //Get all completed import invocations created with the worker currently being used
-                List<Invocation> oldInvocations = invocationDao.search(query.withWorker(
-                        Objects.requireNonNull(invocation.getWorker()).getId()
-                ))
-                        .stream()
-                        .filter(invocation1 -> invocation1
-                                .getStatus()
-                                .equals(InvocationStatus.Completed))
-                        .filter(invocation1 -> invocation1
-                                .getTask().getTaskType()
-                                .equals(TaskType.IMPORT))
-                        .collect(Collectors.toList());
 
                 if (invocation.getTask().getSyncIntervalOffset() != null) {
                     newMeasurements.addAll(measurements.stream()
@@ -371,20 +358,11 @@ public class TaskController {
                     newMeasurements.addAll(measurements);
                 }
 
-                //We recreate the table if this is the first completed IMPORT task
-                if (oldInvocations.size() == 0) {
-
-                    timeSeriesDao.deleteTable(invocationSeries, transaction);
-
-                    timeSeriesDao.createTableWithOutputColumns(
-                            table,
-                            outputColumns,
-                            transaction
-                    );
-                }
                 return invocationSeries;
 
             });
+
+            //if offset != null, we replace data within that offset...
             if (invocation.getTask().getSyncIntervalOffset() != null) {
 
                 timeSeriesDao.deleteRowsWithTableName(
@@ -394,6 +372,24 @@ public class TaskController {
                                 invocation.getTask().getSyncIntervalOffset()
                         )),
                         Instant.from(Instant.now()),
+                        conf
+                );
+            }
+
+            //...and if offset == null we replace everything
+            else {
+                SeriesTable table = SeriesTable
+                        .builder()
+                        .setId(-1L)
+                        .setTableName(createdSeries.getTableName())
+                        .setDataSeries(createdSeries)
+                        .build();
+
+                timeSeriesDao.deleteTable(createdSeries, conf);
+
+                timeSeriesDao.createTableWithOutputColumns(
+                        table,
+                        outputColumns,
                         conf
                 );
             }

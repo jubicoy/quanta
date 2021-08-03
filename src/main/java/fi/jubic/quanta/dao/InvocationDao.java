@@ -149,17 +149,11 @@ public class InvocationDao {
                                 )
                                 .setTask(
                                         Objects.nonNull(invocation.getTask())
-                                        ? invocation.getTask()
+                                                ? invocation.getTask()
                                                 .toBuilder()
-                                                .setSeries(
-                                                        dataSeriesDao.getDetails(
-                                                                Objects.requireNonNull(invocation
-                                                                        .getTask()
-                                                                        .getSeries())
-                                                                        .getId(),
-                                                                transaction
-                                                        ).orElseThrow(NotFoundException::new)
-                                                )
+                                                .setSeries(invocation
+                                                        .getTask()
+                                                        .getSeries())
                                                 .build()
                                                 : null
                                 )
@@ -255,14 +249,9 @@ public class InvocationDao {
                                 Objects.nonNull(invocation.getTask())
                                         ? invocation.getTask()
                                         .toBuilder()
-                                        .setSeries(
-                                                dataSeriesDao.getDetails(
-                                                        Objects.requireNonNull(invocation.getTask()
-                                                                .getSeries())
-                                                                .getId(),
-                                                        transaction
-                                                ).orElseThrow(NotFoundException::new)
-                                        )
+                                        .setSeries(invocation
+                                                .getTask()
+                                                .getSeries())
                                         .build()
                                         : null
                         )

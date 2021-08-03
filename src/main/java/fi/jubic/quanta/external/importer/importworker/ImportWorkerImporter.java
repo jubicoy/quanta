@@ -125,7 +125,6 @@ public class ImportWorkerImporter implements Importer {
                 .setId(-1L)
                 .setName(taskName)
                 .setWorkerDef(workerDef)
-                .setSeries(dataSeries)
                 .setTaskType(TaskType.IMPORT_SAMPLE)
                 .build();
 
@@ -170,39 +169,27 @@ public class ImportWorkerImporter implements Importer {
 
                 if (importWorkerDataSample.isPresent()) {
 
-                    //If the only declared column is timestamp (mandatory), we add the rest here
-                    if (dataSeries.getColumns().size() == 1
-                            && dataSeries.getColumns().stream()
-                            .findFirst()
-                            .get().getType()
-                            .getClassName()
-                            .equals(Instant.class)) {
+                    List<Column> seriesColumns = new ArrayList<>();
 
-                        List<Column> seriesColumns = new ArrayList<>();
-
-                        importWorkerDataSample
-                                .get()
-                                .getColumns()
-                                .forEach(workerDefColumn -> seriesColumns.add(
-                                        Column.builder()
-                                                .setIndex(workerDefColumn.getIndex())
-                                                .setName(workerDefColumn.getName())
-                                                .setType(Optional.ofNullable(
-                                                        workerDefColumn.getValueType()
-                                                ).orElseThrow(NotFoundException::new))
-                                                .setId(workerDefColumn.getId())
-                                                .setSeries(dataSeries)
-                                                .build()
-                                ));
-
-                        dataSeriesDao.createColumns(
-                                dataSeries,
-                                seriesColumns.subList(1, seriesColumns.size())
-                        );
-                    }
+                    importWorkerDataSample
+                            .get()
+                            .getColumns()
+                            .forEach(workerDefColumn -> seriesColumns.add(
+                                    Column.builder()
+                                            .setIndex(workerDefColumn.getIndex())
+                                            .setName(workerDefColumn.getName())
+                                            .setType(Optional.ofNullable(
+                                                    workerDefColumn.getValueType()
+                                            ).orElseThrow(NotFoundException::new))
+                                            .setId(workerDefColumn.getId())
+                                            .build()
+                            ));
 
                     return DataSample.builder()
-                            .setDataSeries(dataSeries)
+                            .setDataSeries(dataSeries
+                                    .toBuilder()
+                                    .setColumns(seriesColumns)
+                                    .build())
                             .setData(importWorkerDataSample.get().getData())
                             .build();
 
