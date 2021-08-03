@@ -39,6 +39,15 @@ public abstract class WorkerDef {
         return new Builder();
     }
 
+    public static WorkerDef ref(Long workerDefId) {
+        return builder()
+                .setId(workerDefId)
+                .setType(WorkerType.Sync)
+                .setName("")
+                .setDescription("")
+                .build();
+    }
+
     public static class Builder extends EasyValue_WorkerDef.Builder {
         @Override
         public Builder defaults(Builder builder) {

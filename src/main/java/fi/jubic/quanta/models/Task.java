@@ -5,11 +5,14 @@ import fi.jubic.easymapper.annotations.EasyId;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 import fi.jubic.quanta.util.DateUtil;
+import fi.jubic.quanta.util.StringUtil;
 
 import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 import static fi.jubic.quanta.db.tables.Task.TASK;
 
@@ -49,6 +52,44 @@ public abstract class Task {
     public abstract List<Parameter> getParameters();
 
     public abstract Builder toBuilder();
+
+    public static Optional<Task> syncTask(DataSeries dataSeries) {
+        if (dataSeries.getType().equals(DataConnectionType.JSON_INGEST)) {
+            return Optional.empty();
+        }
+
+        String taskName = String.format(
+                "sync-%s-%s",
+                dataSeries.getName(),
+                StringUtil.alphaNumericIdentifier(8)
+        );
+
+        if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
+            return Optional.of(
+                    builder()
+                            .setId(-1L)
+                            .setName(taskName)
+                            .setSeries(dataSeries)
+                            .setWorkerDef(
+                                    WorkerDef.ref(
+                                            Objects.requireNonNull(dataSeries.getDataConnection())
+                                                    .getImportWorkerConfiguration()
+                                                    .getWorkerDefId()
+                                    )
+                            )
+                            .setTaskType(TaskType.IMPORT)
+                            .build()
+            );
+        }
+        return Optional.of(
+                builder()
+                        .setId(-1L)
+                        .setName(taskName)
+                        .setTaskType(TaskType.sync)
+                        .setSeries(dataSeries)
+                        .build()
+        );
+    }
 
     public static Builder builder() {
         return new Builder();

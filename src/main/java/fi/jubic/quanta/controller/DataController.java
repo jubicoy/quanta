@@ -3,6 +3,7 @@ package fi.jubic.quanta.controller;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.dao.DataConnectionDao;
 import fi.jubic.quanta.dao.DataSeriesDao;
+import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesTableDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
@@ -18,6 +19,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.SeriesTable;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
@@ -35,12 +37,12 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Singleton
 public class DataController {
     private final DataConnectionDao dataConnectionDao;
     private final DataSeriesDao dataSeriesDao;
+    private final InvocationDao invocationDao;
     private final SeriesTableDao seriesTableDao;
     private final TaskDao taskDao;
     private final TimeSeriesDao timeSeriesDao;
@@ -58,6 +60,7 @@ public class DataController {
     DataController(
             DataConnectionDao dataConnectionDao,
             DataSeriesDao dataSeriesDao,
+            InvocationDao invocationDao,
             SeriesTableDao seriesTableDao,
             TaskDao taskDao,
             TimeSeriesDao timeSeriesDao,
@@ -69,6 +72,7 @@ public class DataController {
     ) {
         this.dataConnectionDao = dataConnectionDao;
         this.dataSeriesDao = dataSeriesDao;
+        this.invocationDao = invocationDao;
         this.seriesTableDao = seriesTableDao;
         this.taskDao = taskDao;
         this.timeSeriesDao = timeSeriesDao;
@@ -137,12 +141,10 @@ public class DataController {
             return series;
         });
 
-        if (!createdSeries.getType().equals(DataConnectionType.JSON_INGEST)
-                && !createdSeries.getType().equals(DataConnectionType.IMPORT_WORKER)
-                && !skipImportData) {
-            // JSON_INGEST DataSeries has no initial rows
-            // IMPORT_WORKER DataSeries cannot import data yet
-            importData(createdSeries);
+        if (!skipImportData) {
+            Task.syncTask(dataSeries)
+                    .map(taskDao::create)
+                    .ifPresent(task -> invocationDao.create(Invocation.invoke(task)));
         }
 
         return createdSeries;
@@ -180,7 +182,13 @@ public class DataController {
                 dataSeriesWithNewTableName,
                 conf
         );
-        importData(dataSeriesWithNewTableName);
+        importer.getRows(
+                dataSeriesWithNewTableName,
+                batch -> timeSeriesDao.insertData(
+                        dataSeries,
+                        batch
+                )
+        ).join();
 
         // Updating the dataSeries with new table
         dataSeriesDao.update(
@@ -202,12 +210,6 @@ public class DataController {
     }
 
     private void syncIncremental(DataSeries dataSeries, Instant start, Instant end) {
-        var rows = importer.getRows(dataSeries)
-                .filter(row -> {
-                    var ts = Instant.parse(row.get(0));
-                    return ts.isAfter(start) && !ts.isAfter(end);
-                });
-
         DSL.using(conf).transaction(transaction -> {
             timeSeriesDao.deleteRowsWithTableName(
                     dataSeries.getTableName(),
@@ -217,11 +219,18 @@ public class DataController {
                     transaction
             );
 
-            timeSeriesDao.insertData(
+            importer.getRows(
                     dataSeries,
-                    rows,
-                    transaction
-            );
+                    batch -> timeSeriesDao.insertData(
+                            dataSeries,
+                            batch.filter(row -> {
+                                // TODO: Use correct column format
+                                var ts = Instant.parse(row.get(0));
+                                return ts.isAfter(start) && !ts.isAfter(end);
+                            }),
+                            transaction
+                    )
+            ).join();
         });
     }
 
@@ -231,16 +240,6 @@ public class DataController {
 
     public Optional<DataSeries> getSeriesDetailsByName(String name) {
         return dataSeriesDao.getDetailsByName(name);
-    }
-
-    // TODO: Make public and call externally
-    private void importData(DataSeries dataSeries) {
-        try (Stream<List<String>> stream = importer.getRows(dataSeries)) {
-            timeSeriesDao.insertData(
-                    dataSeries,
-                    stream
-            );
-        }
     }
 
     public long ingestData(String dataConnectionToken, Object payload) {
@@ -315,19 +314,19 @@ public class DataController {
 
     public void cleanupDeletedTables() {
         seriesTableDao.getDeletedTables()
-                .forEach(seriesTable -> {
-                    DSL.using(conf).transaction(transaction -> {
-                        timeSeriesDao.deleteTableWithTableName(
-                                seriesTable.getTableName(),
-                                transaction
-                        );
+                .forEach(seriesTable -> DSL.using(conf)
+                        .transaction(transaction -> {
+                            timeSeriesDao.deleteTableWithTableName(
+                                    seriesTable.getTableName(),
+                                    transaction
+                            );
 
-                        seriesTableDao.deleteWithTableName(
-                                seriesTable.getTableName(),
-                                transaction
-                        );
-                    });
-                });
+                            seriesTableDao.deleteWithTableName(
+                                    seriesTable.getTableName(),
+                                    transaction
+                            );
+                        })
+                );
     }
 
     public SeriesTable updateSeriesTableWithDeleteAt(

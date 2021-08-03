@@ -134,28 +134,28 @@ public class TaskController {
         Task task = taskDao.getDetails(taskId)
                 .orElseThrow(() -> new ApplicationException("Task does not exist"));
 
-        Invocation invocation;
+        Invocation invocation = Invocation.invoke(task);
         if (Objects.nonNull(task.getWorkerDef())) {
-            List<Worker> workers = workerDao.search(
-                    new WorkerQuery()
-                            .withWorkerDefId(task.getWorkerDef().getId())
-                            .withStatus(WorkerStatus.Accepted)
-                            .withNotDeleted(true)
-            );
-            invocation = invocationDao.create(
-                    taskDomain.createInvocation(task, workers)
-            );
-        }
-        else {
-            invocation = invocationDao.create(
-                    taskDomain.createInvocationWithoutWorker(task)
-                            .toBuilder()
-                            .setStatus(InvocationStatus.Pending)
-                            .build()
-            );
+            var worker = workerDao
+                    .search(
+                            new WorkerQuery()
+                                    .withWorkerDefId(task.getWorkerDef().getId())
+                                    .withStatus(WorkerStatus.Accepted)
+                                    .withNotDeleted(true)
+                    )
+                    .stream()
+                    .findFirst()
+                    .orElseThrow(
+                            () -> new ApplicationException(
+                                    "Could not invoke task: No available Workers."
+                            )
+                    );
+            invocation = invocation.toBuilder()
+                    .setWorker(worker)
+                    .build();
         }
 
-        return invocation;
+        return invocationDao.create(invocation);
     }
 
     public Optional<Invocation> getInvocationDetails(Long id) {
