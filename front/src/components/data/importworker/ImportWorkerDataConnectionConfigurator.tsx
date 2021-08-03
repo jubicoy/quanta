@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react';
+import React, { useState, useContext, useMemo } from 'react';
 import { useWorkers } from '../../../hooks';
 import { _DataConnectionConfiguratorContext } from '../DataImportPage';
 import {
@@ -48,7 +48,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
   const [worker, setWorker] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const workerOptions = workers && workers.filter(w => w.definition.type === 'Import').map((worker, idx) =>
+  const workerOptions = workers && workers.filter(w => w.definition.type === 'Import').map((worker: any, idx) =>
     <MenuItem key={idx} value={worker}>{worker.definition.name}</MenuItem>
   );
 
@@ -74,7 +74,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
             dataConnection: resDataConnection
           };
           console.log(sampleDataSeries);
-          
+
           /// Sample DataSeries
           sample(resDataConnection.id, sampleDataSeries)
             .then((response: SampleResponse) => {

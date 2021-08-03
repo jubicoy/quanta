@@ -2,9 +2,6 @@ import React, { useState, useContext, useEffect } from 'react';
 
 import { _DataConnectionConfiguratorContext } from '../DataImportPage';
 
-import {
-  ImportWorkerDataSeriesConfiguration
-} from '../../../types';
 import StepperButtons from '../StepperButtons';
 
 export const ImportWorkerDataPreprocessingConfigurator = () => {
@@ -12,9 +9,6 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     uploadedData,
 
     dataSeries,
-    setDataSeries,
-
-    sampleResponse,
 
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);

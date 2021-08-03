@@ -3,7 +3,7 @@ package fi.jubic.quanta.config;
 import fi.jubic.easyconfig.annotations.ConfigProperty;
 import fi.jubic.easyconfig.extensions.LiquibaseExtension;
 import fi.jubic.easyconfig.jooq.JooqConfiguration;
-import fi.jubic.easyconfig.logback.LogbackConfiguration;
+//import fi.jubic.easyconfig.logback.LogbackConfiguration;
 import fi.jubic.easyconfig.snoozy.SnoozyServerConfiguration;
 import fi.jubic.quanta.auth.Admin;
 import fi.jubic.snoozy.ServerConfiguration;
@@ -30,8 +30,8 @@ public class Configuration implements ServerConfigurator {
             @ConfigProperty(value = "SERVER_PERSIST_OLD_SERIES_TABLES", defaultValue = "3600")
                     Integer persistOldSeriesTables,
             @ConfigProperty(value = "ADMIN_")
-                    Admin admin,
-            @ConfigProperty("") LogbackConfiguration logbackConfig
+                    Admin admin
+
     ) {
         this.serverConfiguration = serverConfiguration;
         this.jooqConfiguration = jooqConfiguration;
