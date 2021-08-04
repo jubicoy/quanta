@@ -80,6 +80,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
             .then((response: SampleResponse) => {
             // Set context sampleResponse to response
               setSampleResponse(response);
+console.log(response);
 
               // Set context DataSeries/DataConnection to sampled one from response
               setDataSeries(response.dataSeries);
@@ -133,7 +134,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
 
       <StepperButtons
         onNextClick={onHandleNext}
-        disableNext={!worker || isLoading}
+        disableNext={!worker}
       />
     </>
   );

@@ -6,8 +6,6 @@ import StepperButtons from '../StepperButtons';
 
 export const ImportWorkerDataPreprocessingConfigurator = () => {
   const {
-    uploadedData,
-
     dataSeries,
 
     handleForward
@@ -26,13 +24,13 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     }
   }, [selectedColumns]);
 
-  return (uploadedData)
-    ? (
+  return
+     (
       <>
         <StepperButtons
           onNextClick={handleForward}
           disableNext={!complete}
         />
       </>
-    ) : <div>Loading</div>;
+    ) 
 };
