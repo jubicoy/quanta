@@ -41,6 +41,12 @@ public class TaskDao {
     private final WorkerDefDao workerDefDao;
     private final DataSeriesDao dataSeriesDao;
 
+    static final fi.jubic.quanta.db.tables.DataSeries COLUMN_DATA_SERIES =
+            DATA_SERIES.as("column_selector_series");
+
+    static final fi.jubic.quanta.db.tables.DataConnection COLUMN_DATA_CONNECTION =
+            DATA_CONNECTION.as("column_selector_connection");
+
     @Inject
     TaskDao(
             fi.jubic.quanta.config.Configuration conf,
@@ -73,8 +79,6 @@ public class TaskDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-        var columnSeries = DATA_SERIES.as("column_selector_series");
-
         List<Task> tasks = DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
                 .select()
                 .from(TASK)
@@ -88,10 +92,12 @@ public class TaskDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .leftJoin(columnSeries)
-                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                .leftJoin(COLUMN_DATA_SERIES)
+                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(COLUMN_DATA_SERIES.ID))
+                .leftJoin(COLUMN_DATA_CONNECTION)
+                .on(COLUMN_DATA_SERIES.DATA_CONNECTION_ID.eq(COLUMN_DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
@@ -103,9 +109,12 @@ public class TaskDao {
                                                 WorkerDefColumn.workerDefColumnMapper
                                         )
                                         .withSeries(
-                                                DataSeries.mapper.withDataConnection(
-                                                        DataConnection.mapper
-                                                )
+                                                DataSeries.mapper.alias(COLUMN_DATA_SERIES)
+                                                        .withDataConnection(
+                                                                DataConnection
+                                                                .mapper
+                                                                .alias(COLUMN_DATA_CONNECTION)
+                                                        )
                                         )
                         )
                 )
@@ -155,8 +164,6 @@ public class TaskDao {
 
     private Optional<Task> getDetails(Condition condition, Configuration transaction) {
 
-        var columnSeries = DATA_SERIES.as("column_selector_series");
-
         Optional<Task> taskResult = DSL.using(transaction)
                 .select()
                 .from(TASK)
@@ -170,10 +177,12 @@ public class TaskDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .leftJoin(columnSeries)
-                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                .leftJoin(COLUMN_DATA_SERIES)
+                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(COLUMN_DATA_SERIES.ID))
+                .leftJoin(COLUMN_DATA_CONNECTION)
+                .on(COLUMN_DATA_SERIES.DATA_CONNECTION_ID.eq(COLUMN_DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
@@ -185,8 +194,11 @@ public class TaskDao {
                                                 WorkerDefColumn.workerDefColumnMapper
                                         )
                                         .withSeries(
-                                                DataSeries.mapper.withDataConnection(
-                                                        DataConnection.mapper
+                                                DataSeries.mapper.alias(COLUMN_DATA_SERIES)
+                                                        .withDataConnection(
+                                                                DataConnection
+                                                                .mapper
+                                                                .alias(COLUMN_DATA_CONNECTION)
                                                 )
                                         )
                         )
