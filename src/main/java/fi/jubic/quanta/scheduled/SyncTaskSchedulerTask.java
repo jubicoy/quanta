@@ -60,7 +60,8 @@ public class SyncTaskSchedulerTask implements fi.jubic.easyschedule.Task {
                 Optional<DataSeries> optionalDataSeries = invocation.getColumnSelectors()
                         .stream()
                         .findFirst()
-                        .map(ColumnSelector::getSeries);
+                        .map(ColumnSelector::getSeries)
+                        .or(() -> Optional.ofNullable(invocation.getTask().getSeries()));
 
                 if (optionalDataSeries.isEmpty()) {
                     LOGGER.error("No data series present for invocation {}", invocation.getId());
