@@ -73,6 +73,8 @@ public class TaskDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
+        var columnSeries = DATA_SERIES.as("column_selector_series");
+
         List<Task> tasks = DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
                 .select()
                 .from(TASK)
@@ -86,16 +88,24 @@ public class TaskDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .leftJoin(columnSeries)
+                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
+                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingManyWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
                                         .withWorkerDefColumn(
                                                 WorkerDefColumn.workerDefColumnMapper
+                                        )
+                                        .withSeries(
+                                                DataSeries.mapper.withDataConnection(
+                                                        DataConnection.mapper
+                                                )
                                         )
                         )
                 )
@@ -144,6 +154,9 @@ public class TaskDao {
     }
 
     private Optional<Task> getDetails(Condition condition, Configuration transaction) {
+
+        var columnSeries = DATA_SERIES.as("column_selector_series");
+
         Optional<Task> taskResult = DSL.using(transaction)
                 .select()
                 .from(TASK)
@@ -157,16 +170,24 @@ public class TaskDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .leftJoin(columnSeries)
+                .on(TASK_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
+                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
                                         .withWorkerDefColumn(
                                                 WorkerDefColumn.workerDefColumnMapper
+                                        )
+                                        .withSeries(
+                                                DataSeries.mapper.withDataConnection(
+                                                        DataConnection.mapper
+                                                )
                                         )
                         )
                 )

@@ -36,16 +36,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
-import static fi.jubic.quanta.db.Tables.DATA_SERIES;
-import static fi.jubic.quanta.db.Tables.INVOCATION;
-import static fi.jubic.quanta.db.Tables.INVOCATION_COLUMN_SELECTOR;
-import static fi.jubic.quanta.db.Tables.INVOCATION_OUTPUT_COLUMN;
-import static fi.jubic.quanta.db.Tables.INVOCATION_PARAMETER;
-import static fi.jubic.quanta.db.Tables.TASK;
-import static fi.jubic.quanta.db.Tables.WORKER;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
-import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
+import static fi.jubic.quanta.db.Tables.*;
 
 
 public class InvocationDao {
@@ -82,6 +73,9 @@ public class InvocationDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
+
+        var columnSeries = DATA_SERIES.as("column_selector_series");
+
         List<Invocation> invocations = DSL.using(conf).transactionResult(transaction ->
                 DSL.using(transaction)
                         .select()
@@ -100,6 +94,8 @@ public class InvocationDao {
                         )
                         .leftJoin(DATA_SERIES)
                         .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                        .leftJoin(columnSeries)
+                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                         .where(condition)
                         .limit(pagination.getLimit().orElse(10000))
                         .offset(pagination.getOffset().orElse(0))
@@ -108,7 +104,9 @@ public class InvocationDao {
                                 Invocation.mapper
                                         .withTask(Task.mapper
                                                 .withWorkerDef(WorkerDef.mapper)
-                                                .withSeries(DataSeries.mapper)
+                                                .withSeries(DataSeries.mapper.withDataConnection(
+                                                        DataConnection.mapper
+                                                ))
                                         )
                                         .withWorker(Worker.mapper.withDefinition(
                                                 WorkerDef.mapper
@@ -177,6 +175,9 @@ public class InvocationDao {
             Condition condition,
             Configuration transaction
     ) {
+
+        var columnSeries = DATA_SERIES.as("column_selector_series");
+
         Optional<Invocation> invocationResult = DSL.using(transaction)
                 .select()
                 .from(INVOCATION)
@@ -194,6 +195,8 @@ public class InvocationDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .leftJoin(columnSeries)
+                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
                 .where(condition)
@@ -468,6 +471,8 @@ public class InvocationDao {
     private List<Invocation> getLatestRunningOrPendingDataSyncInvocations(
             org.jooq.Configuration transaction
     ) {
+        var columnSeries = DATA_SERIES.as("column_selector_series");
+
         return DSL.using(transaction)
                 .select()
                 .from(INVOCATION)
@@ -480,6 +485,8 @@ public class InvocationDao {
                 .leftJoin(INVOCATION_COLUMN_SELECTOR)
                 .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
                 .leftJoin(DATA_SERIES)
+                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                .leftJoin(columnSeries)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .where(TASK.TASK_TYPE.eq(String.valueOf(TaskType.sync)))
                 .fetchStream()
