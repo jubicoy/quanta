@@ -142,7 +142,7 @@ public class DataController {
         });
 
         if (!skipImportData) {
-            Task.syncTask(dataSeries)
+            Task.syncTask(createdSeries)
                     .map(taskDao::create)
                     .ifPresent(task -> invocationDao.create(Invocation.invoke(task)));
         }

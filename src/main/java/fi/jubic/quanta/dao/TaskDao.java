@@ -92,14 +92,8 @@ public class TaskDao {
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
-                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingManyWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
-                                        .withSeries(
-                                                DataSeries.mapper.withDataConnection(
-                                                        DataConnection.mapper
-                                                )
-                                        )
                                         .withWorkerDefColumn(
                                                 WorkerDefColumn.workerDefColumnMapper
                                         )
@@ -169,13 +163,8 @@ public class TaskDao {
                 .fetchStream()
                 .collect(Task.mapper
                         .withWorkerDef(WorkerDef.mapper)
-                        .withSeries(DataSeries.mapper.withDataConnection(DataConnection.mapper))
                         .collectingWithColumnSelectors(
                                 ColumnSelector.taskColumnSelectorMapper
-                                        .withSeries(
-                                                DataSeries.mapper
-                                                        .withDataConnection(DataConnection.mapper)
-                                        )
                                         .withWorkerDefColumn(
                                                 WorkerDefColumn.workerDefColumnMapper
                                         )
