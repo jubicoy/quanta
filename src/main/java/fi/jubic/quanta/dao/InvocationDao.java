@@ -12,7 +12,6 @@ import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.Parameter;
 import fi.jubic.quanta.models.Task;
-import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerDefColumn;
@@ -36,12 +35,27 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static fi.jubic.quanta.db.Tables.*;
+import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
+import static fi.jubic.quanta.db.Tables.DATA_SERIES;
+import static fi.jubic.quanta.db.Tables.INVOCATION;
+import static fi.jubic.quanta.db.Tables.INVOCATION_COLUMN_SELECTOR;
+import static fi.jubic.quanta.db.Tables.INVOCATION_OUTPUT_COLUMN;
+import static fi.jubic.quanta.db.Tables.INVOCATION_PARAMETER;
+import static fi.jubic.quanta.db.Tables.TASK;
+import static fi.jubic.quanta.db.Tables.WORKER;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
+import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
 
 
 public class InvocationDao {
     private final org.jooq.Configuration conf;
     private final WorkerDefDao workerDefDao;
+
+    static final fi.jubic.quanta.db.tables.DataSeries COLUMN_DATA_SERIES =
+            DATA_SERIES.as("column_selector_series");
+
+    static final fi.jubic.quanta.db.tables.DataConnection COLUMN_DATA_CONNECTION =
+            DATA_CONNECTION.as("column_selector_connection");
 
     @Inject
     InvocationDao(
@@ -73,9 +87,6 @@ public class InvocationDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-
-        var columnSeries = DATA_SERIES.as("column_selector_series");
-
         List<Invocation> invocations = DSL.using(conf).transactionResult(transaction ->
                 DSL.using(transaction)
                         .select()
@@ -94,8 +105,12 @@ public class InvocationDao {
                         )
                         .leftJoin(DATA_SERIES)
                         .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                        .leftJoin(columnSeries)
-                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
+                        .leftJoin(DATA_CONNECTION)
+                        .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                        .leftJoin(COLUMN_DATA_SERIES)
+                        .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(COLUMN_DATA_SERIES.ID))
+                        .leftJoin(COLUMN_DATA_CONNECTION)
+                        .on(COLUMN_DATA_SERIES.DATA_CONNECTION_ID.eq(COLUMN_DATA_CONNECTION.ID))
                         .where(condition)
                         .limit(pagination.getLimit().orElse(10000))
                         .offset(pagination.getOffset().orElse(0))
@@ -114,9 +129,12 @@ public class InvocationDao {
                                         )
                                         .collectingManyWithColumnSelectors(
                                                 ColumnSelector.invocationColumnSelectorMapper
-                                                        .withSeries(DataSeries.mapper
+                                                        .withSeries(
+                                                                DataSeries.mapper
+                                                                .alias(COLUMN_DATA_SERIES)
                                                                 .withDataConnection(
-                                                                        DataConnection.mapper
+                                                                    DataConnection.mapper
+                                                                    .alias(COLUMN_DATA_CONNECTION)
                                                                 )
                                                         )
                                                         .withWorkerDefColumn(
@@ -195,10 +213,12 @@ public class InvocationDao {
                 )
                 .leftJoin(DATA_SERIES)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .leftJoin(columnSeries)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                .leftJoin(COLUMN_DATA_SERIES)
+                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(COLUMN_DATA_SERIES.ID))
+                .leftJoin(COLUMN_DATA_CONNECTION)
+                .on(COLUMN_DATA_SERIES.DATA_CONNECTION_ID.eq(COLUMN_DATA_CONNECTION.ID))
                 .where(condition)
                 .fetchStream()
                 .collect(
@@ -211,8 +231,12 @@ public class InvocationDao {
                                 .withWorker(Worker.mapper.withDefinition(WorkerDef.mapper))
                                 .collectingWithColumnSelectors(
                                         ColumnSelector.invocationColumnSelectorMapper
-                                                .withSeries(DataSeries.mapper
-                                                        .withDataConnection(DataConnection.mapper)
+                                                .withSeries(
+                                                        DataSeries.mapper.alias(COLUMN_DATA_SERIES)
+                                                                .withDataConnection(
+                                                                    DataConnection.mapper
+                                                                    .alias(COLUMN_DATA_CONNECTION)
+                                                                )
                                                 )
                                                 .withWorkerDefColumn(
                                                         WorkerDefColumn.workerDefColumnMapper
@@ -485,10 +509,13 @@ public class InvocationDao {
                 .leftJoin(INVOCATION_COLUMN_SELECTOR)
                 .on(INVOCATION.ID.eq(INVOCATION_COLUMN_SELECTOR.INVOCATION_ID))
                 .leftJoin(DATA_SERIES)
-                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .leftJoin(columnSeries)
                 .on(TASK.DATA_SERIES_ID.eq(DATA_SERIES.ID))
-                .where(TASK.TASK_TYPE.eq(String.valueOf(TaskType.sync)))
+                .leftJoin(DATA_CONNECTION)
+                .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                .leftJoin(COLUMN_DATA_SERIES)
+                .on(INVOCATION_COLUMN_SELECTOR.DATA_SERIES_ID.eq(COLUMN_DATA_SERIES.ID))
+                .leftJoin(COLUMN_DATA_CONNECTION)
+                .on(COLUMN_DATA_SERIES.DATA_CONNECTION_ID.eq(COLUMN_DATA_CONNECTION.ID))
                 .fetchStream()
                 .collect(
                         Invocation.mapper
@@ -503,8 +530,12 @@ public class InvocationDao {
                                 )
                                 .collectingManyWithColumnSelectors(
                                         ColumnSelector.invocationColumnSelectorMapper
-                                                .withSeries(DataSeries.mapper
-                                                        .withDataConnection(DataConnection.mapper)
+                                                .withSeries(
+                                                        DataSeries.mapper.alias(COLUMN_DATA_SERIES)
+                                                                .withDataConnection(
+                                                                    DataConnection.mapper
+                                                                    .alias(COLUMN_DATA_CONNECTION)
+                                                                )
                                                 )
                                 )
                 )
