@@ -1,4 +1,4 @@
-import React, { useState, useContext, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { useWorkers } from '../../../hooks';
 import { _DataConnectionConfiguratorContext } from '../DataImportPage';
 import {
@@ -11,6 +11,7 @@ import {
 import {
   DataConnection,
   DataSeries,
+  Worker,
   DEFAULT_IMPORT_WORKER_DATA_CONNECTION,
   DEFAULT_IMPORT_WORKER_DATA_SERIES
 } from '../../../types';
@@ -32,34 +33,33 @@ export const ImportWorkerDataConnectionConfigurator = () => {
     setSuccess,
     setError,
 
+    selectedWorker,
+    setSelectedWorker,
+
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
-  const notDeleted = true;
   const workerQuery = useMemo(
     () => ({
-      notDeleted
+      notDeleted: true
     }),
-    [notDeleted]
+    []
   );
 
   const { workers } = useWorkers(workerQuery);
-
-  const [worker, setWorker] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const workerOptions = workers && workers.filter(w => w.definition.type === 'Import').map((worker: any, idx) =>
     <MenuItem key={idx} value={worker}>{worker.definition.name}</MenuItem>
   );
 
   const onHandleNext = () => {
-    if (worker) {
+    if (selectedWorker) {
       const updatedDataConnection: DataConnection = {
         ...DEFAULT_IMPORT_WORKER_DATA_CONNECTION,
         ...dataConnection,
         configuration: {
           type: 'IMPORT_WORKER',
-          workerDefId: worker.id
+          workerDefId: selectedWorker.id
         }
       };
       /// Submit DataConnection
@@ -73,14 +73,12 @@ export const ImportWorkerDataConnectionConfigurator = () => {
             ...DEFAULT_IMPORT_WORKER_DATA_SERIES,
             dataConnection: resDataConnection
           };
-          console.log(sampleDataSeries);
 
           /// Sample DataSeries
           sample(resDataConnection.id, sampleDataSeries)
             .then((response: SampleResponse) => {
             // Set context sampleResponse to response
               setSampleResponse(response);
-console.log(response);
 
               // Set context DataSeries/DataConnection to sampled one from response
               setDataSeries(response.dataSeries);
@@ -92,12 +90,10 @@ console.log(response);
               handleForward();
             })
             .catch((e: Error) => {
-              setIsLoading(false);
               setError('Failed to sample DataSeries', e);
             });
         })
         .catch((e: Error) => {
-          setIsLoading(false);
           setError('Failed to create DataConnection', e);
         });
     }
@@ -116,25 +112,25 @@ console.log(response);
           </InputLabel>
           <Select
             fullWidth
-            value={worker}
+            value={selectedWorker}
             onChange={e => {
-              const value = e.target.value;
-              setWorker(value);
+              const value = e.target.value as Worker;
+              setSelectedWorker(value);
             }}
           >
             {workerOptions}
           </Select>
-          {worker
+          {selectedWorker
       && <div style={{ padding: '15px 0' }}>
-        <T variant='body1'>Name: <b>{worker.definition.name}</b></T>
-        <T variant='body1'>Description: <b>{worker.definition.description}</b></T>
+        <T variant='body1'>Name: <b>{selectedWorker.definition.name}</b></T>
+        <T variant='body1'>Description: <b>{selectedWorker.definition.description}</b></T>
       </div> }
         </CardContent>
       </Card>
 
       <StepperButtons
         onNextClick={onHandleNext}
-        disableNext={!worker}
+        disableNext={!selectedWorker}
       />
     </>
   );

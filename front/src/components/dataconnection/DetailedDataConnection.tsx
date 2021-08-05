@@ -166,6 +166,26 @@ export default ({
           </Table>
         );
 
+      case 'IMPORT_WORKER':
+        return (
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell component='th'>Name</TableCell>
+                <TableCell component='th'>Description</TableCell>
+                <TableCell component='th'>Type</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              <TableRow>
+                <TableCell>{dataConnection.name}</TableCell>
+                <TableCell>{dataConnection.description}</TableCell>
+                <TableCell>{dataConnection.type}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        );
+
       default:
         break;
     }
