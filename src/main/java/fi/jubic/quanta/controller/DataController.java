@@ -185,7 +185,7 @@ public class DataController {
         importer.getRows(
                 dataSeriesWithNewTableName,
                 batch -> timeSeriesDao.insertData(
-                        dataSeries,
+                        dataSeriesWithNewTableName,
                         batch
                 )
         ).join();
