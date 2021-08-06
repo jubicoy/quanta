@@ -29,7 +29,7 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     }
   }, [selectedColumns]);
 
-  return (selectedWorker) ? (
+  return (
     <>
       <Card>
         <CardContent>
@@ -50,5 +50,5 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
         disableNext={!complete}
       />
     </>
-  ) : <div>Loading</div>;
+  );
 };
