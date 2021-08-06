@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Button } from '@material-ui/core';
+import { Button, Grid } from '@material-ui/core';
 
 import { CsvColumnSelect } from '.';
 import { _DataConnectionConfiguratorContext } from '../DataImportPage';
@@ -82,13 +82,20 @@ export const CsvDataPreprocessingConfigurator = () => {
           handleCsvConfigurationChange={handleCsvConfigurationChange}
           handleCsvConfigurationReset={handleCsvConfigurationReset}
         />
-        <Button
-          color='primary'
-          variant='contained'
-          onClick={handleSample}
-        >
-          Fetch Sample
-        </Button>
+        <Grid
+          style={{
+            padding: '10px'
+          }}
+          item
+          xs={6}>
+          <Button
+            color='primary'
+            variant='contained'
+            onClick={handleSample}
+          >
+            Fetch Sample
+          </Button>
+        </Grid>
         <StepperButtons
           onNextClick={handleForward}
           disableNext={!complete}
