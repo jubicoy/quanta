@@ -8,7 +8,7 @@ import { Card, CardContent, TextField, InputLabel, CardHeader } from '@material-
 import StepperButtons from '../StepperButtons';
 import { dataStyles } from '../DataStyles';
 
-import { uploadFile, sample, submitDataConnection } from '../../../client';
+import { uploadFile, submitDataConnection } from '../../../client';
 import {
   DataConnection,
   DataSeries,
@@ -16,7 +16,6 @@ import {
   DEFAULT_CSV_DATA_SERIES,
   FileUploadResponse
 } from '../../../types';
-import { SampleResponse } from '../../../types/Api';
 
 // Set path, settings and upload csv
 // Call both upload and sample in this step
@@ -29,10 +28,6 @@ export const CsvDataConnectionConfigurator = () => {
     dataConnection,
     setDataConnection,
     setDataSeries,
-
-    setSampleResponse,
-
-    setSampleData,
 
     setSuccess,
     setError,
@@ -109,26 +104,8 @@ export const CsvDataConnectionConfigurator = () => {
                 ...DEFAULT_CSV_DATA_SERIES,
                 dataConnection: resDataConnection
               };
-
-              /// Sample DataSeries
-              sample(resDataConnection.id, sampleDataSeries)
-                .then((response: SampleResponse) => {
-                  // Set context sampleResponse to response
-                  setSampleResponse(response);
-
-                  // Set context DataSeries/DataConnection to sampled one from response
-                  setDataSeries(response.dataSeries);
-
-                  // Set context sampleData from response
-                  setSampleData(response.data);
-
-                  setSuccess('DataConnection created successfully');
-                  handleForward();
-                })
-                .catch((e: Error) => {
-                  setIsLoading(false);
-                  setError('Failed to sample DataSeries', e);
-                });
+              setDataSeries(sampleDataSeries);
+              handleForward();
             })
             .catch((e: Error) => {
               setIsLoading(false);
