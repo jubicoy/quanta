@@ -45,6 +45,7 @@ export const CsvDataPreprocessingConfigurator = () => {
   const handleCsvConfigurationChange = (configurations: CsvDataSeriesConfiguration) => {
     setDataSeries({
       ...dataSeries,
+      columns: [],
       configuration: configurations
     });
   };
