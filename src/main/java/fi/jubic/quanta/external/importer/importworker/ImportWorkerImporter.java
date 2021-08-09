@@ -1,6 +1,5 @@
 package fi.jubic.quanta.external.importer.importworker;
 
-import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.TaskDao;
@@ -14,10 +13,12 @@ import fi.jubic.quanta.models.DataConnectionConfiguration;
 import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.DataSeriesConfiguration;
 import fi.jubic.quanta.models.ImportWorkerDataSample;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.InvocationQuery;
 import fi.jubic.quanta.models.InvocationStatus;
+import fi.jubic.quanta.models.Parameter;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
@@ -25,6 +26,7 @@ import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerQuery;
 import fi.jubic.quanta.models.WorkerStatus;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
+import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
@@ -50,7 +52,6 @@ public class ImportWorkerImporter implements Importer {
     private final TaskDao taskDao;
     private final WorkerDefDao workerDefDao;
     private final WorkerDao workerDao;
-    private final DataSeriesDao dataSeriesDao;
 
     private final ExecutorService executor;
 
@@ -60,15 +61,13 @@ public class ImportWorkerImporter implements Importer {
             InvocationDao invocationDao,
             TaskDao taskDao,
             WorkerDefDao workerDefDao,
-            WorkerDao workerDao,
-            DataSeriesDao dataSeriesDao) {
+            WorkerDao workerDao) {
 
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
         this.invocationDao = invocationDao;
         this.taskDao = taskDao;
         this.workerDefDao = workerDefDao;
         this.workerDao = workerDao;
-        this.dataSeriesDao = dataSeriesDao;
 
         this.executor = Executors.newFixedThreadPool(5);
     }
@@ -192,6 +191,45 @@ public class ImportWorkerImporter implements Importer {
                                             .setId(workerDefColumn.getId())
                                             .build()
                             ));
+
+                    if (workerDef.getParameters() != null) {
+
+                        List<Parameter> seriesParameters = new ArrayList<>();
+
+                        workerDef.getParameters().forEach(workerParameter -> seriesParameters.add(
+                                Parameter.builder()
+                                        .setName(workerParameter.getName())
+                                        .setValue(workerParameter.getDefaultValue())
+                                        .build())
+                        );
+
+                        ImportWorkerDataSeriesConfiguration config = dataSeries
+                                .getConfiguration().visit(
+                                    new DataSeriesConfiguration
+                                            .DefaultFunctionVisitor<>() {
+                                        @Override
+                                        public ImportWorkerDataSeriesConfiguration onImportWorker(
+                                                ImportWorkerDataSeriesConfiguration importConfig
+                                        ) {
+                                            return importConfig;
+                                        }
+
+                                        @Override
+                                        public ImportWorkerDataSeriesConfiguration otherwise(
+                                                DataSeriesConfiguration ignored
+                                        ) {
+                                            throw new IllegalStateException();
+                                        }
+                                    }
+                        );
+
+                        dataSeries = dataSeries.toBuilder()
+                                .setConfiguration(config
+                                        .toBuilder()
+                                        .setParameters(seriesParameters)
+                                        .build())
+                                .build();
+                    }
 
                     return DataSample.builder()
                             .setDataSeries(dataSeries
