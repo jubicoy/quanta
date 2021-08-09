@@ -23,7 +23,7 @@
     <parent>
         <groupId>fi.jubic</groupId>
         <artifactId>snoozy-starter-jooq</artifactId>
-        <version>0.7.4</version>
+        <version>0.7.5</version>
     </parent>
 
 
