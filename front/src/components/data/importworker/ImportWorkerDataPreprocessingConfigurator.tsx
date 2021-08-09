@@ -29,7 +29,7 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     }
   }, [selectedColumns]);
 
-  return (
+  return (selectedWorker) ? (
     <>
       <Card>
         <CardContent>
@@ -44,11 +44,10 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
           />
         </CardContent>
       </Card>
-
       <StepperButtons
         onNextClick={handleForward}
         disableNext={!complete}
       />
     </>
-  );
+  ) : <div>Loading</div>;
 };
