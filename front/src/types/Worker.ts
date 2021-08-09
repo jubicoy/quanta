@@ -14,7 +14,7 @@ export interface WorkerParameter {
   defaultValue: string | null;
 }
 
-export type WorkerType = 'Sync' | 'Detect' | 'Forecast';
+export type WorkerType = 'Sync' | 'Detect' | 'Forecast' | 'Import';
 
 export type WorkerStatus = 'Accepted' | 'Pending';
 

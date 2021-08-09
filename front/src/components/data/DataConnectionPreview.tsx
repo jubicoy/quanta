@@ -27,6 +27,7 @@ import { dataStyles } from './DataStyles';
 import { CsvPreview } from './csv';
 import { JdbcPreview } from './jdbc';
 import { JsonIngestPreview } from './json';
+import { ImportWorkerPreview } from './importworker';
 
 interface ExtendedProps {
   column: Column;
@@ -143,6 +144,12 @@ export const DataConnectionPreview = ({
     case 'JSON_INGEST':
       connectionPreview = (
         <JsonIngestPreview />
+      );
+      break;
+
+    case 'IMPORT_WORKER':
+      connectionPreview = (
+        <ImportWorkerPreview />
       );
       break;
 

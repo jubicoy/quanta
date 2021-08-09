@@ -4,6 +4,8 @@ export * from './JdbcConfigurations';
 
 export * from './JsonIngestConfigurations';
 
+export * from './ImportWorkerConfigurations';
+
 export * from './Api';
 
 export * from './DataConnections';

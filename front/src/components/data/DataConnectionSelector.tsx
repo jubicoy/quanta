@@ -69,12 +69,13 @@ export const DataConnectionSelector = ({
     const types = {
       'CSV': 'description',
       'JDBC': 'dns',
-      'JSON_INGEST': 'code'
+      'JSON_INGEST': 'code',
+      'IMPORT_WORKER': 'storage'
     };
     return Object.entries(types).map(entry => {
       const type = entry[0] as DataConnectionType;
       const icon = entry[1];
-      return <Grid item xs={4} key={type.toString()}>
+      return <Grid item xs={3} key={type.toString()}>
         <Button
           className={classes.dataConnectionButton}
           variant='outlined'

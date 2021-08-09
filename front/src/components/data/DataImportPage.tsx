@@ -27,11 +27,17 @@ import {
 } from './json';
 
 import {
+  ImportWorkerDataConnectionConfigurator,
+  ImportWorkerDataPreprocessingConfigurator
+} from './importworker';
+
+import {
   FileUploadResponse,
   DataConnection,
   DataSeries,
   DEFAULT_JDBC_DATA_CONNECTION,
-  DEFAULT_JDBC_DATA_SERIES
+  DEFAULT_JDBC_DATA_SERIES,
+  Worker
 } from '../../types';
 
 import { DataConnectionType } from '../../types/DataConnections';
@@ -49,6 +55,9 @@ function getSteps () {
 interface DataConnectionConfiguratorContext {
   uploadedData: FileUploadResponse | null;
   setUploadedData: (data: FileUploadResponse | null) => void;
+
+  selectedWorker: Worker | null;
+  setSelectedWorker: (data: Worker | null) => void;
 
   dataConnection: DataConnection;
   setDataConnection: (dataConnection: DataConnection) => void;
@@ -77,6 +86,9 @@ export const _DataConnectionConfiguratorContext = React.createContext<DataConnec
   setUploadedData: () => {},
   // In context because Step 2
   setUploadProgress: () => {},
+
+  selectedWorker: null,
+  setSelectedWorker: () => {},
 
   // In context because one DataSeries (containing DataConnection)
   // is maintained in the importing process
@@ -113,6 +125,9 @@ export const DataImportPage = () => {
   const [uploadedData, setUploadedData] = React
     .useState<FileUploadResponse | null>(null);
 
+  const [selectedWorker, setSelectedWorker] = React
+    .useState<Worker | null>(null);
+
   const [dataConnection, setDataConnection] = useState<DataConnection>(DEFAULT_JDBC_DATA_CONNECTION);
   const [dataSeries, setDataSeries] = React
     .useState<DataSeries>(DEFAULT_JDBC_DATA_SERIES);
@@ -140,6 +155,7 @@ export const DataImportPage = () => {
     setDataConnection(DEFAULT_JDBC_DATA_CONNECTION);
     setDataSeries(DEFAULT_JDBC_DATA_SERIES);
     setUploadedData(null);
+    setSelectedWorker(null);
     setSampleResponse(null);
     setSampleData([]);
   };
@@ -188,6 +204,13 @@ export const DataImportPage = () => {
         });
         break;
 
+      case 'IMPORT_WORKER':
+        setDataConnection({
+          ...dataConnection,
+          type: 'IMPORT_WORKER'
+        });
+        break;
+
       default:
         break;
     }
@@ -210,6 +233,9 @@ export const DataImportPage = () => {
           uploadedData: uploadedData,
           setUploadedData: setUploadedData,
           setUploadProgress: setUploadProgress,
+
+          selectedWorker: selectedWorker,
+          setSelectedWorker: setSelectedWorker,
 
           dataConnection: dataConnection,
           setDataConnection: setDataConnection,
@@ -244,6 +270,8 @@ export const DataImportPage = () => {
                     return <JdbcDataConnectionConfigurator />;
                   case 'JSON_INGEST':
                     return <JsonIngestDataConnectionConfigurator />;
+                  case 'IMPORT_WORKER':
+                    return <ImportWorkerDataConnectionConfigurator />;
 
                   default:
                     return null;
@@ -256,7 +284,8 @@ export const DataImportPage = () => {
                     return <JdbcDataPreprocessingConfigurator />;
                   case 'JSON_INGEST':
                     return <JsonIngestDataPreprocessingConfigurator />;
-
+                  case 'IMPORT_WORKER':
+                    return <ImportWorkerDataPreprocessingConfigurator />;
                   default:
                     return null;
                 }

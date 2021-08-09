@@ -12,11 +12,15 @@ import {
   Invocation,
   JsonIngestDataConnectionConfiguration,
   DEFAULT_JSON_INGEST_DATA_CONNECTION_CONFIGURATION,
-  DEFAULT_JSON_INGEST_DATA_SERIES_CONFIGURATION
+  DEFAULT_JSON_INGEST_DATA_SERIES_CONFIGURATION,
+  ImportWorkerDataConnectionConfiguration,
+  ImportWorkerDataSeriesConfiguration,
+  DefaultImportWorkerDataConnectionConfiguration,
+  DefaultImportWorkerDataSeriesConfiguration
 } from '.';
 import { JsonIngestDataSeriesConfiguration } from './JsonIngestConfigurations';
 
-export type DataConnectionType = 'CSV' | 'JDBC' | 'JSON_INGEST';
+export type DataConnectionType = 'CSV' | 'JDBC' | 'JSON_INGEST' | 'IMPORT_WORKER';
 
 export interface TypeMetadata {
   type: DataConnectionType;
@@ -34,7 +38,7 @@ export interface DataConnection {
   name: string;
   description: string;
   type: DataConnectionType;
-  configuration: CsvDataConnectionConfiguration | JdbcDataConnectionConfiguration | JsonIngestDataConnectionConfiguration;
+  configuration: CsvDataConnectionConfiguration | JdbcDataConnectionConfiguration | JsonIngestDataConnectionConfiguration | ImportWorkerDataConnectionConfiguration;
   series: DataSeries[];
   deletedAt?: string;
 }
@@ -50,7 +54,7 @@ export interface DataSeries {
   description: string;
   columns: Column[];
   dataConnection?: DataConnection;
-  configuration: CsvDataSeriesConfiguration | JdbcDataSeriesConfiguration | JsonIngestDataSeriesConfiguration;
+  configuration: CsvDataSeriesConfiguration | JdbcDataSeriesConfiguration | JsonIngestDataSeriesConfiguration | ImportWorkerDataSeriesConfiguration;
 }
 
 export interface Column {
@@ -157,4 +161,22 @@ export const DEFAULT_JSON_INGEST_DATA_SERIES: DataSeries = {
   description: '',
   columns: [],
   configuration: DEFAULT_JSON_INGEST_DATA_SERIES_CONFIGURATION
+};
+
+export const DEFAULT_IMPORT_WORKER_DATA_CONNECTION: DataConnection = {
+  id: 0,
+  name: '',
+  description: '',
+  type: 'IMPORT_WORKER',
+  configuration: DefaultImportWorkerDataConnectionConfiguration,
+  series: []
+};
+
+export const DEFAULT_IMPORT_WORKER_DATA_SERIES: DataSeries = {
+  id: 0,
+  name: '',
+  type: 'IMPORT_WORKER',
+  description: '',
+  columns: [],
+  configuration: DefaultImportWorkerDataSeriesConfiguration
 };
