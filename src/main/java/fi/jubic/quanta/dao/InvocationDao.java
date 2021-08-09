@@ -193,9 +193,6 @@ public class InvocationDao {
             Condition condition,
             Configuration transaction
     ) {
-
-        var columnSeries = DATA_SERIES.as("column_selector_series");
-
         Optional<Invocation> invocationResult = DSL.using(transaction)
                 .select()
                 .from(INVOCATION)
@@ -495,8 +492,6 @@ public class InvocationDao {
     private List<Invocation> getLatestRunningOrPendingDataSyncInvocations(
             org.jooq.Configuration transaction
     ) {
-        var columnSeries = DATA_SERIES.as("column_selector_series");
-
         return DSL.using(transaction)
                 .select()
                 .from(INVOCATION)
