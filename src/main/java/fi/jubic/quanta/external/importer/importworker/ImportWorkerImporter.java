@@ -200,7 +200,8 @@ public class ImportWorkerImporter implements Importer {
                                 Parameter.builder()
                                         .setName(workerParameter.getName())
                                         .setValue(workerParameter.getDefaultValue())
-                                        .build())
+                                        .build()
+                                )
                         );
 
                         ImportWorkerDataSeriesConfiguration config = dataSeries

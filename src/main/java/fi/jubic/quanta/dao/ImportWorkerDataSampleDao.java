@@ -21,6 +21,7 @@ public class ImportWorkerDataSampleDao {
         return Optional.ofNullable(sampleMap.remove(invocationId));
     }
 
+    //batched upload puts everything with same invocation ID -> replaces everything
     public void putSample(Long invocationId, ImportWorkerDataSample sample) {
         if (sample.getData().isEmpty() && sample.getColumns().isEmpty()) {
             sampleMap.put(invocationId, sample.toBuilder()

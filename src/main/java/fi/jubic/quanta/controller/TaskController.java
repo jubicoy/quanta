@@ -276,36 +276,38 @@ public class TaskController {
 
             });
 
-            //if offset != null, we replace data within that offset...
-            if (invocation.getTask().getSyncIntervalOffset() != null) {
+            if (measurements.size() == 0) {
+                //if offset != null, we replace data within that offset...
+                if (invocation.getTask().getSyncIntervalOffset() != null) {
 
-                timeSeriesDao.deleteRowsWithTableName(
-                        createdSeries.getTableName(),
-                        "0",
-                        Instant.from(Instant.now().minusSeconds(
-                                invocation.getTask().getSyncIntervalOffset()
-                        )),
-                        Instant.from(Instant.now()),
-                        conf
-                );
-            }
+                    timeSeriesDao.deleteRowsWithTableName(
+                            createdSeries.getTableName(),
+                            "0",
+                            Instant.from(Instant.now().minusSeconds(
+                                    invocation.getTask().getSyncIntervalOffset()
+                            )),
+                            Instant.from(Instant.now()),
+                            conf
+                    );
+                }
 
-            //...and if offset == null we replace everything
-            else {
-                SeriesTable table = SeriesTable
-                        .builder()
-                        .setId(-1L)
-                        .setTableName(createdSeries.getTableName())
-                        .setDataSeries(createdSeries)
-                        .build();
+                //...and if offset == null we replace everything
+                else {
+                    SeriesTable table = SeriesTable
+                            .builder()
+                            .setId(-1L)
+                            .setTableName(createdSeries.getTableName())
+                            .setDataSeries(createdSeries)
+                            .build();
 
-                timeSeriesDao.deleteTable(createdSeries, conf);
+                    timeSeriesDao.deleteTable(createdSeries, conf);
 
-                timeSeriesDao.createTableWithOutputColumns(
-                        table,
-                        outputColumns,
-                        conf
-                );
+                    timeSeriesDao.createTableWithOutputColumns(
+                            table,
+                            outputColumns,
+                            conf
+                    );
+                }
             }
 
 
