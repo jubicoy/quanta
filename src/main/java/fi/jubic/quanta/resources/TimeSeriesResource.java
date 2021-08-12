@@ -1,6 +1,7 @@
 package fi.jubic.quanta.resources;
 
 import fi.jubic.quanta.controller.TimeSeriesController;
+import fi.jubic.quanta.external.exporter.CsvExporter;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.QueryResult;
 import fi.jubic.quanta.models.TimeSeriesQuery;
@@ -13,6 +14,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.List;
 
 @Singleton
@@ -20,12 +22,15 @@ import java.util.List;
 @RolesAllowed({"ADMIN", "USER"})
 public class TimeSeriesResource {
     private final TimeSeriesController timeSeriesController;
+    private final CsvExporter csvExporter;
 
     @Inject
     TimeSeriesResource(
-            TimeSeriesController timeSeriesController
+            TimeSeriesController timeSeriesController,
+            CsvExporter csvExporter
     ) {
         this.timeSeriesController = timeSeriesController;
+        this.csvExporter = csvExporter;
     }
 
     @GET
@@ -35,5 +40,20 @@ public class TimeSeriesResource {
             @BeanParam Pagination pagination
     ) {
         return timeSeriesController.query(query, pagination);
+    }
+
+    @GET
+    @Produces("text/csv")
+    public Response queryCsv(
+            @BeanParam TimeSeriesQuery query,
+            @BeanParam Pagination pagination
+    ) {
+        return Response
+                .ok(
+                        csvExporter.timeSeriesExport(
+                                timeSeriesController.query(query, pagination)
+                        )
+                )
+                .build();
     }
 }

@@ -54,39 +54,11 @@ public class TimeSeriesDomain {
 
     }
 
-    @SuppressFBWarnings(
-            value = "REDOS",
-            justification = "Alternatives are exclusive and quantifiers are not used on same group."
-    )
     public List<TimeSeriesQuerySelector> parseSelectors(TimeSeriesQuery query) {
-        // Return list of all selectors from query
-        Pattern pattern = Pattern.compile(
-                // G1: (Optional) Modifiers(grouping/aggregation)
-                "^(?:(avg|min|max|sum|group_by|where|distinct)\\()?"
-                // G2: Type
-                + "(series|result|result_output):"
-                // G3: Series name
-                + "([a-zA-Z0-9-_]+)"
-                // G4: (Optional) InvocationNumber/"latest"
-                + "(?:\\.([1-9]+|latest))?"
-                // G5: Column name
-                + "\\.([a-zA-Z0-9-_]+)"
-                // G6: (Optional) Filter string
-                + "((?:\\s)?(?:=|!=|>|>=|<|<=)(?:\\s)?'[^'()]+')?\\)?"
-                // G7: (Optional) Alias
-                + "(?: as ([a-zA-Z0-9-_]+))?$"
-        );
         List<Matcher> matchers = query.getSelectors()
                 .stream()
-                .map(input -> {
-                    Matcher matcher = pattern.matcher(input);
-                    if (!matcher.matches()) {
-                        throw new IllegalArgumentException(
-                                "Invalid selector: " + input
-                        );
-                    }
-                    return matcher;
-                })
+                .map(TimeSeriesDomain::getMatcher)
+                .filter(Matcher::matches)
                 .collect(Collectors.toList());
 
         if (matchers.size() <= 0) {
@@ -175,6 +147,31 @@ public class TimeSeriesDomain {
                     })
                     .collect(Collectors.toList());
         }
+    }
+
+    @SuppressFBWarnings(
+            value = "REDOS",
+            justification = "Alternatives are exclusive and quantifiers are not used on same group."
+    )
+    public static Matcher getMatcher(String selector) {
+        // Return list of all selectors from query
+        Pattern pattern = Pattern.compile(
+                // G1: (Optional) Modifiers(grouping/aggregation)
+                "^(?:(avg|min|max|sum|group_by|where|distinct)\\()?"
+                        // G2: Type
+                        + "(series|result|result_output):"
+                        // G3: Series name
+                        + "([a-zA-Z0-9-_]+)"
+                        // G4: (Optional) InvocationNumber/"latest"
+                        + "(?:\\.([1-9]+|latest))?"
+                        // G5: Column name
+                        + "\\.([a-zA-Z0-9-_]+)"
+                        // G6: (Optional) Filter string
+                        + "((?:\\s)?(?:=|!=|>|>=|<|<=)(?:\\s)?'[^'()]+')?\\)?"
+                        // G7: (Optional) Alias
+                        + "(?: as ([a-zA-Z0-9-_]+))?$"
+        );
+        return pattern.matcher(selector);
     }
 
     public List<TimeSeriesQuerySelector> getSelectorsLimitedToTask(
