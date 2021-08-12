@@ -125,7 +125,12 @@ public class CsvExporter implements Exporter {
 
         if (matcher.group(7) == null) return selector;
 
-        return matcher.group(7);
+        return matcher.group(1) != null
+                ? String.format(
+                        "%s(%s)",
+                matcher.group(1),
+                matcher.group(7))
+                : matcher.group(7);
     }
 
     private String getGroupingSuffix(Map<String, Object> groupings) {
