@@ -12,6 +12,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
@@ -73,16 +74,17 @@ public class JsonIngestImporter implements Importer, Ingester {
     }
 
     @Override
-    public Stream<List<String>> getRows(DataSeries dataSeries) {
+    public Stream<List<String>> getRows(DataSeries dataSeries, Invocation invocation) {
         return Stream.empty();
     }
 
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     ) {
-        consumer.accept(getRows(dataSeries));
+        consumer.accept(getRows(dataSeries, invocation));
         return CompletableFuture.completedFuture(null);
     }
 

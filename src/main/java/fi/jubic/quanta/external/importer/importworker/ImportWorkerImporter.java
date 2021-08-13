@@ -254,6 +254,7 @@ public class ImportWorkerImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     ) {
         ImportWorkerDataConnectionConfiguration configuration =
@@ -278,22 +279,6 @@ public class ImportWorkerImporter implements Importer {
                                 );
                             }
                         });
-
-        List<Invocation> invocations = invocationDao.search(
-                new InvocationQuery().withWorker(
-                        workerDao.search(
-                                new WorkerQuery()
-                                        .withWorkerDefId(configuration.getWorkerDefId())
-                                        .withStatus(WorkerStatus.Accepted)
-                        )
-                                .stream()
-                                .findFirst()
-                                .get()
-                                .getId()
-                )
-        );
-
-        Invocation invocation = invocations.get(invocations.size() - 1);
 
         return CompletableFuture.supplyAsync(
                 () -> {

@@ -31,7 +31,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -150,24 +149,25 @@ public class DataController {
         return createdSeries;
     }
 
-    public void sync(DataSeries dataSeries, Task task) {
+    public void sync(DataSeries dataSeries, Invocation invocation) {
         DataSeries existingSeries = getSeriesDetailsByName(dataSeries.getName())
                 .orElseThrow(NotFoundException::new);
 
-        if (task.getSyncIntervalOffset() != null) {
+        if (invocation.getTask().getSyncIntervalOffset() != null) {
             Instant now = Instant.now();
             syncIncremental(
                     existingSeries,
-                    now.minusSeconds(task.getSyncIntervalOffset()),
+                    invocation,
+                    now.minusSeconds(invocation.getTask().getSyncIntervalOffset()),
                     now
             );
         }
         else {
-            syncReplace(existingSeries);
+            syncReplace(existingSeries, invocation);
         }
     }
 
-    private void syncReplace(DataSeries dataSeries) {
+    private void syncReplace(DataSeries dataSeries, Invocation invocation) {
         DataSeries dataSeriesWithNewTableName = dataSeries.toBuilder()
                 .setTableName(
                         String.format(
@@ -184,6 +184,7 @@ public class DataController {
         );
         importer.getRows(
                 dataSeriesWithNewTableName,
+                invocation,
                 batch -> timeSeriesDao.insertData(
                         dataSeriesWithNewTableName,
                         batch
@@ -209,7 +210,9 @@ public class DataController {
         );
     }
 
-    private void syncIncremental(DataSeries dataSeries, Instant start, Instant end) {
+    private void syncIncremental(
+            DataSeries dataSeries, Invocation invocation, Instant start, Instant end
+    ) {
         DSL.using(conf).transaction(transaction -> {
             timeSeriesDao.deleteRowsWithTableName(
                     dataSeries.getTableName(),
@@ -221,6 +224,7 @@ public class DataController {
 
             importer.getRows(
                     dataSeries,
+                    invocation,
                     batch -> timeSeriesDao.insertData(
                             dataSeries,
                             batch.filter(row -> {
@@ -295,16 +299,6 @@ public class DataController {
                 ),
                 5
         );
-    }
-
-    public List<List<String>> getResult(
-            DataSeries dataSeries
-    ) {
-        if (dataSeries.getType().equals(DataConnectionType.IMPORT_WORKER)) {
-            return importer.getRows(dataSeries).collect(Collectors.toList());
-        }
-
-        return Collections.emptyList();
     }
 
     public TypeMetadata getMetadata(String type) {

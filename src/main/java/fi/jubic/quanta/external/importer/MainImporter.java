@@ -11,6 +11,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
@@ -212,6 +213,7 @@ public class MainImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     ) {
         return dataSeries.getConfiguration()
@@ -220,28 +222,28 @@ public class MainImporter implements Importer {
                     public CompletableFuture<Void> onCsv(
                             CsvDataSeriesConfiguration csvConfiguration
                     ) {
-                        return csvImporter.getRows(dataSeries, consumer);
+                        return csvImporter.getRows(dataSeries, invocation, consumer);
                     }
 
                     @Override
                     public CompletableFuture<Void> onJdbc(
                             JdbcDataSeriesConfiguration jdbcConfiguration
                     ) {
-                        return jdbcImporter.getRows(dataSeries, consumer);
+                        return jdbcImporter.getRows(dataSeries, invocation, consumer);
                     }
 
                     @Override
                     public CompletableFuture<Void> onJson(
                             JsonIngestDataSeriesConfiguration ignored
                     ) {
-                        return jsonImporter.getRows(dataSeries, consumer);
+                        return jsonImporter.getRows(dataSeries, invocation, consumer);
                     }
 
                     @Override
                     public CompletableFuture<Void> onImportWorker(
                             ImportWorkerDataSeriesConfiguration ignored
                     ) {
-                        return importWorkerImporter.getRows(dataSeries, consumer);
+                        return importWorkerImporter.getRows(dataSeries, invocation, consumer);
                     }
                 });
     }

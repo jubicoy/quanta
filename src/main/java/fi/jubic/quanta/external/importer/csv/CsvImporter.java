@@ -13,6 +13,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Type;
 import fi.jubic.quanta.models.configuration.CsvDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.CsvDataSeriesConfiguration;
@@ -193,7 +194,7 @@ public class CsvImporter implements Importer {
             value = "PATH_TRAVERSAL_IN",
             justification = "Csv filename not customizable AND also verified."
     )
-    public Stream<List<String>> getRows(DataSeries dataSeries) {
+    public Stream<List<String>> getRows(DataSeries dataSeries, Invocation invocation) {
         final CsvDataConnectionConfiguration csvConnectionConfig;
         csvConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
         final CsvDataSeriesConfiguration csvSeriesConfig;
@@ -266,9 +267,10 @@ public class CsvImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     ) {
-        consumer.accept(getRows(dataSeries));
+        consumer.accept(getRows(dataSeries, invocation));
         return CompletableFuture.completedFuture(null);
     }
 

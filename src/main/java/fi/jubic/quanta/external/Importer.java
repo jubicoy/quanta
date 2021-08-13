@@ -5,6 +5,7 @@ import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
@@ -24,10 +25,11 @@ public interface Importer {
 
     DataSample getSample(DataSeries dataSeries, int rows);
 
-    default Stream<List<String>> getRows(DataSeries dataSeries) {
+    default Stream<List<String>> getRows(DataSeries dataSeries, Invocation invocation) {
         List<List<String>> rows = new ArrayList<>();
         getRows(
                 dataSeries,
+                invocation,
                 batch -> rows.addAll(batch.collect(Collectors.toList()))
         ).join();
         return rows.stream();
@@ -35,6 +37,7 @@ public interface Importer {
 
     CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     );
 

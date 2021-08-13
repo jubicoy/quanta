@@ -11,6 +11,7 @@ import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesConfiguration;
+import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Type;
 import fi.jubic.quanta.models.configuration.JdbcDataConnectionConfiguration;
 import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
@@ -292,7 +293,7 @@ public class JdbcImporter implements Importer {
             justification = "The method is accessing user-owned data with given queries. "
                 + "Closeables are handled, but spotbugs does not realize it."
     )
-    public Stream<List<String>> getRows(DataSeries dataSeries) {
+    public Stream<List<String>> getRows(DataSeries dataSeries, Invocation invocation) {
         final JdbcDataConnectionConfiguration jdbcConnectionConfig;
         jdbcConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
         final JdbcDataSeriesConfiguration jdbcSeriesConfig;
@@ -354,9 +355,10 @@ public class JdbcImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
+            Invocation invocation,
             Consumer<Stream<List<String>>> consumer
     ) {
-        consumer.accept(getRows(dataSeries));
+        consumer.accept(getRows(dataSeries, invocation));
         return CompletableFuture.completedFuture(null);
     }
 
