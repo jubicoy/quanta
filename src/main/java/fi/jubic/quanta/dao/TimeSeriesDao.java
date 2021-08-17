@@ -508,7 +508,6 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(resultOutputFilters, query),
-                    true,
                     pagination
             );
         }
@@ -535,7 +534,6 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(resultOutputFilters, query),
-                    true,
                     pagination
             );
         }
@@ -596,14 +594,6 @@ public class TimeSeriesDao {
         ).collect(Collectors.toList());
 
         List<Field<?>> selectFields = selectColumns.stream()
-                .filter(columnSelector -> {
-                    Class<?> className = columnSelector.getColumn().getType().getClassName();
-                    return className.equals(Integer.class)
-                            || className.equals(Long.class)
-                            || className.equals(Float.class)
-                            || className.equals(Double.class);
-
-                })
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         return DSL.field(DSL.sql(
@@ -787,7 +777,6 @@ public class TimeSeriesDao {
      * @param selectColumns List of columns to be selected as data
      * @param outputColumns Full list of invocation output columns
      * @param condition SQL Condition built from filters and query's time-range
-     * @param filterNonNumericalValues Mapping data to worker requires all the values
      * @return Map with
      *     Keys: lists of grouping params' values
      *     Values: lists of Measurements
@@ -800,7 +789,6 @@ public class TimeSeriesDao {
             List<TimeSeriesResultOutputColumnSelector> selectColumns,
             List<OutputColumn> outputColumns,
             Condition condition,
-            Boolean filterNonNumericalValues,
             Pagination pagination
     ) {
         List<Field<?>> groupingFields = groupings.stream()
@@ -825,22 +813,7 @@ public class TimeSeriesDao {
         ).collect(Collectors.toList());
 
         List<Field<?>> selectFields = selectColumns.stream()
-                .filter(columnSelector -> {
-                    if (columnSelector.getOutputColumn().getIndex() == 0) {
-                        return false;
-                    }
-                    if (filterNonNumericalValues) {
-                        Class<?> className = columnSelector
-                                .getOutputColumn()
-                                .getType()
-                                .getClassName();
-                        return className.equals(Integer.class)
-                                || className.equals(Long.class)
-                                || className.equals(Float.class)
-                                || className.equals(Double.class);
-                    }
-                    return true;
-                })
+                .filter(columnSelector -> columnSelector.getOutputColumn().getIndex() != 0)
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         return DSL.field(DSL.sql(
@@ -1255,7 +1228,6 @@ public class TimeSeriesDao {
                     selectResultOutputColumns,
                     outputColumns,
                     buildConditionResultOutput(filters, query),
-                    filterNonNumericalValues,
                     pagination
             );
         }
@@ -1281,7 +1253,6 @@ public class TimeSeriesDao {
                 selectResultOutputColumns,
                 outputColumns,
                 buildConditionResultOutput(filters, query),
-                filterNonNumericalValues,
                 pagination
         );
     }
@@ -1297,13 +1268,6 @@ public class TimeSeriesDao {
             Pagination pagination
     ) {
         List<Field<?>> selectFields = selectColumns.stream()
-                .filter(columnSelector -> {
-                    Class<?> className = columnSelector.getColumn().getType().getClassName();
-                    return className.equals(Integer.class)
-                            || className.equals(Long.class)
-                            || className.equals(Float.class)
-                            || className.equals(Double.class);
-                })
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         throw new IllegalArgumentException("rawQuery can not have aggregation");
@@ -1357,25 +1321,10 @@ public class TimeSeriesDao {
             List<TimeSeriesResultOutputColumnSelector> selectColumns,
             List<OutputColumn> outputColumns,
             Condition condition,
-            Boolean filterNonNumericalValues,
             Pagination pagination
     ) {
         List<Field<?>> selectFields = selectColumns.stream()
-                .filter(columnSelector -> {
-                    if (columnSelector.getOutputColumn().getIndex() == 0) {
-                        return false;
-                    }
-                    if (filterNonNumericalValues) {
-                        Class<?> className = columnSelector.getOutputColumn()
-                                .getType()
-                                .getClassName();
-                        return className.equals(Integer.class)
-                                || className.equals(Long.class)
-                                || className.equals(Float.class)
-                                || className.equals(Double.class);
-                    }
-                    return true;
-                })
+                .filter(columnSelector -> columnSelector.getOutputColumn().getIndex() != 0)
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         throw new IllegalArgumentException("rawQuery can not have aggregation");
