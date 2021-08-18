@@ -594,6 +594,10 @@ public class TimeSeriesDao {
         ).collect(Collectors.toList());
 
         List<Field<?>> selectFields = selectColumns.stream()
+                .filter(columnSelector -> !Objects.equals(
+                        columnSelector.getModifier(),
+                        TimeSeriesModifier.distinct
+                ))
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         return DSL.field(DSL.sql(
@@ -814,6 +818,10 @@ public class TimeSeriesDao {
 
         List<Field<?>> selectFields = selectColumns.stream()
                 .filter(columnSelector -> columnSelector.getOutputColumn().getIndex() != 0)
+                .filter(columnSelector -> !Objects.equals(
+                        columnSelector.getModifier(),
+                        TimeSeriesModifier.distinct
+                ))
                 .map(columnSelector -> {
                     if (columnSelector.getModifier() != null) {
                         return DSL.field(DSL.sql(
