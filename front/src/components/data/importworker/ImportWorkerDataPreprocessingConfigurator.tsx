@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { _DataConnectionConfiguratorContext } from '../../context';
 import { SampleTable } from '..';
 import StepperButtons from '../StepperButtons';
-import { sample } from '../../../client';
+import { sample, updateDataConnectionTags } from '../../../client';
 import {
   Grid,
   Button,
@@ -17,13 +17,13 @@ import {
   TextField,
   TableBody
 } from '@material-ui/core';
-import {
-  ImportWorkerDataSeriesConfiguration
-} from '../../../types';
+
 import { SampleResponse } from '../../../types/Api';
-import {
-  useTags
-} from '../../../hooks';
+import { useTags } from '../../../hooks';
+
+import { ImportWorkerDataSeriesConfiguration } from '../../../types';
+import { SampleResponse } from '../../../types/Api';
+import { useTags } from '../../../hooks';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Chip from '@material-ui/core/Chip';
 
