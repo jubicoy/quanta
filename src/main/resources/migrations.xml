@@ -656,4 +656,30 @@
             </column>
         </addColumn>
     </changeSet>
+    <changeSet id="16" author="Binh Vo &lt;binh.vo@jubic.fi&gt;">
+        <createTable tableName="tag">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <createTable tableName="tag_task">
+            <column name="tag_id" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_tag_task" />
+            </column>
+            <column name="task_id" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_tag_task" />
+            </column>
+        </createTable>
+        <createTable tableName="tag_dataconnection">
+            <column name="tag_id" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_tag_dataconnection" />
+            </column>
+            <column name="dataconnection_id" type="bigint">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_tag_dataconnection" />
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>
