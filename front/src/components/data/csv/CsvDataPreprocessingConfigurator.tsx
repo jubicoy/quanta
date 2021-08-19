@@ -1,16 +1,21 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { Button, Grid } from '@material-ui/core';
+import { Button, Grid, TextField } from '@material-ui/core';
 
 import { CsvColumnSelect } from '.';
 
 import { _DataConnectionConfiguratorContext } from '../../context';
 
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 import {
   CsvDataSeriesConfiguration
 } from '../../../types';
+import {
+  useTags
+} from '../../../hooks';
 import { SampleResponse } from '../../../types/Api';
 import StepperButtons from '../StepperButtons';
-import { sample } from '../../../client';
+import { sample, updateDataConnectionTags } from '../../../client';
 
 export const CsvDataPreprocessingConfigurator = () => {
   const {
@@ -33,6 +38,7 @@ export const CsvDataPreprocessingConfigurator = () => {
   const selectedColumns = [...dataSeries.columns];
 
   const [complete, setComplete] = useState<boolean>(false);
+  const { tags } = useTags();
 
   useEffect(() => {
     if (selectedColumns.length > 0) {
@@ -76,6 +82,24 @@ export const CsvDataPreprocessingConfigurator = () => {
     }
   };
 
+  const nextStep = () => {
+    if (dataSeries.dataConnection && dataSeries.dataConnection.tags.length > 0) {
+      updateDataConnectionTags(dataSeries.dataConnection.id, dataSeries.dataConnection.tags)
+        .catch((e: Error) => {
+          setError('Fail to add tags', e);
+        });
+    }
+
+    handleForward();
+  };
+
+  const addTags = (value: string[]) => {
+    if (dataSeries && dataSeries.dataConnection) {
+      dataSeries.dataConnection.tags = value;
+      setDataSeries(dataSeries);
+    }
+  };
+
   return (uploadedData)
     ? (
       <>
@@ -98,8 +122,29 @@ export const CsvDataPreprocessingConfigurator = () => {
             Fetch Sample
           </Button>
         </Grid>
+        <Autocomplete
+          multiple
+          size='small'
+          style={{ marginTop: '15px' }}
+          options={tags || []}
+          freeSolo
+          onChange={(event, value) => addTags(value)}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) =>
+              <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+            )
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant='outlined'
+              label='Add Tag'
+              placeholder='Tag'
+            />
+          )}
+        />
         <StepperButtons
-          onNextClick={handleForward}
+          onNextClick={nextStep}
           disableNext={!complete}
         />
       </>

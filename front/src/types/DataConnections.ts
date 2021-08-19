@@ -40,6 +40,7 @@ export interface DataConnection {
   type: DataConnectionType;
   configuration: CsvDataConnectionConfiguration | JdbcDataConnectionConfiguration | JsonIngestDataConnectionConfiguration | ImportWorkerDataConnectionConfiguration;
   series: DataSeries[];
+  tags: string[];
   deletedAt?: string;
 }
 
@@ -115,7 +116,8 @@ export const DEFAULT_JDBC_DATA_CONNECTION: DataConnection = {
   description: '',
   type: 'JDBC',
   configuration: DefaultJdbcDataConnectionConfiguration,
-  series: []
+  series: [],
+  tags: []
 };
 
 export const DEFAULT_JDBC_DATA_SERIES: DataSeries = {
@@ -136,7 +138,8 @@ export const DEFAULT_CSV_DATA_CONNECTION: DataConnection = {
   description: '',
   type: 'CSV',
   configuration: DefaultCsvDataConnectionConfiguration,
-  series: []
+  series: [],
+  tags: []
 };
 
 export const DEFAULT_CSV_DATA_SERIES: DataSeries = {
@@ -154,7 +157,8 @@ export const DEFAULT_JSON_INGEST_DATA_CONNECTION: DataConnection = {
   description: '',
   type: 'JSON_INGEST',
   configuration: DEFAULT_JSON_INGEST_DATA_CONNECTION_CONFIGURATION,
-  series: []
+  series: [],
+  tags: []
 };
 
 export const DEFAULT_JSON_INGEST_DATA_SERIES: DataSeries = {
@@ -172,7 +176,8 @@ export const DEFAULT_IMPORT_WORKER_DATA_CONNECTION: DataConnection = {
   description: '',
   type: 'IMPORT_WORKER',
   configuration: DefaultImportWorkerDataConnectionConfiguration,
-  series: []
+  series: [],
+  tags: []
 };
 
 export const DEFAULT_IMPORT_WORKER_DATA_SERIES: DataSeries = {

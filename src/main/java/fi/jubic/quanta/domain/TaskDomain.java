@@ -52,6 +52,7 @@ public class TaskDomain {
                 .setTaskTrigger(newTask.getTaskTrigger())
                 .setParameters(newTask.getParameters())
                 .setSyncIntervalOffset(newTask.getSyncIntervalOffset())
+                .setTags(newTask.getTags())
                 .build();
     }
 

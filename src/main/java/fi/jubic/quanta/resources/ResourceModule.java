@@ -31,7 +31,8 @@ public class ResourceModule {
             WorkerManageResource workerManageResource,
             WorkerClientV1Resource workerClientV1Resource,
             IngestResource ingestResource,
-            ExternalClientResource externalClientResource
+            ExternalClientResource externalClientResource,
+            TagResource tagResource
     ) {
         return Stream
                 .of(
@@ -49,7 +50,8 @@ public class ResourceModule {
                         workerManageResource,
                         workerClientV1Resource,
                         ingestResource,
-                        externalClientResource
+                        externalClientResource,
+                        tagResource
                 )
                 .collect(Collectors.toSet());
     }

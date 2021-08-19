@@ -5,10 +5,12 @@ import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
+import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.domain.DataDomain;
+import fi.jubic.quanta.domain.TagDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.domain.TimeSeriesDomain;
 import fi.jubic.quanta.domain.WorkerDomain;
@@ -57,6 +59,7 @@ import java.util.stream.Collectors;
 public class TaskController {
     private final DataController dataController;
     private final TaskDomain taskDomain;
+    private final TagDomain tagDomain;
     private final TimeSeriesDomain timeSeriesDomain;
     private final WorkerDomain workerDomain;
     private final DataDomain dataDomain;
@@ -65,6 +68,7 @@ public class TaskController {
     private final InvocationDao invocationDao;
     private final SeriesResultDao seriesResultDao;
     private final TaskDao taskDao;
+    private final TagDao tagDao;
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
@@ -83,6 +87,8 @@ public class TaskController {
             InvocationDao invocationDao,
             SeriesResultDao seriesResultDao,
             TaskDao taskDao,
+            TagDao tagDao,
+            TagDomain tagDomain,
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
@@ -91,6 +97,7 @@ public class TaskController {
     ) {
         this.dataController = dataController;
         this.taskDomain = taskDomain;
+        this.tagDomain = tagDomain;
         this.timeSeriesDomain = timeSeriesDomain;
         this.workerDomain = workerDomain;
         this.dataDomain = dataDomain;
@@ -98,6 +105,7 @@ public class TaskController {
         this.invocationDao = invocationDao;
         this.seriesResultDao = seriesResultDao;
         this.taskDao = taskDao;
+        this.tagDao = tagDao;
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
@@ -107,11 +115,16 @@ public class TaskController {
     }
 
     public List<Task> search(TaskQuery query) {
-        return taskDao.search(query);
+        List<Task> tasks = taskDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+
+        return tagDao.enrichTaskTags(tasks);
     }
 
     public Optional<Task> getDetails(Long taskId) {
-        return taskDao.getDetails(taskId);
+        return taskDao.getDetails(taskId)
+                .map(tagDao::enrichTaskTags);
     }
 
 
@@ -125,7 +138,7 @@ public class TaskController {
         taskDao.getDetails(task.getId())
                 .orElseThrow(() -> new ApplicationException("Task does not exist"));
 
-        return taskDao.update(
+        Task updatedTask = taskDao.update(
                 task.getId(),
                 optionalTask -> taskDomain.update(
                         optionalTask.orElseThrow(
@@ -134,6 +147,13 @@ public class TaskController {
                         task
                 )
         );
+
+        tagDao.updateTaskTags(
+                task.getId(), tagDomain.validate(task.getTags())
+        );
+
+        return updatedTask.toBuilder().setTags(task.getTags()).build();
+
     }
 
     public List<Invocation> searchInvocations(InvocationQuery query) {

@@ -8,11 +8,16 @@ import {
   Paper,
   Button,
   Dialog,
+  TextField,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle
 } from '@material-ui/core';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
+
 import clsx from 'clsx';
 
 import {
@@ -28,8 +33,10 @@ import {
   useTasks,
   useNameCheck,
   useCronValidation,
-  useMultipleParametersValidation
+  useMultipleParametersValidation,
+  useTags
 } from '../../hooks';
+
 import {
   Task,
   InvocationStatus,
@@ -55,6 +62,7 @@ export default ({
   } = useTask(parseInt(id));
   const common = commonStyles();
   const { tasks } = useTasks();
+  const { tags } = useTags();
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [editOpen, setEditOpen] = useState<boolean>(false);
   const [invocationStatus, setInvocationStatus] = useState<InvocationStatus|undefined>(undefined);
@@ -248,6 +256,32 @@ export default ({
           }
         </div>
       </div>
+      <T variant='h6'>Tags</T>
+      <Paper className={clsx(common.topMargin, common.bottomMargin)}>
+        { !editOpen ? (editTask && editTask.tags.map((option, index) =>
+          <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
+        )) : <Autocomplete
+          multiple
+          size='small'
+          style={{ marginTop: '15px' }}
+          options={tags || []}
+          value={editTask.tags || []}
+          freeSolo
+          onChange={(event, value) => setEditTask({ ...editTask, tags: value })}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) =>
+              <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+            )
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant='outlined'
+              label='Add Tag'
+            />
+          )}
+        />}
+      </Paper>
       <T variant='h5'>Data Connection</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>
         {dataSeries?.map(

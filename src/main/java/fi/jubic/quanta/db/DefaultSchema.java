@@ -15,6 +15,9 @@ import fi.jubic.quanta.db.tables.InvocationOutputColumn;
 import fi.jubic.quanta.db.tables.InvocationParameter;
 import fi.jubic.quanta.db.tables.SeriesResult;
 import fi.jubic.quanta.db.tables.SeriesTable;
+import fi.jubic.quanta.db.tables.Tag;
+import fi.jubic.quanta.db.tables.TagDataconnection;
+import fi.jubic.quanta.db.tables.TagTask;
 import fi.jubic.quanta.db.tables.Task;
 import fi.jubic.quanta.db.tables.TaskColumnSelector;
 import fi.jubic.quanta.db.tables.TaskOutputColumn;
@@ -102,6 +105,21 @@ public class DefaultSchema extends SchemaImpl {
     public final SeriesTable SERIES_TABLE = SeriesTable.SERIES_TABLE;
 
     /**
+     * The table <code>tag</code>.
+     */
+    public final Tag TAG = Tag.TAG;
+
+    /**
+     * The table <code>tag_dataconnection</code>.
+     */
+    public final TagDataconnection TAG_DATACONNECTION = TagDataconnection.TAG_DATACONNECTION;
+
+    /**
+     * The table <code>tag_task</code>.
+     */
+    public final TagTask TAG_TASK = TagTask.TAG_TASK;
+
+    /**
      * The table <code>task</code>.
      */
     public final Task TASK = Task.TASK;
@@ -173,6 +191,9 @@ public class DefaultSchema extends SchemaImpl {
             InvocationParameter.INVOCATION_PARAMETER,
             SeriesResult.SERIES_RESULT,
             SeriesTable.SERIES_TABLE,
+            Tag.TAG,
+            TagDataconnection.TAG_DATACONNECTION,
+            TagTask.TAG_TASK,
             Task.TASK,
             TaskColumnSelector.TASK_COLUMN_SELECTOR,
             TaskOutputColumn.TASK_OUTPUT_COLUMN,

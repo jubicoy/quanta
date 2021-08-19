@@ -5,9 +5,11 @@ import fi.jubic.quanta.dao.DataConnectionDao;
 import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesTableDao;
+import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.domain.DataDomain;
+import fi.jubic.quanta.domain.TagDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.exception.InputException;
@@ -48,6 +50,7 @@ public class DataController {
     private final InvocationDao invocationDao;
     private final SeriesTableDao seriesTableDao;
     private final TaskDao taskDao;
+    private final TagDao tagDao;
     private final TimeSeriesDao timeSeriesDao;
 
     private final Importer importer;
@@ -55,6 +58,7 @@ public class DataController {
 
     private final DataDomain dataDomain;
     private final TaskDomain taskDomain;
+    private final TagDomain tagDomain;
 
     private final Configuration configuration;
     private final org.jooq.Configuration conf;
@@ -66,11 +70,13 @@ public class DataController {
             InvocationDao invocationDao,
             SeriesTableDao seriesTableDao,
             TaskDao taskDao,
+            TagDao tagDao,
             TimeSeriesDao timeSeriesDao,
             Importer importer,
             Ingester ingester,
             DataDomain dataDomain,
             TaskDomain taskDomain,
+            TagDomain tagDomain,
             Configuration configuration
     ) {
         this.dataConnectionDao = dataConnectionDao;
@@ -78,21 +84,28 @@ public class DataController {
         this.invocationDao = invocationDao;
         this.seriesTableDao = seriesTableDao;
         this.taskDao = taskDao;
+        this.tagDao = tagDao;
         this.timeSeriesDao = timeSeriesDao;
         this.importer = importer;
         this.ingester = ingester;
         this.dataDomain = dataDomain;
         this.taskDomain = taskDomain;
+        this.tagDomain = tagDomain;
         this.conf = configuration.getJooqConfiguration().getConfiguration();
         this.configuration = configuration;
     }
 
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
-        return new ArrayList<>(dataConnectionDao.search(query));
+        List<DataConnection> dataConnections = dataConnectionDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+
+        return new ArrayList<>(tagDao.enrichDataConnectionTags(dataConnections));
     }
 
     public Optional<DataConnection> getConnectionDetails(Long connectionId) {
-        return dataConnectionDao.getDetails(connectionId);
+        return dataConnectionDao.getDetails(connectionId)
+                .map(tagDao::enrichDataConnectionTags);
     }
 
     public List<DataSeries> searchDataSeries(DataSeriesQuery query) {
@@ -163,7 +176,14 @@ public class DataController {
                         dataConnection
                 )
         );
-        return updatedDataConnection;
+
+        tagDao.updateDataConnectionTags(
+                dataConnection.getId(), tagDomain.validate(dataConnection.getTags())
+        );
+
+        return updatedDataConnection.toBuilder()
+                .setTags(dataConnection.getTags())
+                .build();
     }
 
     public void sync(DataSeries dataSeries, Task task) {

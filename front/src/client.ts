@@ -22,7 +22,8 @@ import {
   ExternalClient,
   DataConnectionQuery,
   WorkerDefQuery,
-  DataSeriesQuery
+  DataSeriesQuery,
+  Tag
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -678,3 +679,48 @@ export const revokeSession = (): Promise<Response> => fetch(
   }
 )
   .then(checkResponse);
+
+// tag
+export const getTags = (): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const updateTaskTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/tasks/${id}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      },
+      body: JSON.stringify(tagNames)
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const updateDataConnectionTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/data-connections/${id}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      },
+      body: JSON.stringify(tagNames)
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
