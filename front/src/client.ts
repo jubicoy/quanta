@@ -22,7 +22,11 @@ import {
   ExternalClient,
   DataConnectionQuery,
   WorkerDefQuery,
+<<<<<<< HEAD
   DataSeriesQuery
+=======
+  Tag
+>>>>>>> ed00949 (frontend for adding, updating and searching tags)
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -678,3 +682,110 @@ export const revokeSession = (): Promise<Response> => fetch(
   }
 )
   .then(checkResponse);
+
+// tag
+export const getTags = (): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const getDataConnectionTags = (id: number): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/data-connections/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const updateDataConnectionTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/data-connections/${id}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      },
+      body: JSON.stringify(tagNames)
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const getTaskTags = (id: number): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/tasks/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const updateTaskTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/tasks/${id}`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      },
+      body: JSON.stringify(tagNames)
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const searchDataConnections = (ids: any): Promise<number[]> => {
+  const search = new URLSearchParams(ids.map((i: number) => ['ids', i]));
+  return window
+    .fetch(
+      `/api/tags/data-connections?${search.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json',
+          'Authorization': localStorage.getItem('token') || ''
+        }
+      }
+    )
+    .then(checkResponse)
+    .then((res) => res.json());
+};
+
+export const searchTasks = (ids: any): Promise<number[]> => {
+  const search = new URLSearchParams(ids.map((i: number) => ['ids', i]));
+  return window
+    .fetch(
+      `/api/tags/tasks?${search.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-type': 'application/json',
+          'Authorization': localStorage.getItem('token') || ''
+        }
+      }
+    )
+    .then(checkResponse)
+    .then((res) => res.json());
+};

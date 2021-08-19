@@ -84,12 +84,9 @@ public class Keys {
     public static final UniqueKey<InvocationParameterRecord> INVOCATION_PARAMETER_PKEY = Internal.createUniqueKey(InvocationParameter.INVOCATION_PARAMETER, DSL.name("invocation_parameter_pkey"), new TableField[] { InvocationParameter.INVOCATION_PARAMETER.ID }, true);
     public static final UniqueKey<SeriesResultRecord> SERIES_RESULT_PKEY = Internal.createUniqueKey(SeriesResult.SERIES_RESULT, DSL.name("series_result_pkey"), new TableField[] { SeriesResult.SERIES_RESULT.ID }, true);
     public static final UniqueKey<SeriesTableRecord> SERIES_TABLE_PKEY = Internal.createUniqueKey(SeriesTable.SERIES_TABLE, DSL.name("series_table_pkey"), new TableField[] { SeriesTable.SERIES_TABLE.ID }, true);
-<<<<<<< HEAD
-=======
     public static final UniqueKey<TagRecord> TAG_PKEY = Internal.createUniqueKey(Tag.TAG, DSL.name("tag_pkey"), new TableField[] { Tag.TAG.ID }, true);
     public static final UniqueKey<TagDataconnectionRecord> PK_TAG_DATACONNECTION = Internal.createUniqueKey(TagDataconnection.TAG_DATACONNECTION, DSL.name("pk_tag_dataconnection"), new TableField[] { TagDataconnection.TAG_DATACONNECTION.TAG_ID, TagDataconnection.TAG_DATACONNECTION.DATACONNECTION_ID }, true);
     public static final UniqueKey<TagTaskRecord> PK_TAG_TASK = Internal.createUniqueKey(TagTask.TAG_TASK, DSL.name("pk_tag_task"), new TableField[] { TagTask.TAG_TASK.TAG_ID, TagTask.TAG_TASK.TASK_ID }, true);
->>>>>>> 944ec4b (add tables for tagging feature)
     public static final UniqueKey<TaskRecord> TASK_PKEY = Internal.createUniqueKey(Task.TASK, DSL.name("task_pkey"), new TableField[] { Task.TASK.ID }, true);
     public static final UniqueKey<TaskColumnSelectorRecord> TASK_COLUMN_SELECTOR_PKEY = Internal.createUniqueKey(TaskColumnSelector.TASK_COLUMN_SELECTOR, DSL.name("task_column_selector_pkey"), new TableField[] { TaskColumnSelector.TASK_COLUMN_SELECTOR.ID }, true);
     public static final UniqueKey<TaskOutputColumnRecord> TASK_OUTPUT_COLUMN_PKEY = Internal.createUniqueKey(TaskOutputColumn.TASK_OUTPUT_COLUMN, DSL.name("task_output_column_pkey"), new TableField[] { TaskOutputColumn.TASK_OUTPUT_COLUMN.ID }, true);

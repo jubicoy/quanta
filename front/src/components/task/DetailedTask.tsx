@@ -8,11 +8,16 @@ import {
   Paper,
   Button,
   Dialog,
+  TextField,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle
 } from '@material-ui/core';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
+
 import clsx from 'clsx';
 
 import {
@@ -28,8 +33,13 @@ import {
   useTasks,
   useNameCheck,
   useCronValidation,
-  useMultipleParametersValidation
+  useMultipleParametersValidation,
+  useTags,
+  useTaskTags
 } from '../../hooks';
+
+import { updateTaskTags } from '../../client';
+
 import {
   Task,
   InvocationStatus,
@@ -55,10 +65,15 @@ export default ({
   } = useTask(parseInt(id));
   const common = commonStyles();
   const { tasks } = useTasks();
+  const { tags } = useTags();
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [editOpen, setEditOpen] = useState<boolean>(false);
   const [invocationStatus, setInvocationStatus] = useState<InvocationStatus|undefined>(undefined);
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
+
+  const { taskTags, setTaskTags } = useTaskTags(parseInt(id));
+
+  const names = tags && tags.map(({ name }) => name);
 
   const invocationsQuery = useMemo(
     () => ({
@@ -130,6 +145,9 @@ export default ({
   const onUpdate = () => {
     if (editTask) {
       update(editTask);
+      if (taskTags) {
+        updateTaskTags(parseInt(id), taskTags);
+      }
     }
     setEditOpen(false);
   };
@@ -248,6 +266,32 @@ export default ({
           }
         </div>
       </div>
+      <T variant='h6'>Tags</T>
+      <Paper className={clsx(common.topMargin, common.bottomMargin)}>
+        { !editOpen ? (taskTags && taskTags.map((option, index) =>
+          <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
+        )) : <Autocomplete
+          multiple
+          size='small'
+          style={{ marginTop: '15px' }}
+          options={names || []}
+          value={taskTags || []}
+          freeSolo
+          onChange={(event, value) => setTaskTags(value)}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) =>
+              <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+            )
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant='outlined'
+              label='Add Tag'
+            />
+          )}
+        />}
+      </Paper>
       <T variant='h5'>Data Connection</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>
         {dataSeries?.map(

@@ -14,12 +14,18 @@ import {
   TableCell,
   TableRow,
   TableHead,
+  TextField,
   TableBody
 } from '@material-ui/core';
 import {
   ImportWorkerDataSeriesConfiguration
 } from '../../../types';
 import { SampleResponse } from '../../../types/Api';
+import {
+  useTags
+} from '../../../hooks';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 export const ImportWorkerDataPreprocessingConfigurator = () => {
   const {
@@ -34,14 +40,26 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     setError,
 
     selectedWorkerDef,
-    handleForward
+    handleForward,
+    selectedWorker
   } = useContext(_DataConnectionConfiguratorContext);
 
+  const { tags } = useTags();
   const selectedColumns = [...dataSeries.columns];
-
+  const [tag, setTag] = useState<string[]>();
   const [complete, setComplete] = useState<boolean>(false);
 
   const [isEdit, setEdit] = useState<boolean>(false);
+  const names = tags && tags.map(({ name }) => name);
+
+  const nextStep = () => {
+    if (dataSeries.dataConnection && tag) {
+      updateDataConnectionTags(dataSeries.dataConnection.id, tag).catch((e: Error) => {
+        setError('Fail to add tags', e);
+      });
+    }
+    handleForward();
+  };
 
   useEffect(() => {
     if (selectedColumns.length > 0) {
@@ -161,8 +179,30 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
           />
         </CardContent>
       </Card>
+      <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '15px' }}
+        options={names || []}
+
+        freeSolo
+        onChange={(event, value) => setTag(value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+            placeholder='Tag'
+          />
+        )}
+      />
       <StepperButtons
-        onNextClick={handleForward}
+        onNextClick={nextStep}
         disableNext={!complete}
       />
     </>

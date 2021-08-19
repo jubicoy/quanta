@@ -5,16 +5,25 @@ import StepperButtons from '../StepperButtons';
 import {
   Paper,
   Typography,
-  TextareaAutosize
+  TextareaAutosize,
+  TextField
 } from '@material-ui/core';
 import * as Colors from '@material-ui/core/colors';
+import {
+  updateDataConnectionTags
+} from '../../../client';
 
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 import {
   DEFAULT_COLUMN,
   JsonIngestDataSeriesConfiguration,
   Column,
   DataSeries
 } from '../../../types';
+import {
+  useTags
+} from '../../../hooks';
 import { JsonIngestDataSeriesConfigurator } from '.';
 
 interface PathColumnMapping {
@@ -28,6 +37,7 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
     dataSeries,
     setDataSeries,
 
+    setError,
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
@@ -125,6 +135,10 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
   }`);
 
   const [isValidJson, setIsValidJson] = useState<boolean>(true);
+  const [tag, setTag] = useState<string[]>();
+
+  const { tags } = useTags();
+  const names = tags && tags.map(({ name }) => name);
   const onChangeJson = (value: string) => {
     let isValid = true;
 
@@ -145,6 +159,13 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
       ...dataSeries,
       dataConnection
     });
+
+    if (dataSeries.dataConnection && tag) {
+      updateDataConnectionTags(dataSeries.dataConnection.id, tag).catch((e: Error) => {
+        setError('Fail to add tags', e);
+      });
+    }
+
     handleForward();
   };
 
@@ -184,6 +205,27 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
         sampleJson={sampleJson}
       />
     </Paper>
+    <Autocomplete
+      multiple
+      size='small'
+      style={{ marginTop: '15px' }}
+      options={names || []}
+      freeSolo
+      onChange={(event, value) => setTag(value)}
+      renderTags={(value, getTagProps) =>
+        value.map((option, index) =>
+          <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+        )
+      }
+      renderInput={(params) => (
+        <TextField
+          {...params}
+          variant='outlined'
+          label='Add Tag'
+          placeholder='Tag'
+        />
+      )}
+    />
     <StepperButtons
       onNextClick={onForward}
       disableNext={false}

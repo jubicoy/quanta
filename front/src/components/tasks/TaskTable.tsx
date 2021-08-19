@@ -16,10 +16,11 @@ import {
 
 interface Props {
   tasks: Task[] | undefined;
+  filter: number[] | null;
 }
 
 export default ({
-  tasks
+  tasks, filter
 }: Props) => {
   const classes = commonStyles();
   const { history } = useRouter();
@@ -55,7 +56,7 @@ export default ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {tasks?.map((item: Task) => (
+          {tasks?.filter(i => (filter && filter.length > 0) ? filter.includes(i.id) : i).map((item: Task) => (
             <TableRow
               selected={item.deletedAt !== null}
               key={item.id}

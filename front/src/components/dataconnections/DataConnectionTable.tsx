@@ -17,6 +17,7 @@ import {
 
 interface Props {
   connections: null | DataConnection[];
+  filter: number[] | undefined;
 }
 
 const useStyles = makeStyles(theme =>
@@ -31,7 +32,8 @@ const useStyles = makeStyles(theme =>
 );
 
 export default ({
-  connections
+  connections,
+  filter
 }: Props) => {
   const classes = useStyles();
   const { history } = useRouter();
@@ -64,7 +66,7 @@ export default ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {connections.map((item, i) => (
+          {connections.filter(i => (filter && filter.length > 0) ? filter.includes(i.id) : i).map((item, i) => (
             <TableRow
               key={i}
               hover

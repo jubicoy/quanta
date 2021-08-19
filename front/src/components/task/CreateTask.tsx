@@ -2,22 +2,41 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Icon,
   Fab,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  TextField,
   Typography as T
 } from '@material-ui/core';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 import clsx from 'clsx';
 
 import {
   commonStyles
 } from '../common';
+
 import {
   useRouter,
   useTasks,
   useNameCheck,
   useMultipleNamesCheck,
   useCronValidation,
-  useMultipleParametersValidation
+  useMultipleParametersValidation,
+  useTags
 } from '../../hooks';
+
+import {
+  updateTaskTags
+} from '../../client';
+
 import { useAlerts } from '../../alert';
 import {
   Task,
@@ -75,6 +94,11 @@ export default ({
   const [columnsForSyncTask, setColumnForSyncTask] = useState<ColumnSelector[]>([]);
 
   const [triggersAreValid, setTriggersAreValid] = useState<boolean>(true);
+
+  const [tag, setTag] = useState<string[]>();
+
+  const { tags } = useTags();
+  const names = tags && tags.map(({ name }) => name);
 
   const { create, tasks } = useTasks();
   const { history } = useRouter();
@@ -190,11 +214,29 @@ export default ({
           ...task,
           columnSelectors: columnsForSyncTask
         })
-          .then(res => history.push(`/task/${res.id}`));
+          .then(res => {
+            history.push(`/task/${res.id}`);
+            if (tag) {
+              updateTaskTags(res.id, tag)
+                .then(() => history.push(`/task/${res.id}`))
+                .catch((e: Error) => {
+                  console.log(e);
+                });
+            }
+          });
       }
       else {
         create(task)
-          .then(res => history.push(`/task/${res.id}`));
+          .then(res => {
+            history.push(`/task/${res.id}`);
+            if (tag) {
+              updateTaskTags(res.id, tag)
+                .then(() => history.push(`/task/${res.id}`))
+                .catch((e: Error) => {
+                  console.log(e);
+                });
+            }
+          });
       }
     }
   };
@@ -236,6 +278,89 @@ export default ({
           </Fab>
         </div>
       </div>
+      <T variant='h5'>Data Connection</T>
+      <Paper className={clsx(common.topMargin, common.bottomMargin)}>
+        <div className={common.padding}>
+          <InputLabel
+            htmlFor='task-connection-select'
+            shrink
+          >
+            Data Connection
+          </InputLabel>
+          <Select
+            fullWidth
+            value={dataConnectionId || ''}
+            onChange={e => {
+              handleDataConnectionChange(e.target.value as number);
+            }}
+            inputProps={{ id: 'task-connection-select' }}
+          >
+            {connectionOptions}
+          </Select>
+          {dataConnection
+          && dataConnection.series.length > 1
+          && (
+            <>
+              <InputLabel
+                htmlFor='task-series-select'
+                shrink
+              >
+                Data Series
+              </InputLabel>
+              <Select
+                fullWidth
+                value={dataSeries ? dataSeries.id : undefined}
+                onChange={e => {
+                  const series = dataConnection && dataConnection.series.find(s => s.id === e.target.value as number);
+                  setDataSeries(series || null);
+                }}
+                inputProps={{ id: 'task-series-select' }}
+              >
+                {seriesOptions}
+              </Select>
+            </>
+          )}
+        </div>
+        <Table>
+          <TableHead>
+            <TableRow key={0}>
+              <TableCell key={1}>Name</TableCell>
+              <TableCell key={2}>Class</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {connectionColumns.map((column, i) => (
+              <TableRow key={i}>
+                <TableCell>{column.name}</TableCell>
+                <TableCell>{column.type.className}</TableCell>
+                <TableCell />
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Paper>
+      <T variant='h5'>Add Tag</T>
+      <Paper>
+        <Autocomplete
+          multiple
+          className={clsx(common.topMargin, common.bottomMargin)}
+          options={names || []}
+          freeSolo
+          onChange={(event, value) => setTag(value)}
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) =>
+              <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+            )
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant='outlined'
+              placeholder='Tags'
+            />
+          )}
+        />
+      </Paper>
       <TaskConfiguration
         editable
         creatingTask

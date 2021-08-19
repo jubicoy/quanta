@@ -14,10 +14,13 @@ import {
 } from '@material-ui/core';
 
 import { _DataConnectionConfiguratorContext } from '../../context';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 import {
   sample,
-  getDataConnectionMetadata
+  getDataConnectionMetadata,
+  updateDataConnectionTags
 } from '../../../client';
 import { useDataSeriesNameCheck } from '../../../hooks';
 import StepperButtons from '../StepperButtons';
@@ -27,6 +30,9 @@ import {
   SampleResponse,
   JdbcDataSeriesConfiguration
 } from '../../../types';
+import {
+  useTags
+} from '../../../hooks';
 import { SampleTable } from '..';
 
 export const JdbcDataPreprocessingConfigurator = () => {
@@ -47,6 +53,10 @@ export const JdbcDataPreprocessingConfigurator = () => {
   // States
   const [tables, setTables] = useState<string[]>([]);
   const [complete, setComplete] = useState<boolean>(false);
+  const [tag, setTag] = useState<string[]>();
+
+  const { tags } = useTags();
+  const names = tags && tags.map(({ name }) => name);
 
   useEffect(() => {
     // Get tables at start
@@ -111,6 +121,15 @@ export const JdbcDataPreprocessingConfigurator = () => {
           setError('Sample query failed to execute', e);
         });
     }
+  };
+
+  const nextStep = () => {
+    if (dataSeries.dataConnection && tag) {
+      updateDataConnectionTags(dataSeries.dataConnection.id, tag).catch((e: Error) => {
+        setError('Fail to add tags', e);
+      });
+    }
+    handleForward();
   };
 
   return (
@@ -223,6 +242,27 @@ export const JdbcDataPreprocessingConfigurator = () => {
           </Grid>
         </CardContent>
       </Card>
+      <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '15px' }}
+        options={names || []}
+        freeSolo
+        onChange={(event, value) => setTag(value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+            placeholder='Tag'
+          />
+        )}
+      />
       <StepperButtons
         onNextClick={handleForward}
         disableNext={!complete || !nameIsValid}

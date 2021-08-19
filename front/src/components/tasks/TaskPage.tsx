@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Fab,
   Grid,
@@ -7,16 +7,24 @@ import {
   MenuItem,
   Paper,
   Select,
+  TextField,
   Typography as T
 } from '@material-ui/core';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 import clsx from 'clsx';
 
 import {
   useTasks,
   useDataConnections,
   useRouter,
-  useWorkerDefs
+  useWorkerDefs,
+  useTags
 } from '../../hooks';
+
+import { searchTasks } from '../../client';
+import { Tag } from '../../types';
 import { commonStyles } from '../common';
 import TaskTable from './TaskTable';
 
@@ -25,11 +33,25 @@ export default () => {
   const dataConnectionQuery = useMemo(() => ({ notDeleted: true }), []);
   const { dataConnections } = useDataConnections(dataConnectionQuery);
   const { history } = useRouter();
+  const { tags } = useTags();
   const workerDefQuery = useMemo(() => ({ notDeleted: true }), []);
   const { workerDefs } = useWorkerDefs(workerDefQuery);
   const [connectionId, setConnectionId] = useState<number|undefined>(undefined);
   const [workerDefId, setWorkerDefId] = useState<number|undefined>(undefined);
   const [filter, setFilter] = useState<string>('Active');
+
+  const [taskTags, setTaskTags] = useState<Tag[]>();
+  const [tagFilter, setTagFilter] = useState<number[]>();
+
+  useEffect(
+    () => {
+      if (taskTags) {
+        const searchTagIds = taskTags.map(({ id }) => id);
+        searchTasks(searchTagIds).then(setTagFilter);
+      }
+    },
+    [taskTags]
+  );
 
   const taskQuery = useMemo(
     () => ({
@@ -74,6 +96,24 @@ export default () => {
         <MenuItem value='All'>All Tasks</MenuItem>
       </Select>
       <T variant='h4'>Tasks</T>
+      {tags && <Autocomplete
+        style={{ padding: '10px' }}
+        multiple
+        size='small'
+        options={tags}
+        getOptionLabel={(option) => option.name}
+        filterSelectedOptions
+        onChange={(event, value) => setTaskTags(value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Tags'
+            placeholder='Tag'
+          />
+        )}
+      />
+      }
       <Paper className={clsx(common.padding, common.topMargin, common.bottomMargin)}>
         <Grid container spacing={2}>
           <Grid item xs={6}>
@@ -122,9 +162,14 @@ export default () => {
           Refresh
         </Fab>
       </Paper>
-      <TaskTable
-        tasks={tasks}
-      />
+      { (taskTags && tagFilter && taskTags.length > 0 && tagFilter.length === 0)
+        ? <T color='error'>No task found!</T>
+        : <TaskTable
+          filter={tagFilter || []}
+          tasks={tasks}
+        />
+      }
+
       <Fab
         className={clsx(common.topMargin, common.floatRight)}
         variant='extended'
