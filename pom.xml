@@ -88,6 +88,9 @@
             | worker_parameter
             | task_parameter
             | invocation_parameter
+            | tag
+            | tag_dataconnection
+            | tag_task
         </snoozy.jooq.includes>
         <snoozy.jooq.excludes>
             DATABASECHANGELOG
