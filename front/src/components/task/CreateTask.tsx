@@ -30,7 +30,7 @@ import {
   useMultipleNamesCheck,
   useCronValidation,
   useMultipleParametersValidation,
-  useTags
+  useTasksTags
 } from '../../hooks';
 
 import {
@@ -97,7 +97,7 @@ export default ({
 
   const [tag, setTag] = useState<string[]>();
 
-  const { tags } = useTags();
+  const { tags } = useTasksTags();
   const names = tags && tags.map(({ name }) => name);
 
   const { create, tasks } = useTasks();

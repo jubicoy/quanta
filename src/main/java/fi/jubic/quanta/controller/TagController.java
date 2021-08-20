@@ -28,8 +28,12 @@ public class TagController {
         this.configuration = configuration;
     }
 
-    public List<Tag> getAll() {
-        return tagDao.getAll();
+    public List<Tag> getAllTaskTags() {
+        return tagDao.getAllTaskTags();
+    }
+
+    public List<Tag> getALlDataConnectionTags() {
+        return tagDao.getAllDataConnectionTags();
     }
 
     public List<Tag> getDataConnectionTags(Long id) {

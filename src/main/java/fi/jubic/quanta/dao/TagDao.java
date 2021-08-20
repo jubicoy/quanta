@@ -27,13 +27,24 @@ public class TagDao {
         this.conf = conf.getJooqConfiguration().getConfiguration();
     }
 
-    public List<Tag> getAll() {
+    public List<Tag> getAllTaskTags() {
         return DSL.using(conf)
                 .select()
                 .from(TAG)
+                .where(TAG.ID.in(select(TAG_TASK.TAG_ID).from(TAG_TASK)))
                 .fetchStream()
-                .map(Tag.mapper::map)
-                .collect(Collectors.toList());
+                .collect(Tag.mapper);
+
+    }
+
+    public List<Tag> getAllDataConnectionTags() {
+        return DSL.using(conf)
+                .select()
+                .from(TAG)
+                .where(TAG.ID.in(select(TAG_DATACONNECTION.TAG_ID).from(TAG_DATACONNECTION)))
+                .fetchStream()
+                .collect(Tag.mapper);
+
     }
 
     public List<Long> searchDataConnections(List<Long> tagIds) {

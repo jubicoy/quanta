@@ -22,7 +22,7 @@ import {
   DataSeries
 } from '../../../types';
 import {
-  useTags
+  useDataConnectionsTags
 } from '../../../hooks';
 import { JsonIngestDataSeriesConfigurator } from '.';
 
@@ -137,7 +137,7 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
   const [isValidJson, setIsValidJson] = useState<boolean>(true);
   const [tag, setTag] = useState<string[]>();
 
-  const { tags } = useTags();
+  const { tags } = useDataConnectionsTags();
   const names = tags && tags.map(({ name }) => name);
   const onChangeJson = (value: string) => {
     let isValid = true;

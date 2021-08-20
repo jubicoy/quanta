@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import hljs from 'highlight.js';
-import { useDataConnection, useRouter } from '../../hooks';
-import {
-  useDataConnection,
+import { useDataConnection,
   useRouter,
-  useTags,
-  useDrivers
-  useDataConnectionTags
-} from '../../hooks';
+  useDataConnectionsTags,
+  useDataConnectionTags,
+  useDrivers } from '../../hooks';
 
 import { updateDataConnectionTags } from '../../client';
 
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Chip from '@material-ui/core/Chip';
+
 import {
   Table,
   TableCell,
@@ -34,7 +32,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-<<<<<<< HEAD
   TextField,
   InputAdornment,
   IconButton,
@@ -43,9 +40,6 @@ import {
   Input,
   Select,
   MenuItem
-=======
-  TextField
->>>>>>> 0d8c2eb (frontend for adding, updating and searching tags)
 } from '@material-ui/core';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -182,27 +176,24 @@ export default ({ match: { params } }: Props) => {
   const classes = useStyles();
   const { history } = useRouter();
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
-<<<<<<< HEAD
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showColumns, setShowColumns] = useState<number>(-1);
 
   const [isEditMode, setEditMode] = useState<boolean>(false);
 
+  const { tags } = useDataConnectionsTags();
+  const { dataConnectionTags,
+    setDataConnectionTags } = useDataConnectionTags(params.id);
+
   const [previousConnection, setPreviousConnection] = useState<DataConnection | null>(dataConnection);
+
+  const names = tags && tags.map(({ name }) => name);
 
   useEffect(() => {
     if (dataConnection && previousConnection === null) {
       setPreviousConnection(dataConnection);
     }
   }, [dataConnection, previousConnection]);
-=======
-  const [isEditMode, setEditMode] = useState<boolean>(false);
-  const { tags } = useTags();
-  const { dataConnectionTags,
-    setDataConnectionTags } = useDataConnectionTags(params.id);
-
-  const names = tags && tags.map(({ name }) => name);
->>>>>>> 0d8c2eb (frontend for adding, updating and searching tags)
 
   useEffect(() => {
     if (!params.name && dataConnection) {
@@ -230,7 +221,15 @@ export default ({ match: { params } }: Props) => {
     setOpenDeleteDialog(false);
   };
 
-<<<<<<< HEAD
+  const updateTags = () => {
+    if (dataConnectionTags) {
+      updateDataConnectionTags(params.id, dataConnectionTags).catch((e: Error) => {
+        console.log(e);
+      });
+    }
+    setEditMode(false);
+  };
+
   const onChange = (e: React.ChangeEvent<{ name: string | undefined; value: unknown }>) => {
     if (!e) {
       return undefined;
@@ -277,15 +276,6 @@ export default ({ match: { params } }: Props) => {
   const cancelEdit = () => {
     setEditMode(false);
     setDataConnection(previousConnection);
-=======
-  const updateTags = () => {
-    if (dataConnectionTags) {
-      updateDataConnectionTags(params.id, dataConnectionTags).catch((e: Error) => {
-        console.log(e);
-      });
-    }
-    setEditMode(false);
->>>>>>> 0d8c2eb (frontend for adding, updating and searching tags)
   };
 
   const dataSeries = dataConnection.series;
@@ -562,7 +552,29 @@ export default ({ match: { params } }: Props) => {
           )}
         </div>
       </div>
-<<<<<<< HEAD
+      { !isEditMode ? (dataConnectionTags && dataConnectionTags.map((option, index) =>
+        <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
+      )) : <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '15px' }}
+        options={names || []}
+        value={dataConnectionTags || []}
+        freeSolo
+        onChange={(event, value) => setDataConnectionTags(value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+          />
+        )}
+      />}
       <div className={classes.wrapper}>
         <Paper className={classes.paper}>{renderDataConnectionDetails()}</Paper>
         <Link href={`/data-connections/${dataConnection.id}/${encodeURI(dataConnection.name)}/series/new`}>
@@ -624,46 +636,6 @@ export default ({ match: { params } }: Props) => {
                   </Link>
                 </div>
                 <>
-=======
-      { !isEditMode ? (dataConnectionTags && dataConnectionTags.map((option, index) =>
-        <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
-      )) : <Autocomplete
-        multiple
-        size='small'
-        style={{ marginTop: '15px' }}
-        options={names || []}
-        value={dataConnectionTags || []}
-        freeSolo
-        onChange={(event, value) => setDataConnectionTags(value)}
-        renderTags={(value, getTagProps) =>
-          value.map((option, index) =>
-            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
-          )
-        }
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            variant='outlined'
-            label='Add Tag'
-          />
-        )}
-      />}
-      <Paper className={classes.paper}>
-        {renderDataConnectionDetails()}
-      </Paper>
-      <T variant='h4'>Data series details</T>
-      {(dataSeries.length <= 0)
-        ? <i>No Data Series available</i>
-        : dataSeries.map((series, i) => (
-          <div key={i}>
-            <Paper className={classes.paper}>
-              <div className={classes.tableTitle}>
-                <T variant='body1'>Name: <b>{series.name}</b></T>
-                <T variant='body1'>Description: <b>{series.description}</b></T>
-              </div>
-              <Table>
-                <TableHead>
->>>>>>> 0d8c2eb (frontend for adding, updating and searching tags)
                   <TableRow>
                     <TableCell
                       component='th'
@@ -742,39 +714,12 @@ export default ({ match: { params } }: Props) => {
                       </Collapse>
                     </TableCell>
                   </TableRow>
-<<<<<<< HEAD
                 </>
               </Paper>
             </div>
           ))
         )}
       </div>
-=======
-                </TableHead>
-                <TableBody>
-                  {series.columns.map((column, i) => (
-                    <TableRow key={i}>
-                      <TableCell>{column.name}</TableCell>
-                      <TableCell>{column.type.format}</TableCell>
-                      <TableCell>
-                        {
-                          column.type.nullable
-                            ? column.type.nullable.toString()
-                            : 'false'
-                        }
-                      </TableCell>
-                      <TableCell>{column.type.className}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Paper>
-          </div>
-        )
-        )
-      }
-
->>>>>>> 0d8c2eb (frontend for adding, updating and searching tags)
       <Dialog
         open={openDeleteDialog}
         onClose={handleCloseDeleteDialog}

@@ -20,7 +20,7 @@ import {
   useDataConnections,
   useRouter,
   useWorkerDefs,
-  useTags
+  useTasksTags
 } from '../../hooks';
 
 import { searchTasks } from '../../client';
@@ -33,7 +33,7 @@ export default () => {
   const dataConnectionQuery = useMemo(() => ({ notDeleted: true }), []);
   const { dataConnections } = useDataConnections(dataConnectionQuery);
   const { history } = useRouter();
-  const { tags } = useTags();
+  const { tags } = useTasksTags();
   const workerDefQuery = useMemo(() => ({ notDeleted: true }), []);
   const { workerDefs } = useWorkerDefs(workerDefQuery);
   const [connectionId, setConnectionId] = useState<number|undefined>(undefined);

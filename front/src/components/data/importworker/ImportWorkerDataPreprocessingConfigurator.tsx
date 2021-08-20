@@ -23,7 +23,7 @@ import { useTags } from '../../../hooks';
 
 import { ImportWorkerDataSeriesConfiguration } from '../../../types';
 import { SampleResponse } from '../../../types/Api';
-import { useTags } from '../../../hooks';
+import { useDataConnectionsTags } from '../../../hooks';
 import Autocomplete from '@material-ui/lab/Autocomplete';
 import Chip from '@material-ui/core/Chip';
 
@@ -44,7 +44,7 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     selectedWorker
   } = useContext(_DataConnectionConfiguratorContext);
 
-  const { tags } = useTags();
+  const { tags } = useDataConnectionsTags();
   const selectedColumns = [...dataSeries.columns];
   const [tag, setTag] = useState<string[]>();
   const [complete, setComplete] = useState<boolean>(false);

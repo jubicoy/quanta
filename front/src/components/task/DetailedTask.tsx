@@ -34,7 +34,7 @@ import {
   useNameCheck,
   useCronValidation,
   useMultipleParametersValidation,
-  useTags,
+  useTasksTags,
   useTaskTags
 } from '../../hooks';
 
@@ -65,7 +65,7 @@ export default ({
   } = useTask(parseInt(id));
   const common = commonStyles();
   const { tasks } = useTasks();
-  const { tags } = useTags();
+  const { tags } = useTasksTags();
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [editOpen, setEditOpen] = useState<boolean>(false);
   const [invocationStatus, setInvocationStatus] = useState<InvocationStatus|undefined>(undefined);

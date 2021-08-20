@@ -29,3 +29,5 @@ export { useCronValidation } from './useCronValidation';
 export { useDrivers } from './useDrivers';
 export { useDataSeriesNameCheck } from './useDataSeriesNameCheck';
 export { useTags } from './useTags';
+export { useDataConnectionsTags } from './useDataConnectionsTags';
+export { useTasksTags } from './useTasksTags';

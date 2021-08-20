@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { useDataConnections, useTags } from '../../hooks';
+import { useDataConnections, useDataConnectionsTags } from '../../hooks';
 import { searchDataConnections } from '../../client';
 import { DataConnectionTable } from '.';
 import { Tag } from '../../types';
@@ -13,7 +13,7 @@ import Autocomplete from '@material-ui/lab/Autocomplete';
 export default () => {
   const dataConnectionQuery = useMemo(() => ({ notDeleted: true }), []);
   const { dataConnections } = useDataConnections(dataConnectionQuery);
-  const { tags } = useTags();
+  const { tags } = useDataConnectionsTags();
 
   const [dataConnectionTags, setDataConnectionTags] = useState<Tag[]>();
   const [filter, setFilter] = useState<number[]>();

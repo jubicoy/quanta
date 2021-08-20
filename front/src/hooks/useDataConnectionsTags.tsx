@@ -2,12 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { Tag } from '../types';
 import * as client from '../client';
 
-export const useTags = () => {
+export const useDataConnectionsTags = () => {
   const [tags, setTags] = useState<Tag[] | null>(null);
 
   const fetchTags = useCallback(
     () => {
-      client.getTags().then(setTags);
+      client.getDataConnectionsTags().then(setTags);
     },
     []
   );

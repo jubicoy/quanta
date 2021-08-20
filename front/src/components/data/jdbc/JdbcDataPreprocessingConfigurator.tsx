@@ -31,7 +31,7 @@ import {
   JdbcDataSeriesConfiguration
 } from '../../../types';
 import {
-  useTags
+  useDataConnectionsTags
 } from '../../../hooks';
 import { SampleTable } from '..';
 
@@ -55,7 +55,7 @@ export const JdbcDataPreprocessingConfigurator = () => {
   const [complete, setComplete] = useState<boolean>(false);
   const [tag, setTag] = useState<string[]>();
 
-  const { tags } = useTags();
+  const { tags } = useDataConnectionsTags();
   const names = tags && tags.map(({ name }) => name);
 
   useEffect(() => {

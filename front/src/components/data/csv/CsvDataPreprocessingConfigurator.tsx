@@ -11,7 +11,7 @@ import {
   CsvDataSeriesConfiguration
 } from '../../../types';
 import {
-  useTags
+  useDataConnectionsTags
 } from '../../../hooks';
 import { SampleResponse } from '../../../types/Api';
 import StepperButtons from '../StepperButtons';
@@ -39,7 +39,7 @@ export const CsvDataPreprocessingConfigurator = () => {
 
   const [complete, setComplete] = useState<boolean>(false);
   const [tag, setTag] = useState<string[]>();
-  const { tags } = useTags();
+  const { tags } = useDataConnectionsTags();
   const names = tags && tags.map(({ name }) => name);
 
   useEffect(() => {

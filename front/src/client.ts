@@ -684,9 +684,23 @@ export const revokeSession = (): Promise<Response> => fetch(
   .then(checkResponse);
 
 // tag
-export const getTags = (): Promise<Tag[]> => window
+export const getDataConnectionsTags = (): Promise<Tag[]> => window
   .fetch(
-    `/api/tags`,
+    `/api/tags/data-connections/all`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
+export const getTasksTags = (): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags/tasks/all`,
     {
       method: 'GET',
       headers: {
@@ -716,7 +730,7 @@ export const updateDataConnectionTags = (id: number, tagNames: string[]): Promis
   .fetch(
     `/api/tags/data-connections/${id}`,
     {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-type': 'application/json',
         'Authorization': localStorage.getItem('token') || ''
@@ -745,7 +759,7 @@ export const updateTaskTags = (id: number, tagNames: string[]): Promise<Tag[]> =
   .fetch(
     `/api/tags/tasks/${id}`,
     {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-type': 'application/json',
         'Authorization': localStorage.getItem('token') || ''
