@@ -4,6 +4,7 @@ import fi.jubic.easyschedule.InMemoryScheduler;
 import fi.jubic.easyschedule.TaskScheduler;
 import fi.jubic.quanta.auth.AdminAuthenticationTask;
 import fi.jubic.quanta.config.Configuration;
+import fi.jubic.quanta.exception.InputExceptionMapper;
 import fi.jubic.quanta.models.QuantaAuthenticator;
 import fi.jubic.quanta.models.User;
 import fi.jubic.quanta.scheduled.CronSchedulerTask;
@@ -57,10 +58,13 @@ public class App implements AuthenticatedApplication<User> {
 
     @Override
     public Set<Object> getSingletons() {
-        return Stream.concat(
+        Set<Object> objects = Stream.concat(
                 resources.stream(),
                 Snoozy.builtins().stream()
         ).collect(Collectors.toSet());
+        objects.add(new InputExceptionMapper());
+
+        return objects;
     }
 
     @Override
