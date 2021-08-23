@@ -18,7 +18,6 @@ import fi.jubic.quanta.models.configuration.JdbcDataSeriesConfiguration;
 import fi.jubic.quanta.models.configuration.JsonIngestDataSeriesConfiguration;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
-import fi.jubic.quanta.util.Json;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -222,18 +221,10 @@ public class JsonIngestImporter implements Importer, Ingester {
         Configuration configuration = Configuration
                 .defaultConfiguration();
 
-        Object jsonToRead;
-
-        try {
-            jsonToRead = Json.extractConfig(jsonDocument.toString());
-        }
-        catch (Exception ignored) {
-            jsonToRead = jsonDocument;
-        }
 
         ReadContext jsonContext = JsonPath
                 .using(configuration)
-                .parse(jsonToRead);
+                .parse(jsonDocument.toString());
 
         if (!isCollections) {
             try {
