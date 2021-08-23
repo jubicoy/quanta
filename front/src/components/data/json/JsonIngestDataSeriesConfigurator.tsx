@@ -35,6 +35,7 @@ import {
   DataConnection
 } from '../../../types';
 import { sample } from '../../../client';
+import { useAlerts } from '../../../alert';
 
 interface PathColumnMapping {
   jsonPath: string;
@@ -50,6 +51,12 @@ interface Props {
 }
 
 export const JsonIngestDataSeriesConfigurator = (props: Props) => {
+  // Alert handlers
+  const alertContext = useAlerts('DATA-IMPORT');
+  const setError = (heading: string, error: Error) => {
+    alertContext.alertError(heading, error.message);
+  };
+
   const {
     dataConnection,
     dataSeries,
@@ -215,8 +222,9 @@ export const JsonIngestDataSeriesConfigurator = (props: Props) => {
       .then(sampleResponse => {
         setSampleResponse((sampleResponse && sampleResponse.data.length > 0) ? sampleResponse : null);
       })
-      .catch(() => {
+      .catch((e: Error) => {
         setSampleResponse(null);
+        setError('Fetch sample failed!', e);
       });
   };
 

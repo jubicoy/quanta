@@ -178,7 +178,15 @@ export const sample = (
         body: JSON.stringify(request)
       }
     )
-    .then(res => checkResponse(res))
+    .then(res => {
+      if (res.status === 400) {
+        return res.json().then((res: Error) => {
+          throw res;
+        });
+      }
+
+      return checkResponse(res);
+    })
     .then(res => res.json());
 };
 

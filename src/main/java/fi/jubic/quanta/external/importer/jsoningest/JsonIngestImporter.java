@@ -2,6 +2,7 @@ package fi.jubic.quanta.external.importer.jsoningest;
 
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
+import com.jayway.jsonpath.JsonPathException;
 import com.jayway.jsonpath.ReadContext;
 import fi.jubic.quanta.exception.InputException;
 import fi.jubic.quanta.external.Importer;
@@ -121,6 +122,10 @@ public class JsonIngestImporter implements Importer, Ingester {
                 dataSeries
         );
 
+        if (timeRows == null) {
+            throw new InputException("Can not find time rows!");
+        }
+
         return IntStream
                 .range(0, timeRows.size())
                 .boxed()
@@ -236,13 +241,18 @@ public class JsonIngestImporter implements Importer, Ingester {
                                 )
                 );
             }
-            catch (Exception e) {
+            catch (NoSuchMethodError e) {
+                throw new InputException(
+                        "Invalid Json path: " + path
+                );
+            }
+            catch (JsonPathException e) {
                 throw new InputException(
                         String.format(
                                 "Path '%s' return a value incompatible with class '%s' (%s)",
                                 path,
                                 className,
-                                e.toString()
+                                e.getMessage()
                         )
                 );
             }
@@ -255,6 +265,11 @@ public class JsonIngestImporter implements Importer, Ingester {
                                 path,
                                 List.class
                         );
+            }
+            catch (JsonPathException e) {
+                throw new InputException(
+                        "Invalid Json path: " + path
+                );
             }
             catch (ClassCastException e) {
                 throw new InputException(
@@ -276,20 +291,15 @@ public class JsonIngestImporter implements Importer, Ingester {
                 .map(entry -> {
                     Column column = entry.getKey();
                     Object result;
-                    try {
-                        result = getJsonRowsOfOneColumn(
-                                jsonDocument,
-                                entry.getValue(),
-                                column
-                                        .getType()
-                                        .getClassName(),
-                                dataSeries
-                        )
-                                .get(rowIndex);
-                    }
-                    catch (Exception ignored) {
-                        result = null;
-                    }
+                    result = getJsonRowsOfOneColumn(
+                            jsonDocument,
+                            entry.getValue(),
+                            column
+                                    .getType()
+                                    .getClassName(),
+                            dataSeries
+                    )
+                            .get(rowIndex);
 
                     if (!column.getType().isNullable() && Objects.isNull(result)) {
                         throw new InputException(
