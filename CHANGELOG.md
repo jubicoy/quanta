@@ -5,10 +5,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.4.0] - 2021-08-25
+### Added
+- Import worker.
+- Incremental data sync for import worker.
+- Task list filtering by status.
+- Logback config.
+- CSV output for query API.
+
 ### Changed
 - Rename `type` to `valueType` in column data models.
 - Update anomaly data model.
 - Add env variable controlled logback config.
+- Allow reuse of deleted task names.
+- Make data sync asynchronous.
+- Allow querying raw data from all `DataSeries` columns.
+
+### Removed
+- Direct Quartz Scheduler dependency for scheduling.
+
+### Fixed
+- Fix JSON ingest collection parsing.
 
 ## [0.3.5] - 2021-07-19
 ### Changed
