@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Singleton
 public class TaskController {
@@ -239,7 +240,6 @@ public class TaskController {
             List<Measurement> measurements
     ) {
         if (invocation.getTask().getTaskType().equals(TaskType.IMPORT)) {
-
             //TODO - get series columns straight from invocation
             List<OutputColumn> outputColumns = convertSeriesColumnsToOutputColumns(
                     dataSeriesDao.getDetails(
@@ -278,18 +278,26 @@ public class TaskController {
 
             //if offset != null, we replace data within that offset...
             if (invocation.getTask().getSyncIntervalOffset() != null) {
-
+                Instant deleteEdge = Stream
+                        .concat(
+                                newMeasurements.stream()
+                                        .map(Measurement::getTime),
+                                Stream.of(
+                                        Instant.from(Instant.now().minusSeconds(
+                                                invocation.getTask().getSyncIntervalOffset()
+                                        ))
+                                )
+                        )
+                        .min(Instant::compareTo)
+                        .orElseThrow();
                 timeSeriesDao.deleteRowsWithTableName(
                         createdSeries.getTableName(),
                         "0",
-                        Instant.from(Instant.now().minusSeconds(
-                                invocation.getTask().getSyncIntervalOffset()
-                        )),
+                        deleteEdge,
                         Instant.from(Instant.now()),
                         conf
                 );
             }
-
             //...and if offset == null we replace everything
             else {
                 SeriesTable table = SeriesTable
