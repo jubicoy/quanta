@@ -21,6 +21,7 @@ import {
 import {
   FileUploadResponse,
   DataSeries,
+  Worker,
   DataConnection,
   DEFAULT_JDBC_DATA_CONNECTION,
   DEFAULT_JDBC_DATA_SERIES
@@ -54,6 +55,9 @@ export const ReplaceDataSeries = ({ match: { params } }: Props) => {
   const [uploadedData, setUploadedData] = React
     .useState<FileUploadResponse | null>(null);
   const [activeStep, setActiveStep] = React.useState<number>(0);
+
+  const [selectedWorker, setSelectedWorker] = React
+    .useState<Worker | null>(null);
 
   const [dataConnection, setDataConnection] = useState<DataConnection>(DEFAULT_JDBC_DATA_CONNECTION);
   const [dataSeries, setDataSeries] = React
@@ -140,6 +144,9 @@ export const ReplaceDataSeries = ({ match: { params } }: Props) => {
           dataSeries: dataSeries,
           setDataSeries: setDataSeries,
           onSubmitDataSeriesSuccess: onSubmitDataSeriesSuccess,
+
+          selectedWorker: selectedWorker,
+          setSelectedWorker: setSelectedWorker,
 
           sampleResponse: sampleResponse,
           setSampleResponse: setSampleResponse,

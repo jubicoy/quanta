@@ -55,12 +55,8 @@ export interface DataSeries {
   description: string;
   columns: Column[];
   dataConnection?: DataConnection;
-<<<<<<< HEAD
   configuration: CsvDataSeriesConfiguration | JdbcDataSeriesConfiguration | JsonIngestDataSeriesConfiguration | ImportWorkerDataSeriesConfiguration;
-=======
-  configuration: CsvDataSeriesConfiguration | JdbcDataSeriesConfiguration | JsonIngestDataSeriesConfiguration;
   tableName?: string;
->>>>>>> 7829cce (Display and edit Data Connection details)
 }
 
 export interface Column {

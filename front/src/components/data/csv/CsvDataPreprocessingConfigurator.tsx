@@ -2,12 +2,8 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Button, Grid } from '@material-ui/core';
 
 import { CsvColumnSelect } from '.';
-<<<<<<< HEAD
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
-=======
 
 import { _DataConnectionConfiguratorContext } from '../../context';
->>>>>>> 5b98bd7 (Edit data series page)
 
 import {
   CsvDataSeriesConfiguration
