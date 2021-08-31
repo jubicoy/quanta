@@ -1,6 +1,6 @@
 package fi.jubic.quanta.dao;
 
-import fi.jubic.quanta.models.Tag;
+import fi.jubic.quanta.models.TagAssignment;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 
@@ -27,49 +27,50 @@ public class TagDao {
         this.conf = conf.getJooqConfiguration().getConfiguration();
     }
 
-    public List<Tag> getAllTaskTags() {
+    public List<TagAssignment> getAllTaskTags(List<Long> taskIds) {
         return DSL.using(conf)
                 .select()
-                .from(TAG)
-                .where(TAG.ID.in(select(TAG_TASK.TAG_ID).from(TAG_TASK)))
-                .fetchStream()
-                .collect(Tag.mapper);
-
-    }
-
-    public List<Tag> getAllDataConnectionTags() {
-        return DSL.using(conf)
-                .select()
-                .from(TAG)
-                .where(TAG.ID.in(select(TAG_DATACONNECTION.TAG_ID).from(TAG_DATACONNECTION)))
-                .fetchStream()
-                .collect(Tag.mapper);
-
-    }
-
-    public List<Long> searchDataConnections(List<Long> tagIds) {
-        return DSL.using(conf)
-                .select(TAG_DATACONNECTION.DATACONNECTION_ID)
-                .from(TAG_DATACONNECTION)
-                .where(TAG_DATACONNECTION.TAG_ID.in(tagIds))
-                .groupBy(TAG_DATACONNECTION.DATACONNECTION_ID)
-                .having(DSL.count(TAG_DATACONNECTION.TAG_ID).eq(tagIds.size()))
-                .fetch()
-                .getValues(TAG_DATACONNECTION.DATACONNECTION_ID);
-    }
-
-    public List<Long> searchTasks(List<Long> tagIds) {
-        return DSL.using(conf)
-                .select(TAG_TASK.TASK_ID)
                 .from(TAG_TASK)
-                .where(TAG_TASK.TAG_ID.in(tagIds))
-                .groupBy(TAG_TASK.TASK_ID)
-                .having(DSL.count(TAG_TASK.TAG_ID).eq(tagIds.size()))
-                .fetch()
-                .getValues(TAG_TASK.TASK_ID);
+                .where(TAG_TASK.TASK_ID.in(taskIds))
+                .fetchStream()
+                .collect(TagAssignment.tagTaskMapper);
     }
 
-    public List<Tag> getDataConnectionTags(Long dataConnectionId) {
+    public List<TagAssignment> getAllDataConnectionTags(List<Long> dataConnIds) {
+        return DSL.using(conf)
+                .select()
+                .from(TAG_DATACONNECTION)
+                .where(TAG_DATACONNECTION.DATACONNECTION_ID.in(dataConnIds))
+                .fetchStream()
+                .collect(TagAssignment.tagDataConnectionMapper);
+    }
+
+    /* public List<DataConnection> enrichDataConnectionTags(List<DataConnection> dataConnections) {
+        // Fetch all assignments for all data connections
+        List<Long> dataConnIds = dataConnections.stream()
+                .map(DataConnection::getId).collect(Collectors.toList());
+        Map<Long, Set<String>> tagsMap = getAllDataConnectionTags(dataConnIds).stream()
+                .collect(Collectors.
+                groupingBy(TagAssignment::getParentId,
+
+                        Collectors.
+                        mapping(ta -> ta.getTag().getName(), Collectors.toSet())));
+
+        return dataConnections.stream().map(conn -> conn.toBuilder().
+        setTags(tagsMap.getOrDefault(conn.getId(),
+
+         Collections.emptyList())).build());
+
+
+        // map through data connections and assign tags into the objects
+    }
+
+    public List<Task> enrichTaskTags(List<Task> tasks) {
+
+    }
+
+    // TODO: Remove
+    public List<TagAssignment> getDataConnectionTags(Long dataConnectionId) {
         return DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -77,10 +78,11 @@ public class TagDao {
                 .on(TAG.ID.eq(TAG_DATACONNECTION.TAG_ID))
                 .where(TAG_DATACONNECTION.DATACONNECTION_ID.eq(dataConnectionId))
                 .fetchStream()
-                .collect(Tag.mapper);
+                .collect(TagAssignment.taskTagMapper);
     }
 
-    public List<Tag> getTaskTags(Long taskId) {
+    // TODO: Remove
+    public List<TagAssignment> getTaskTags(Long taskId) {
         return DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -88,8 +90,20 @@ public class TagDao {
                 .on(TAG.ID.eq(TAG_TASK.TAG_ID))
                 .where(TAG_TASK.TASK_ID.eq(taskId))
                 .fetchStream()
-                .collect(Tag.mapper);
+                .collect(TagAssignment.dataConnectionTagMapper);
     }
+
+    /* public Task setTaskTags(Task task) {
+        List<String> existingTags = getTaskTags(task.getId());
+        List<String> newTags = task.getTags();
+
+    }
+
+
+    public DataConnection setDataConnectionTags(DataConnection dataConnection) {
+
+    }
+    */
 
     private void addTagsToTask(Long taskId, Set<String> tagNames) {
         tagNames.forEach((name) -> {
@@ -163,7 +177,7 @@ public class TagDao {
 
     }
 
-    public List<Tag> updateTaskTags(Long taskId, List<String> tagNames) {
+    public void updateTaskTags(Long taskId, List<String> tagNames) {
         Set<String> oldTags = DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -193,11 +207,11 @@ public class TagDao {
             addTagsToTask(taskId, tagsToAdd);
         }
 
-        return getTaskTags(taskId);
+        // return getTaskTags(taskId);
     }
 
 
-    public List<Tag> updateDataConnectionTags(Long dataConnectionId, List<String> tagNames) {
+    public void updateDataConnectionTags(Long dataConnectionId, List<String> tagNames) {
         Set<String> oldTags = DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -227,7 +241,7 @@ public class TagDao {
             addTagsToDataConnection(dataConnectionId, tagsToAdd);
         }
 
-        return getDataConnectionTags(dataConnectionId);
+        // return getDataConnectionTags(dataConnectionId);
     }
 
 }

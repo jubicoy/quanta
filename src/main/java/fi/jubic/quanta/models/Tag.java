@@ -36,4 +36,3 @@ public abstract class Tag {
             .setNameAccessor(TAG.NAME)
             .build();
 }
-

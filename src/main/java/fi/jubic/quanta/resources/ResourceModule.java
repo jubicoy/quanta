@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 @Module
 public class ResourceModule {
+    @SuppressWarnings("checkstyle:CommentsIndentation")
     @Provides
     @Singleton
     @Resources
@@ -31,8 +32,7 @@ public class ResourceModule {
             WorkerManageResource workerManageResource,
             WorkerClientV1Resource workerClientV1Resource,
             IngestResource ingestResource,
-            ExternalClientResource externalClientResource,
-            TagResource tagResource
+            ExternalClientResource externalClientResource
     ) {
         return Stream
                 .of(
@@ -50,8 +50,7 @@ public class ResourceModule {
                         workerManageResource,
                         workerClientV1Resource,
                         ingestResource,
-                        externalClientResource,
-                        tagResource
+                        externalClientResource
                 )
                 .collect(Collectors.toSet());
     }

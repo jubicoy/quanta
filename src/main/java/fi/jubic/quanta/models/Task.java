@@ -51,6 +51,9 @@ public abstract class Task {
     @Nullable
     public abstract List<Parameter> getParameters();
 
+    @Nullable
+    public abstract List<String> getTags();
+
     public abstract Builder toBuilder();
 
     public static Optional<Task> syncTask(DataSeries dataSeries) {
@@ -102,7 +105,8 @@ public abstract class Task {
                     .setWorkerDef(null)
                     .setColumnSelectors(Collections.emptyList())
                     .setSeries(null)
-                    .setOutputColumns(Collections.emptyList());
+                    .setOutputColumns(Collections.emptyList())
+                    .setTags((Collections.emptyList()));
         }
     }
 

@@ -41,6 +41,9 @@ public abstract class DataConnection {
     @Nullable
     public abstract Instant getDeletedAt();
 
+    @Nullable
+    public abstract List<String> getTags();
+
     public abstract Builder toBuilder();
 
     @JsonIgnore
@@ -76,7 +79,8 @@ public abstract class DataConnection {
                     .setName("")
                     .setDescription("")
                     .setDeletedAt(null)
-                    .setSeries(Collections.emptyList());
+                    .setSeries(Collections.emptyList())
+                    .setTags(Collections.emptyList());
         }
     }
 
