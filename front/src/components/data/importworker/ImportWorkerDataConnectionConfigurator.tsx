@@ -1,6 +1,6 @@
 import React, { useContext, useMemo } from 'react';
 import { useWorkers } from '../../../hooks';
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 import {
   MenuItem,
   Select,

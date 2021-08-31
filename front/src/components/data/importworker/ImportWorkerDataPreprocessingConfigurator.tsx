@@ -1,6 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 import { SampleTable } from '..';
 import StepperButtons from '../StepperButtons';
 import { sample } from '../../../client';

@@ -146,9 +146,6 @@ public class DataController {
         return createdSeries;
     }
 
-<<<<<<< HEAD
-    public void sync(DataSeries dataSeries, Task task) {
-=======
     public DataConnection updateDataConnection(DataConnection dataConnection) {
         DataConnection updatedDataConnection = dataConnectionDao.update(
                 dataConnection.getId(),
@@ -164,11 +161,7 @@ public class DataController {
         return updatedDataConnection;
     }
 
-    public void update(
-            Map<String, CronRegistration> cronTasksWithNames,
-            Map<String, SingleTriggerJob> runningOrPendingDataSyncJobs,
-            DataSeries dataSeries
-    ) {
+    public void sync(DataSeries dataSeries, Task task) {
         if (dataSeries.getType().equals(DataConnectionType.JSON_INGEST)
                 || dataSeries.getType().equals(DataConnectionType.CSV)) {
             throw new ApplicationException("Unable to update DataSeries with DataConnectionType "
@@ -176,7 +169,6 @@ public class DataController {
         }
         // Creating and importing data to new table before updating the dataSeries in case
         // the either of the operations fails
->>>>>>> 5b98bd7 (Edit data series page)
         DataSeries existingSeries = getSeriesDetailsByName(dataSeries.getName())
                 .orElseThrow(NotFoundException::new);
 
