@@ -21,6 +21,7 @@ import {
 import {
   FileUploadResponse,
   DataSeries,
+  Worker,
   DataConnection,
   DEFAULT_JDBC_DATA_CONNECTION,
   DEFAULT_JDBC_DATA_SERIES

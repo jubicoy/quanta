@@ -22,6 +22,7 @@ import {
   FileUploadResponse,
   DataSeries,
   DataConnection,
+  Worker,
   DEFAULT_JDBC_DATA_CONNECTION,
   DEFAULT_JDBC_DATA_SERIES
 } from '../../types';
