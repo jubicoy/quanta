@@ -87,7 +87,6 @@ public class DataController {
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
         return dataConnectionDao.search(query)
                 .stream()
-                .map(importer::getWithEmptyLogin)
                 .collect(Collectors.toList());
     }
 
@@ -95,9 +94,8 @@ public class DataController {
         return dataConnectionDao.getDetails(connectionId);
     }
 
-    public Optional<DataConnection> getConnectionDetailsWithEmptyLogin(Long connectionId) {
-        return dataConnectionDao.getDetails(connectionId)
-                .map(importer::getWithEmptyLogin);
+    public Optional<DataSeries> getDataSeriesDetails(Long seriesId) {
+        return dataSeriesDao.getDetails(seriesId);
     }
 
     public Optional<DataConnectionMetadata> getConnectionMetadata(Long connectionId) {
@@ -106,12 +104,10 @@ public class DataController {
     }
 
     public DataConnection create(DataConnection dataConnection) {
-        return importer.getWithEmptyLogin(
-                dataConnectionDao.create(
+        return dataConnectionDao.create(
                         importer.validate(
                                 dataDomain.create(dataConnection)
                         )
-                )
         );
     }
 
@@ -150,7 +146,37 @@ public class DataController {
         return createdSeries;
     }
 
+<<<<<<< HEAD
     public void sync(DataSeries dataSeries, Task task) {
+=======
+    public DataConnection updateDataConnection(DataConnection dataConnection) {
+        DataConnection updatedDataConnection = dataConnectionDao.update(
+                dataConnection.getId(),
+                optionalDataConnection -> dataDomain.updateDataConnection(
+                        optionalDataConnection.orElseThrow(
+                                () -> new ApplicationException(
+                                        "Can't update non-existing DataConnection"
+                                )
+                        ),
+                        dataConnection
+                )
+        );
+        return updatedDataConnection;
+    }
+
+    public void update(
+            Map<String, CronRegistration> cronTasksWithNames,
+            Map<String, SingleTriggerJob> runningOrPendingDataSyncJobs,
+            DataSeries dataSeries
+    ) {
+        if (dataSeries.getType().equals(DataConnectionType.JSON_INGEST)
+                || dataSeries.getType().equals(DataConnectionType.CSV)) {
+            throw new ApplicationException("Unable to update DataSeries with DataConnectionType "
+                    + "of JSON_INGEST / CVS ");
+        }
+        // Creating and importing data to new table before updating the dataSeries in case
+        // the either of the operations fails
+>>>>>>> 5b98bd7 (Edit data series page)
         DataSeries existingSeries = getSeriesDetailsByName(dataSeries.getName())
                 .orElseThrow(NotFoundException::new);
 

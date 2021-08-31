@@ -17,7 +17,7 @@ import {
 } from '../../../types';
 
 import { dataStyles } from '../DataStyles';
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../../context';
 
 interface RowProps {
   title: string;

@@ -21,7 +21,7 @@ import {
 } from '../../types';
 
 import clsx from 'clsx';
-import { _DataConnectionConfiguratorContext } from './DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../context';
 
 interface SampleTableProps {
   editableType: boolean; // Can types be edited

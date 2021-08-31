@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom';
 import { App } from './components';
 
 import 'material-icons';
+import 'highlight.js/styles/github.css';
 import 'typeface-roboto';
 import './index.less';
 

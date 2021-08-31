@@ -43,6 +43,8 @@ import {
 import { DataConnectionType } from '../../types/DataConnections';
 import { SampleResponse } from '../../types/Api';
 
+import { _DataConnectionConfiguratorContext } from '../context';
+
 function getSteps () {
   return [
     'Type',
@@ -52,6 +54,7 @@ function getSteps () {
   ];
 }
 
+<<<<<<< HEAD
 interface DataConnectionConfiguratorContext {
   uploadedData: FileUploadResponse | null;
   setUploadedData: (data: FileUploadResponse | null) => void;
@@ -116,6 +119,8 @@ export const _DataConnectionConfiguratorContext = React.createContext<DataConnec
   /* eslint-enable @typescript-eslint/no-empty-function */
 });
 
+=======
+>>>>>>> 5b98bd7 (Edit data series page)
 export const DataImportPage = () => {
   const classes = dataStyles();
 
@@ -158,6 +163,10 @@ export const DataImportPage = () => {
     setSelectedWorker(null);
     setSampleResponse(null);
     setSampleData([]);
+  };
+
+  const onSubmitDataSeriesSuccess = () => {
+    return undefined;
   };
 
   // Stepper handlers
@@ -241,6 +250,7 @@ export const DataImportPage = () => {
           setDataConnection: setDataConnection,
           dataSeries: dataSeries,
           setDataSeries: setDataSeries,
+          onSubmitDataSeriesSuccess: onSubmitDataSeriesSuccess,
 
           sampleResponse: sampleResponse,
           setSampleResponse: setSampleResponse,

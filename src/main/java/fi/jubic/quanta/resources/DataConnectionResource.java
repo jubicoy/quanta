@@ -16,6 +16,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -50,8 +51,22 @@ public class DataConnectionResource {
     public DataConnection getDetails(
             @PathParam("id") Long id
     ) {
-        return dataController.getConnectionDetailsWithEmptyLogin(id)
+        return dataController.getConnectionDetails(id)
                 .orElseThrow(NotFoundException::new);
+    }
+
+    @GET
+    @Path("data-series/{id}")
+    public DataSeries getDataSeriesDetails(
+            @PathParam("id") Long id
+    ) {
+        return dataController.getDataSeriesDetails(id)
+                .orElseThrow(NotFoundException::new);
+    }
+
+    @PUT
+    public DataConnection updateDataConnection(DataConnection dataConnection) {
+        return dataController.updateDataConnection(dataConnection);
     }
 
     @GET
@@ -130,4 +145,5 @@ public class DataConnectionResource {
                 dataConnectionId
         );
     }
+
 }

@@ -2,7 +2,7 @@ import React, { useContext } from 'react';
 
 import { Button } from '@material-ui/core';
 
-import { _DataConnectionConfiguratorContext } from './DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../context';
 import { dataStyles } from './DataStyles';
 
 interface Props {

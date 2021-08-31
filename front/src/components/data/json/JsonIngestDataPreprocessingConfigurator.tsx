@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 
-import { _DataConnectionConfiguratorContext } from '../DataImportPage';
-
+import { _DataConnectionConfiguratorContext } from '../../context';
 import StepperButtons from '../StepperButtons';
 import {
   Paper,

@@ -253,6 +253,42 @@ export const submitDataConnection = (
     .then(res => res.json());
 };
 
+export const updateDataConnection = (
+  dataConnection: DataConnection
+): Promise<DataConnection> => {
+  return testDataConnection(dataConnection)
+    .then(() => window
+      .fetch(
+        '/api/data-connections',
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': localStorage.getItem('token') || ''
+          },
+          body: JSON.stringify(dataConnection)
+        }
+      ))
+    .then(res => checkResponse(res))
+    .then(res => res.json());
+};
+
+// DataSeries
+
+export const getDataSeries = (id: number): Promise<DataSeries> => window
+  .fetch(
+    `/api/data-connections/data-series/${id}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
+
 // Submit DataSeries
 export const submitDataSeries = (
   dataConnectionId: number,
@@ -274,6 +310,20 @@ export const submitDataSeries = (
     .then(res => checkResponse(res))
     .then(res => res.json());
 };
+
+export const deleteDataSeries = (id: number): Promise<DataSeries> => window
+  .fetch(
+    `/api/data-connections/data-series/${id}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());
 
 // Get DataConnection metadata (tables)
 export const getDataConnectionMetadata = (

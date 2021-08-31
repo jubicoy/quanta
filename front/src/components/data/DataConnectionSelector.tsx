@@ -11,7 +11,7 @@ import { Typography,
 } from '@material-ui/core';
 
 import { dataStyles } from './DataStyles';
-import { _DataConnectionConfiguratorContext } from './DataImportPage';
+import { _DataConnectionConfiguratorContext } from '../context';
 import { DataConnectionType } from '../../types';
 import { useDataConnections, useNameCheck } from '../../hooks';
 

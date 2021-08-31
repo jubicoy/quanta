@@ -22,6 +22,7 @@ import { AuthProvider } from '../hooks';
 
 import { DataConnectionPage } from './dataconnections';
 import { DetailedDataConnection } from './dataconnection';
+import { EditDataSeries, ReplaceDataSeries } from './data';
 import { TaskPage } from './tasks';
 import { DetailedTask, CreateTask, DetailedInvocation } from './task';
 import { DetailedWorker } from './worker';
@@ -91,7 +92,9 @@ class App extends React.PureComponent<{}> {
                     <Switch>
                       <Route path='/upload' component={DataImportPage} />
                       <Route exact path='/data-connections' component={DataConnectionPage} />
-                      <Route path='/data-connections/:id/:name?' component={DetailedDataConnection} />
+                      <Route exact path='/data-connections/:id/:name?' component={DetailedDataConnection} />
+                      <Route exact path='/data-connections/:id/:name/series/new' component={EditDataSeries} />
+                      <Route exact path='/data-series/:id/replace' component={ReplaceDataSeries} />
                       <Route path='/json-ingest/:id' component={JsonIngestPage} />
                       <Route path='/invocation/:id' component={DetailedInvocation} />
                       <Route path='/task-list' component={TaskPage} />

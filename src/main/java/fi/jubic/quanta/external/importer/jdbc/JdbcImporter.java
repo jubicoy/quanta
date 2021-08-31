@@ -105,24 +105,7 @@ public class JdbcImporter implements Importer {
         return dataConnection;
     }
 
-    @SuppressFBWarnings(
-            value = {
-                    "HARD_CODE_PASSWORD"
-            },
-            justification = "Emptying the password/username field "
-                    + "when user queries data connections through resources"
-    )
-    @Override
-    public DataConnection getWithEmptyLogin(DataConnection dataConnection) {
-        return dataConnection.toBuilder()
-                .setConfiguration(
-                        getConnectionConfiguration(dataConnection).toBuilder()
-                            .setPassword("")
-                            .setUsername("")
-                            .build()
-                )
-                .build();
-    }
+
 
     @SuppressFBWarnings(
             value = {
@@ -272,9 +255,9 @@ public class JdbcImporter implements Importer {
                         dataSeries.toBuilder()
                             .setColumns(columns)
                             .setDataConnection(
-                                    getWithEmptyLogin(
+                                   
                                             Objects.requireNonNull(dataSeries.getDataConnection())
-                                    )
+                                    
                             )
                             .build()
                 )

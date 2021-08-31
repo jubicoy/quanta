@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("checkstyle:LineLength")
 @Singleton
 public class DataDomain {
     private static final String NAMING_PATTERN_REGEX = "^[a-zA-Z0-9-_]+$";
@@ -121,6 +122,19 @@ public class DataDomain {
         }
         return oldSeriesTable.toBuilder()
                 .setDeleteAt(newSeriesTable.getDeleteAt())
+                .build();
+    }
+
+    public DataConnection updateDataConnection(DataConnection oldConnection,
+                                               DataConnection newConnection) {
+        if (Objects.equals(oldConnection, newConnection)) {
+            return oldConnection;
+        }
+
+        return newConnection.toBuilder()
+                .setName(newConnection.getName())
+                .setDescription(newConnection.getDescription())
+                .setConfiguration(newConnection.getConfiguration())
                 .build();
     }
 

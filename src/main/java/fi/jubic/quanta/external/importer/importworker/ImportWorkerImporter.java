@@ -83,11 +83,6 @@ public class ImportWorkerImporter implements Importer {
     }
 
     @Override
-    public DataConnection getWithEmptyLogin(DataConnection dataConnection) {
-        return dataConnection;
-    }
-
-    @Override
     public DataSample getSample(DataSeries dataSeries, int rows) {
 
         String taskName = dataSeries.getId() + "-" + dataSeries.getName()
