@@ -29,15 +29,12 @@ import java.util.stream.Stream;
 
 import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
 import static fi.jubic.quanta.db.Tables.DATA_SERIES;
-import static fi.jubic.quanta.db.Tables.TAG;
-import static fi.jubic.quanta.db.Tables.TAG_TASK;
 import static fi.jubic.quanta.db.Tables.TASK;
 import static fi.jubic.quanta.db.Tables.TASK_COLUMN_SELECTOR;
 import static fi.jubic.quanta.db.Tables.TASK_OUTPUT_COLUMN;
 import static fi.jubic.quanta.db.Tables.TASK_PARAMETER;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION;
 import static fi.jubic.quanta.db.Tables.WORKER_DEFINITION_COLUMN;
-import static org.jooq.impl.DSL.using;
 
 public class TaskDao {
     private final org.jooq.Configuration conf;
@@ -82,7 +79,7 @@ public class TaskDao {
                 .reduce(Condition::and)
                 .orElseGet(DSL::trueCondition);
 
-        List<Task> tasks = using(conf).transactionResult(transaction -> using(transaction)
+        List<Task> tasks = DSL.using(conf).transactionResult(transaction -> DSL.using(transaction)
                 .select()
                 .from(TASK)
                 .leftJoin(WORKER_DEFINITION)
@@ -115,8 +112,8 @@ public class TaskDao {
                                                 DataSeries.mapper.alias(COLUMN_DATA_SERIES)
                                                         .withDataConnection(
                                                                 DataConnection
-                                                                .mapper
-                                                                .alias(COLUMN_DATA_CONNECTION)
+                                                                        .mapper
+                                                                        .alias(COLUMN_DATA_CONNECTION)
                                                         )
                                         )
                         )
@@ -126,9 +123,9 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setSeries(
@@ -137,16 +134,10 @@ public class TaskDao {
                                         task.getSeries().getId(),
                                         transaction
                                 ).orElseThrow(NotFoundException::new)
-                                : null
+                                        : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(
-                                        task.getId(),
-                                        transaction
-                                )
-                        )
-                        .setTags(
-                                getTags(
                                         task.getId(),
                                         transaction
                                 )
@@ -173,7 +164,7 @@ public class TaskDao {
 
     private Optional<Task> getDetails(Condition condition, Configuration transaction) {
 
-        Optional<Task> taskResult = using(transaction)
+        Optional<Task> taskResult = DSL.using(transaction)
                 .select()
                 .from(TASK)
                 .leftJoin(WORKER_DEFINITION)
@@ -206,9 +197,9 @@ public class TaskDao {
                                                 DataSeries.mapper.alias(COLUMN_DATA_SERIES)
                                                         .withDataConnection(
                                                                 DataConnection
-                                                                .mapper
-                                                                .alias(COLUMN_DATA_CONNECTION)
-                                                )
+                                                                        .mapper
+                                                                        .alias(COLUMN_DATA_CONNECTION)
+                                                        )
                                         )
                         )
                 )
@@ -217,18 +208,18 @@ public class TaskDao {
                         .setWorkerDef(
                                 Objects.nonNull(task.getWorkerDef())
                                         ? workerDefDao.getDetailsWithTransaction(
-                                                task.getWorkerDef().getId(),
-                                                transaction
-                                        ).orElseThrow(NotFoundException::new)
+                                        task.getWorkerDef().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
                                         : null
                         )
                         .setSeries(
                                 Objects.nonNull(task.getSeries())
-                                    ? dataSeriesDao.getDetails(
-                                            task.getSeries().getId(),
-                                            transaction
-                                    ).orElseThrow(NotFoundException::new)
-                                    : null
+                                        ? dataSeriesDao.getDetails(
+                                        task.getSeries().getId(),
+                                        transaction
+                                ).orElseThrow(NotFoundException::new)
+                                        : null
                         )
                         .setOutputColumns(
                                 getOutputColumns(
@@ -236,12 +227,6 @@ public class TaskDao {
                                         transaction
                                 )
                         )
-                        .setTags((
-                                getTags(
-                                        task.getId(),
-                                        transaction
-                                )
-                                ))
                         .build()
                 );
 
@@ -251,12 +236,12 @@ public class TaskDao {
 
     public Task create(Task task) {
         try {
-            return using(conf).transactionResult(transaction -> {
-                Long taskId = using(transaction)
+            return DSL.using(conf).transactionResult(transaction -> {
+                Long taskId = DSL.using(transaction)
                         .insertInto(TASK)
                         .set(
                                 Task.mapper.write(
-                                        using(conf).newRecord(TASK),
+                                        DSL.using(conf).newRecord(TASK),
                                         task
                                 )
                         )
@@ -265,13 +250,13 @@ public class TaskDao {
                         .getId();
 
                 if (!task.getColumnSelectors().isEmpty()) {
-                    using(transaction)
+                    DSL.using(transaction)
                             .batchInsert(
                                     task.getColumnSelectors()
                                             .stream()
                                             .map(taskColumnSelector ->
                                                     ColumnSelector.taskColumnSelectorMapper.write(
-                                                            using(conf).newRecord(
+                                                            DSL.using(conf).newRecord(
                                                                     TASK_COLUMN_SELECTOR
                                                             ),
                                                             taskColumnSelector
@@ -284,13 +269,13 @@ public class TaskDao {
                 }
 
                 if (!task.getOutputColumns().isEmpty()) {
-                    using(transaction)
+                    DSL.using(transaction)
                             .batchInsert(
                                     task.getOutputColumns()
                                             .stream()
                                             .map(outputColumn ->
                                                     OutputColumn.taskOutputColumnMapper.write(
-                                                            using(conf).newRecord(
+                                                            DSL.using(conf).newRecord(
                                                                     TASK_OUTPUT_COLUMN
                                                             ),
                                                             outputColumn
@@ -303,13 +288,13 @@ public class TaskDao {
                 }
 
                 if (task.getParameters() != null) {
-                    using(transaction)
+                    DSL.using(transaction)
                             .batchInsert(
                                     task.getParameters()
                                             .stream()
                                             .map(parameter ->
                                                     Parameter.taskParameterRecordMapper.write(
-                                                            using(conf).newRecord(
+                                                            DSL.using(conf).newRecord(
                                                                     TASK_PARAMETER
                                                             ),
                                                             parameter
@@ -335,14 +320,14 @@ public class TaskDao {
             Function<Optional<Task>, Task> updater
     ) {
         try {
-            return using(conf).transactionResult(transaction -> {
+            return DSL.using(conf).transactionResult(transaction -> {
                 Task task = updater.apply(getDetails(id));
 
-                using(conf)
+                DSL.using(conf)
                         .update(TASK)
                         .set(
                                 Task.mapper.write(
-                                        using(conf).newRecord(TASK),
+                                        DSL.using(conf).newRecord(TASK),
                                         task
                                 )
                         )
@@ -352,7 +337,7 @@ public class TaskDao {
                 if (task.getParameters() != null) {
                     task.getParameters()
                             .forEach(parameter -> {
-                                TaskParameterRecord record = using(conf)
+                                TaskParameterRecord record = DSL.using(conf)
                                         .select()
                                         .from(TASK_PARAMETER)
                                         .where(TASK_PARAMETER.ID.eq(parameter.getId()))
@@ -380,7 +365,7 @@ public class TaskDao {
             Long taskId,
             org.jooq.Configuration transaction
     ) {
-        return using(transaction)
+        return DSL.using(transaction)
                 .select()
                 .from(TASK_OUTPUT_COLUMN)
                 .where(TASK_OUTPUT_COLUMN.TASK_ID.eq(taskId))
@@ -388,26 +373,12 @@ public class TaskDao {
                 .collect(OutputColumn.taskOutputColumnMapper);
     }
 
-    private List<String> getTags(
-            Long taskId,
-            Configuration transaction
-    ) {
-        return using(transaction)
-                .select()
-                .from(TAG)
-                .leftJoin(TAG_TASK)
-                .on(TAG.ID.eq(TAG_TASK.TAG_ID))
-                .where(TAG_TASK.TASK_ID.eq(taskId))
-                .fetch()
-                .getValues(TAG.NAME).stream().collect(Collectors.toList());
-    }
-
     private List<Task> getParameters(
             List<Task> tasks,
             org.jooq.Configuration transaction
     ) {
         Map<Long, List<Parameter>> parameters =
-                using(transaction)
+                DSL.using(transaction)
                         .select()
                         .from(TASK_PARAMETER)
                         .where(TASK_PARAMETER.TASK_ID.in(
