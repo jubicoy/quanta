@@ -25,12 +25,14 @@ import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
+import fi.jubic.quanta.util.DateUtil;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -173,11 +175,17 @@ public class DataController {
                 .orElseThrow(NotFoundException::new);
 
         if (task.getSyncIntervalOffset() != null) {
+            DateTimeFormatter dateTimeFormatter = dataSeries.getColumns().isEmpty()
+                    ? DateUtil.dateTimeFormatter(null)
+                    : DateUtil.dateTimeFormatter(
+                            dataSeries.getColumns().get(0).getType().getFormat()
+            );
             Instant now = Instant.now();
             syncIncremental(
                     existingSeries,
                     now.minusSeconds(task.getSyncIntervalOffset()),
-                    now
+                    now,
+                    dateTimeFormatter
             );
         }
         else {
@@ -227,13 +235,19 @@ public class DataController {
         );
     }
 
-    private void syncIncremental(DataSeries dataSeries, Instant start, Instant end) {
+    private void syncIncremental(
+            DataSeries dataSeries,
+            Instant start,
+            Instant end,
+            DateTimeFormatter dateTimeFormatter
+    ) {
         DSL.using(conf).transaction(transaction -> {
             timeSeriesDao.deleteRowsWithTableName(
                     dataSeries.getTableName(),
                     "0",
                     start,
                     end,
+                    dateTimeFormatter,
                     transaction
             );
 
@@ -241,13 +255,11 @@ public class DataController {
                     dataSeries,
                     batch -> timeSeriesDao.insertData(
                             dataSeries,
-                            batch.filter(row -> {
-                                // TODO: Use correct column format
-                                var ts = Instant.parse(row.get(0));
-                                return ts.isAfter(start) && !ts.isAfter(end);
-                            }),
+                            batch,
                             transaction
-                    )
+                    ),
+                    start,
+                    end
             ).join();
         });
     }

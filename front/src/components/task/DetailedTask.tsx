@@ -331,6 +331,11 @@ export default ({
         isCronTriggerValid={isCronTriggerValid}
         triggersAreValid={triggersAreValid}
         cronHelperText={cronHelperText}
+        syncIntervalOffset={editTask.syncIntervalOffset}
+        setSyncIntervalOffset={syncIntervalOffset => setEditTask({
+          ...editTask,
+          syncIntervalOffset
+        })}
       />
       <T variant='h5'>Invocations</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>

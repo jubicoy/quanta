@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Typography as T,
   Button,
@@ -8,11 +8,18 @@ import {
   Select,
   Table,
   TableBody,
-  TextField
+  TextField,
+  makeStyles,
+  createStyles
 } from '@material-ui/core';
 import clsx from 'clsx';
+import moment from 'moment';
 
-import { commonStyles, TableRowItem } from '../common';
+import {
+  commonStyles,
+  DateQuickSelector,
+  TableRowItem
+} from '../common';
 import {
   WorkerDef,
   DataConnection,
@@ -23,6 +30,28 @@ import {
   Parameter
 } from '../../types';
 import { WorkerDefConfiguration } from './WorkerDefConfiguration';
+
+const useStyles = makeStyles(() => {
+  const height = 46;
+  const borderStyle = {
+    border: '1px solid rgba(0, 0, 0, .24)',
+    borderRadius: '4px',
+    '&:hover': {
+      border: '1px solid rgba(0, 0, 0, 1)'
+    }
+  };
+  return createStyles({
+    toolbarDateInput: {
+      '& .MuiInputBase-root': {
+        height: height + 'px'
+      },
+      '& .MuiOutlinedInput-notchedOutline ': {
+        ...borderStyle
+      },
+      'marginInline': '10px'
+    }
+  });
+});
 
 interface TaskProps {
   editable: boolean;
@@ -52,7 +81,11 @@ interface TaskProps {
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
   cronHelperText?: string;
+  syncIntervalOffset?: number;
+  setSyncIntervalOffset: (syncIntervalOffset: number | undefined) => void;
 }
+
+const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
 
 export const TaskConfiguration = ({
   editable,
@@ -81,11 +114,39 @@ export const TaskConfiguration = ({
   tasks,
   triggersAreValid,
   isCronTriggerValid,
-  cronHelperText
+  cronHelperText,
+  syncIntervalOffset,
+  setSyncIntervalOffset
 }: TaskProps) => {
   const common = commonStyles();
+  const classes = useStyles();
 
   const taskTriggerList = tasks?.map(({ id, name }) => ({ id, name }));
+  const [startDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(
+    syncIntervalOffset
+      ? moment.utc(new Date()).subtract(syncIntervalOffset, 'seconds').toDate()
+      : new Date()
+  );
+  const [enableSyncInterval, setEnableSyncInterval] = useState<string>(
+    syncIntervalOffset ? 'enable' : 'disable'
+  );
+
+  const handleSyncIntervalOffset = useCallback(
+    (endDate: Date) => {
+      const interval = moment.utc(startDate).diff(moment.utc(endDate)) / 1000;
+      setEndDate(endDate);
+      setSyncIntervalOffset(interval);
+    },
+    [setSyncIntervalOffset, startDate]
+  );
+
+  const handleEnableSyncInterval = (value: string) => {
+    setEnableSyncInterval(value);
+    if (value === 'disable') {
+      setSyncIntervalOffset(undefined);
+    }
+  };
 
   return (
     <>
@@ -226,6 +287,57 @@ export const TaskConfiguration = ({
                       )
                       : `${taskTrigger || ''}`}
                     tooltip={'Task is launched whenever an Invocation of referred Task is completed'}
+                  />
+                  <TableRowItem
+                    title='Sync Interval'
+                    value={editable
+                      ? (
+                        <div>
+                          <TextField
+                            select
+                            label='Select'
+                            variant='outlined'
+                            className={clsx(classes.toolbarDateInput)}
+                            value={enableSyncInterval}
+                            onChange={(e) => handleEnableSyncInterval(e.target.value)}
+                          >
+                            <MenuItem value='enable'>Enable</MenuItem>
+                            <MenuItem value='disable'>Disable</MenuItem>
+                          </TextField>
+                          {
+                            enableSyncInterval === 'enable'
+                              ? <>
+                                <DateQuickSelector
+                                  startDate={endDate}
+                                  setStartDate={handleSyncIntervalOffset}
+                                  endDate={startDate}
+                                />
+                                <TextField
+                                  className={clsx(classes.toolbarDateInput)}
+                                  variant='outlined'
+                                  label='From'
+                                  type='datetime-local'
+                                  value={moment.utc(startDate).format(INPUT_DATE_FORMAT)}
+                                  disabled
+                                />
+                                <TextField
+                                  className={clsx(classes.toolbarDateInput)}
+                                  variant='outlined'
+                                  label='To'
+                                  type='datetime-local'
+                                  value={moment.utc(endDate).format(INPUT_DATE_FORMAT)}
+                                  inputProps={{
+                                    max: `${moment.utc(startDate).format(INPUT_DATE_FORMAT)}`
+                                  }}
+                                  onChange={(e) => handleSyncIntervalOffset(new Date(e.target.value))}
+                                />
+                              </>
+                              : null
+                          }
+                        </div>
+                      )
+                      : `${syncIntervalOffset || ''}`
+                    }
                   />
                 </>
             }

@@ -32,6 +32,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -262,7 +263,9 @@ public class CsvImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
-            Consumer<Stream<List<String>>> consumer
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     ) {
         consumer.accept(getRows(dataSeries));
         return CompletableFuture.completedFuture(null);

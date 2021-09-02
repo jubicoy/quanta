@@ -24,6 +24,7 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -182,7 +183,9 @@ public class MainImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
-            Consumer<Stream<List<String>>> consumer
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     ) {
         return dataSeries.getConfiguration()
                 .visit(new DataSeriesConfiguration.FunctionVisitor<CompletableFuture<Void>>() {
@@ -197,7 +200,7 @@ public class MainImporter implements Importer {
                     public CompletableFuture<Void> onJdbc(
                             JdbcDataSeriesConfiguration jdbcConfiguration
                     ) {
-                        return jdbcImporter.getRows(dataSeries, consumer);
+                        return jdbcImporter.getRows(dataSeries, consumer, start, end);
                     }
 
                     @Override

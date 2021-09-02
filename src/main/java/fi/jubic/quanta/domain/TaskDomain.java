@@ -51,6 +51,7 @@ public class TaskDomain {
                 .setCronTrigger(newTask.getCronTrigger())
                 .setTaskTrigger(newTask.getTaskTrigger())
                 .setParameters(newTask.getParameters())
+                .setSyncIntervalOffset(newTask.getSyncIntervalOffset())
                 .build();
     }
 

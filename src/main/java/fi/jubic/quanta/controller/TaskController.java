@@ -34,6 +34,7 @@ import fi.jubic.quanta.models.TaskType;
 import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerQuery;
 import fi.jubic.quanta.models.WorkerStatus;
+import fi.jubic.quanta.util.DateUtil;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 
@@ -42,6 +43,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -290,11 +292,16 @@ public class TaskController {
                         )
                         .min(Instant::compareTo)
                         .orElseThrow();
+
+                DateTimeFormatter dateTimeFormatter = DateUtil.dateTimeFormatter(
+                        invocation.getColumnSelectors().get(0).getType().getFormat()
+                );
                 timeSeriesDao.deleteRowsWithTableName(
                         createdSeries.getTableName(),
                         "0",
                         deleteEdge,
                         Instant.from(Instant.now()),
+                        dateTimeFormatter,
                         conf
                 );
             }

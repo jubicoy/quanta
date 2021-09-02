@@ -18,6 +18,7 @@ import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.metadata.JdbcDataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.JdbcTypeMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
+import fi.jubic.quanta.util.DateUtil;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nullable;
@@ -36,8 +37,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -122,14 +125,37 @@ public class JdbcImporter implements Importer {
         jdbcSeriesConfig = getSeriesConfiguration(dataSeries);
 
         List<List<String>> data = new ArrayList<>();
-        List<Column> columns;
+        List<Column> columns = dataSeries.getColumns();
 
         // Is this period in the format pattern below intentional ?
-        SimpleDateFormat dateTimeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
+        DateTimeFormatter dateTimeFormatter = columns.isEmpty()
+                ? DateUtil.dateTimeFormatter(null)
+                : DateUtil.dateTimeFormatter(
+                        columns.get(0).getType().getFormat()
+        );
+        DateTimeFormatter dateFormat = DateTimeFormatter
+                .ofPattern("yyyy-MM-dd")
+                .withZone(ZoneId.from(ZoneOffset.UTC));
+        DateTimeFormatter timeFormat = DateTimeFormatter
+                .ofPattern("HH:mm:ss")
+                .withZone(ZoneId.from(ZoneOffset.UTC));
 
-        String query = jdbcSeriesConfig.getQuery();
+        String rawQuery = jdbcSeriesConfig.getQuery();
+        String query = rawQuery.contains("$START") || rawQuery.contains("$END")
+                ? rawQuery
+                .replace(
+                        "$START",
+                        dateTimeFormatter.format(
+                                Instant.parse("1970-01-01T00:00:00.00Z")
+                        )
+                )
+                .replace(
+                        "$END",
+                        dateTimeFormatter.format(
+                                Instant.parse("2100-12-31T23:59:59.00Z")
+                        )
+                )
+                : rawQuery;
 
         try (
                 Connection connection = getConnection(jdbcConnectionConfig);
@@ -147,27 +173,33 @@ public class JdbcImporter implements Importer {
                         case "TIMESTAMP":
                         case "TIMESTAMPTZ":
                             Timestamp timeStamp = resultSet.getTimestamp(i);
-                            row.add(timeStamp != null
-                                            ? dateTimeFormat.format(timeStamp) + String.format(
-                                    "%09d",
-                                    timeStamp.getNanos()
+                            row.add(
+                                    timeStamp != null
+                                            ? dateTimeFormatter.format(
+                                                            timeStamp.toInstant()
                                     )
                                             : null
                             );
                             break;
                         case "DATE":
                             Date date = resultSet.getDate(i);
-                            row.add(date != null
-                                    ? dateFormat.format(date)
-                                    : null
+                            row.add(
+                                    date != null
+                                            ? dateFormat.format(
+                                                    date.toInstant()
+                                    )
+                                            : null
                             );
                             break;
                         case "TIME":
                         case "TIMETZ":
                             Time time = resultSet.getTime(i);
-                            row.add(time != null
-                                    ? timeFormat.format(time)
-                                    : null
+                            row.add(
+                                    time != null
+                                            ? timeFormat.format(
+                                                    time.toInstant()
+                                    )
+                                            : null
                             );
                             break;
                         default:
@@ -177,9 +209,6 @@ public class JdbcImporter implements Importer {
                 }
                 data.add(row);
             }
-
-
-            columns = dataSeries.getColumns();
 
             if (columns.isEmpty()) {
                 // Auto-detect types
@@ -221,7 +250,7 @@ public class JdbcImporter implements Importer {
                         case "DATETIME":
                         case "TIMESTAMP":
                         case "TIMESTAMPTZ":
-                            format = "yyyy-MM-dd HH:mm:ss.nnnnnnnnn";
+                            format = "yyyy-MM-dd'T'HH:mm:ss.nnnnnnnnn'Z'";
                             className = Instant.class;
                             break;
                         default: break;
@@ -280,7 +309,122 @@ public class JdbcImporter implements Importer {
         jdbcConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
         final JdbcDataSeriesConfiguration jdbcSeriesConfig;
         jdbcSeriesConfig = getSeriesConfiguration(dataSeries);
-        String query = jdbcSeriesConfig.getQuery();
+
+        List<Column> columns = dataSeries.getColumns();
+
+        DateTimeFormatter datetimeFormatter = columns.isEmpty()
+                ? DateUtil.dateTimeFormatter(null)
+                : DateUtil.dateTimeFormatter(
+                        columns.get(0).getType().getFormat()
+        );
+
+        String rawQuery = jdbcSeriesConfig.getQuery();
+        String query = rawQuery.contains("$START") && rawQuery.contains("$END")
+                ? rawQuery
+                .replace(
+                        "$START",
+                        datetimeFormatter.format(
+                                Instant.parse("1970-01-01T00:00:00.00Z")
+                        )
+                )
+                .replace(
+                        "$END",
+                        datetimeFormatter.format(
+                                Instant.parse("2100-12-31T23:59:59.00Z")
+                        )
+                )
+                : rawQuery;
+
+        List<AutoCloseable> closeables = new ArrayList<>();
+        Runnable onClose = () -> {
+            try {
+                for (AutoCloseable closeable : closeables) {
+                    closeable.close();
+                }
+            }
+            catch (Exception e) {
+                e.printStackTrace();
+            }
+        };
+
+        try {
+            Connection connection = getConnection(jdbcConnectionConfig);
+            closeables.add(connection);
+
+            PreparedStatement select = connection.prepareStatement(query);
+            closeables.add(select);
+
+            ResultSet resultSet = select.executeQuery();
+            closeables.add(resultSet);
+
+            int columnCount = resultSet.getMetaData().getColumnCount();
+
+            return StreamSupport
+                    .stream(
+                            new Spliterators.AbstractSpliterator<List<String>>(
+                                    100_000_000,
+                                    Spliterator.ORDERED
+                            ) {
+                                @Override
+                                public boolean tryAdvance(Consumer<? super List<String>> consumer) {
+                                    try {
+                                        if (!resultSet.next()) return false;
+                                        consumer.accept(parseRow(resultSet, columnCount));
+                                        return true;
+                                    }
+                                    catch (SQLException e) {
+                                        throw new IllegalStateException(e);
+                                    }
+                                }
+                            },
+                            false
+                    )
+                    .onClose(onClose);
+        }
+        catch (SQLException e) {
+            onClose.run();
+            throw new ApplicationException("Failed to get connection: " + e);
+        }
+    }
+
+    @SuppressFBWarnings(
+            value = {
+                    "SQL_INJECTION_JDBC",
+                    "ODR_OPEN_DATABASE_RESOURCE",
+                    "OBL_UNSATISFIED_OBLIGATION"
+            },
+            justification = "The method is accessing user-owned data with given queries. "
+                    + "Closeables are handled, but spotbugs does not realize it."
+    )
+    public Stream<List<String>> getRows(
+            DataSeries dataSeries,
+            Instant start,
+            Instant end
+    ) {
+        final JdbcDataConnectionConfiguration jdbcConnectionConfig;
+        jdbcConnectionConfig = getConnectionConfiguration(dataSeries.getDataConnection());
+        final JdbcDataSeriesConfiguration jdbcSeriesConfig;
+        jdbcSeriesConfig = getSeriesConfiguration(dataSeries);
+
+        DateTimeFormatter dateTimeFormatter = dataSeries.getColumns().isEmpty()
+                ? DateUtil.dateTimeFormatter(null)
+                : DateUtil.dateTimeFormatter(
+                        dataSeries.getColumns().get(0).getType().getFormat()
+        );
+
+        String rawQuery = jdbcSeriesConfig.getQuery();
+        String query = rawQuery.contains("$START") && rawQuery.contains("$END")
+                ? rawQuery
+                .replace(
+                        "$START",
+                        dateTimeFormatter.format(start)
+                )
+                .replace(
+                        "$END",
+                        dateTimeFormatter.format(end)
+                )
+                : rawQuery;
+        System.out.println(query);
 
         List<AutoCloseable> closeables = new ArrayList<>();
         Runnable onClose = () -> {
@@ -337,9 +481,11 @@ public class JdbcImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
-            Consumer<Stream<List<String>>> consumer
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     ) {
-        consumer.accept(getRows(dataSeries));
+        consumer.accept(getRows(dataSeries, start, end));
         return CompletableFuture.completedFuture(null);
     }
 
@@ -441,9 +587,6 @@ public class JdbcImporter implements Importer {
 
     private List<String> parseRow(ResultSet resultSet, int columnCount) throws SQLException {
         List<String> row = new ArrayList<>();
-        final SimpleDateFormat dateTimeFormat = new SimpleDateFormat(
-                "yyyy-MM-dd HH:mm:ss."
-        );
         for (int i = 1; i <= columnCount; i++) {
             String columnType = resultSet.getMetaData().getColumnTypeName(i).toUpperCase();
             if (
@@ -453,10 +596,7 @@ public class JdbcImporter implements Importer {
             ) {
                 Timestamp timeStamp = resultSet.getTimestamp(i);
                 row.add(timeStamp != null
-                                ? dateTimeFormat.format(timeStamp) + String.format(
-                        "%09d",
-                        timeStamp.getNanos()
-                        )
+                                ? timeStamp.toInstant().toString()
                                 : null
                 );
             }
