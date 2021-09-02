@@ -8,6 +8,7 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,9 +33,23 @@ public interface Importer {
         return rows.stream();
     }
 
-    CompletableFuture<Void> getRows(
+    default CompletableFuture<Void> getRows(
             DataSeries dataSeries,
             Consumer<Stream<List<String>>> consumer
+    ) {
+        return getRows(
+                dataSeries,
+                consumer,
+                Instant.parse("1970-01-01T00:00:00.00Z"),
+                Instant.parse("2100-12-31T23:59:59.00Z")
+        );
+    }
+
+    CompletableFuture<Void> getRows(
+            DataSeries dataSeries,
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     );
 
     TypeMetadata getMetadata(DataConnectionType type);

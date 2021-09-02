@@ -180,7 +180,7 @@ export default ({
         }));
       }
     },
-    [dataConnection, task]
+    [dataConnection, task.taskType]
   );
 
   useEffect(
@@ -457,6 +457,11 @@ export default ({
         triggersAreValid={triggersAreValid}
         isCronTriggerValid={isCronTriggerValid}
         cronHelperText={cronHelperText}
+        syncIntervalOffset={task.syncIntervalOffset}
+        setSyncIntervalOffset={syncIntervalOffset => setTask({
+          ...task,
+          syncIntervalOffset
+        })}
       />
     </>
   );

@@ -22,6 +22,7 @@ import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,10 +76,11 @@ public class JsonIngestImporter implements Importer, Ingester {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
-            Consumer<Stream<List<String>>> consumer
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     ) {
-        consumer.accept(getRows(dataSeries));
-        return CompletableFuture.completedFuture(null);
+        return getRows(dataSeries, consumer);
     }
 
     @Override

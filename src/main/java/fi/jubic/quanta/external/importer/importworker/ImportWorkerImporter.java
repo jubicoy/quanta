@@ -250,7 +250,9 @@ public class ImportWorkerImporter implements Importer {
     @Override
     public CompletableFuture<Void> getRows(
             DataSeries dataSeries,
-            Consumer<Stream<List<String>>> consumer
+            Consumer<Stream<List<String>>> consumer,
+            Instant start,
+            Instant end
     ) {
         ImportWorkerDataConnectionConfiguration configuration =
                 Objects.requireNonNull(dataSeries.getDataConnection()).getConfiguration()

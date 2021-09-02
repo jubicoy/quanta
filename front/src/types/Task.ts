@@ -39,6 +39,7 @@ export interface Task {
   taskType: TaskType;
   deletedAt?: string;
   parameters?: Parameter[];
+  syncIntervalOffset?: number;
 }
 
 export interface TaskQuery {

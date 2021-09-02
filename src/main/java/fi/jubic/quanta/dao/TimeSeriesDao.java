@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -226,26 +227,35 @@ public class TimeSeriesDao {
     public void deleteRowsWithTableName(
             String tableName,
             String column,
-            Instant time1,
-            Instant time2,
+            Instant start,
+            Instant end,
+            DateTimeFormatter dateTimeFormatter,
             Configuration transaction
     ) {
-        deleteRows(tableName, column, time1, time2, transaction);
+        deleteRows(
+                tableName,
+                column,
+                start,
+                end,
+                dateTimeFormatter,
+                transaction
+        );
     }
 
     private void deleteRows(
             String tableName,
             String column,
-            Instant time1,
-            Instant time2,
+            Instant start,
+            Instant end,
+            DateTimeFormatter dateTimeFormatter,
             Configuration transaction
     ) {
         String command = String.format(
                 "DELETE FROM \"%s\" WHERE \"%s\" BETWEEN '%s' AND '%s'",
                 Sql.sanitize(tableName),
                 Sql.sanitize(column),
-                time1,
-                time2
+                dateTimeFormatter.format(start),
+                dateTimeFormatter.format(end)
         );
         DSL.using(transaction).execute(command);
     }
