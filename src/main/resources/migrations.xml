@@ -643,4 +643,10 @@
         <modifyDataType tableName="anomaly" columnName="sample" newDataType="jsonb" />
         <modifyDataType tableName="anomaly" columnName="metadata" newDataType="jsonb" />
     </changeSet>
+    <changeSet id="14" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <addUniqueConstraint
+                columnNames="name"
+                tableName="data_series"
+        />
+    </changeSet>
 </databaseChangeLog>

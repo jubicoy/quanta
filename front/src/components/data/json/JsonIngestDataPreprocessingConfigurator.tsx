@@ -13,8 +13,7 @@ import {
   DEFAULT_COLUMN,
   JsonIngestDataSeriesConfiguration,
   Column,
-  DataSeries,
-  DEFAULT_JSON_INGEST_DATA_SERIES
+  DataSeries
 } from '../../../types';
 import { JsonIngestDataSeriesConfigurator } from '.';
 
@@ -32,7 +31,10 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
-  const buildDataSeriesFromMappings = (inputPathColumnsMappings: PathColumnMapping[], inputDataSeries: DataSeries): DataSeries => {
+  const buildDataSeriesFromMappings = (
+    inputPathColumnsMappings: PathColumnMapping[],
+    inputDataSeries: DataSeries
+  ): DataSeries => {
     return {
       ...inputDataSeries,
       columns: inputPathColumnsMappings.map(({ column }, i) => {
@@ -82,9 +84,7 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
       buildDataSeriesFromMappings(
         defaultPathColumnMappings,
         {
-          ...DEFAULT_JSON_INGEST_DATA_SERIES,
-          name: dataConnection.name,
-          description: dataConnection.description,
+          ...dataSeries,
           dataConnection
         }
       )

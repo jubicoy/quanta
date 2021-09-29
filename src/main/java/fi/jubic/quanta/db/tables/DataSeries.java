@@ -139,7 +139,7 @@ public class DataSeries extends TableImpl<DataSeriesRecord> {
 
     @Override
     public List<UniqueKey<DataSeriesRecord>> getKeys() {
-        return Arrays.<UniqueKey<DataSeriesRecord>>asList(Keys.DATA_SERIES_PKEY, Keys.DATA_SERIES_TABLE_NAME_KEY);
+        return Arrays.<UniqueKey<DataSeriesRecord>>asList(Keys.DATA_SERIES_PKEY, Keys.DATA_SERIES_NAME_KEY, Keys.DATA_SERIES_TABLE_NAME_KEY);
     }
 
     @Override

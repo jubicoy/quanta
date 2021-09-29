@@ -107,7 +107,10 @@ export const JsonIngestDataSeriesConfigurator = (props: Props) => {
     [dataSeries]
   );
 
-  const buildDataSeriesFromMappings = (inputPathColumnsMappings: PathColumnMapping[], inputDataSeries: DataSeries): DataSeries => {
+  const buildDataSeriesFromMappings = (
+    inputPathColumnsMappings: PathColumnMapping[],
+    inputDataSeries: DataSeries
+  ): DataSeries => {
     return {
       ...inputDataSeries,
       columns: inputPathColumnsMappings.map(({ column }, i) => {

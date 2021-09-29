@@ -5,6 +5,7 @@ import fi.jubic.quanta.models.DataConnection;
 import fi.jubic.quanta.models.DataConnectionQuery;
 import fi.jubic.quanta.models.DataSample;
 import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.DataSeriesQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 
 import javax.annotation.security.RolesAllowed;
@@ -42,8 +43,15 @@ public class DataConnectionResource {
     public List<DataConnection> getAll(
             @BeanParam DataConnectionQuery query
     ) {
-
         return dataController.searchConnections(query);
+    }
+
+    @GET
+    @Path("data-series")
+    public List<DataSeries> getAll(
+            @BeanParam DataSeriesQuery query
+    ) {
+        return dataController.searchDataSeries(query);
     }
 
     @GET

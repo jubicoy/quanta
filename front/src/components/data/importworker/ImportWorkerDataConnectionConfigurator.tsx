@@ -1,12 +1,14 @@
 import React, { useContext, useMemo } from 'react';
-import { useWorkers } from '../../../hooks';
+import { useWorkers, useDataSeriesNameCheck } from '../../../hooks';
 import { _DataConnectionConfiguratorContext } from '../../context';
 import {
   MenuItem,
   Select,
   InputLabel,
   Typography as T,
-  Card, CardContent, CardHeader
+  Card, CardContent, CardHeader,
+  Divider,
+  TextField
 } from '@material-ui/core';
 import {
   DataConnection,
@@ -24,6 +26,8 @@ export const ImportWorkerDataConnectionConfigurator = () => {
 
     dataConnection,
     setDataConnection,
+
+    dataSeries,
     setDataSeries,
 
     setSampleResponse,
@@ -47,6 +51,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
   );
 
   const { workers } = useWorkers(workerQuery);
+  const { nameIsValid, helperText } = useDataSeriesNameCheck(dataSeries.name);
 
   const workerOptions = workers && workers.filter(w => w.definition.type === 'Import').map((worker: any, idx) =>
     <MenuItem key={idx} value={worker}>{worker.definition.name}</MenuItem>
@@ -120,16 +125,46 @@ export const ImportWorkerDataConnectionConfigurator = () => {
             {workerOptions}
           </Select>
           {selectedWorker
-      && <div style={{ padding: '15px 0' }}>
-        <T variant='body1'>Name: <b>{selectedWorker.definition.name}</b></T>
-        <T variant='body1'>Description: <b>{selectedWorker.definition.description}</b></T>
-      </div> }
+            && <div style={{ padding: '15px 0' }}>
+              <T variant='body1'>Name: <b>{selectedWorker.definition.name}</b></T>
+              <T variant='body1'>Description: <b>{selectedWorker.definition.description}</b></T>
+            </div> }
+
+          <Divider
+            style={{
+              marginTop: '16px',
+              marginBottom: '26px'
+            }}
+          />
+          <TextField
+            style={{ marginBottom: '15px' }}
+            fullWidth
+            error={!nameIsValid}
+            helperText={helperText}
+            variant='outlined'
+            label='Data Series Name'
+            value={dataSeries.name}
+            onChange={(e) => setDataSeries({
+              ...dataSeries,
+              name: e.target.value
+            })}
+          />
+          <TextField
+            fullWidth
+            variant='outlined'
+            label='Description'
+            value={dataSeries.description}
+            onChange={(e) => setDataSeries({
+              ...dataSeries,
+              description: e.target.value
+            })}
+          />
         </CardContent>
       </Card>
 
       <StepperButtons
         onNextClick={onHandleNext}
-        disableNext={!selectedWorker}
+        disableNext={!selectedWorker || !nameIsValid}
       />
     </>
   );

@@ -67,6 +67,7 @@ public class Keys {
     public static final UniqueKey<ColumnRecord> COLUMN_PKEY = Internal.createUniqueKey(Column.COLUMN, DSL.name("column_pkey"), new TableField[] { Column.COLUMN.ID }, true);
     public static final UniqueKey<DataConnectionRecord> DATA_CONNECTION_NAME_KEY = Internal.createUniqueKey(DataConnection.DATA_CONNECTION, DSL.name("data_connection_name_key"), new TableField[] { DataConnection.DATA_CONNECTION.NAME }, true);
     public static final UniqueKey<DataConnectionRecord> DATA_CONNECTION_PKEY = Internal.createUniqueKey(DataConnection.DATA_CONNECTION, DSL.name("data_connection_pkey"), new TableField[] { DataConnection.DATA_CONNECTION.ID }, true);
+    public static final UniqueKey<DataSeriesRecord> DATA_SERIES_NAME_KEY = Internal.createUniqueKey(DataSeries.DATA_SERIES, DSL.name("data_series_name_key"), new TableField[] { DataSeries.DATA_SERIES.NAME }, true);
     public static final UniqueKey<DataSeriesRecord> DATA_SERIES_PKEY = Internal.createUniqueKey(DataSeries.DATA_SERIES, DSL.name("data_series_pkey"), new TableField[] { DataSeries.DATA_SERIES.ID }, true);
     public static final UniqueKey<DataSeriesRecord> DATA_SERIES_TABLE_NAME_KEY = Internal.createUniqueKey(DataSeries.DATA_SERIES, DSL.name("data_series_table_name_key"), new TableField[] { DataSeries.DATA_SERIES.TABLE_NAME }, true);
     public static final UniqueKey<ExternalClientRecord> EXTERNAL_CLIENT_PKEY = Internal.createUniqueKey(ExternalClient.EXTERNAL_CLIENT, DSL.name("external_client_pkey"), new TableField[] { ExternalClient.EXTERNAL_CLIENT.ID }, true);
@@ -77,7 +78,6 @@ public class Keys {
     public static final UniqueKey<InvocationParameterRecord> INVOCATION_PARAMETER_PKEY = Internal.createUniqueKey(InvocationParameter.INVOCATION_PARAMETER, DSL.name("invocation_parameter_pkey"), new TableField[] { InvocationParameter.INVOCATION_PARAMETER.ID }, true);
     public static final UniqueKey<SeriesResultRecord> SERIES_RESULT_PKEY = Internal.createUniqueKey(SeriesResult.SERIES_RESULT, DSL.name("series_result_pkey"), new TableField[] { SeriesResult.SERIES_RESULT.ID }, true);
     public static final UniqueKey<SeriesTableRecord> SERIES_TABLE_PKEY = Internal.createUniqueKey(SeriesTable.SERIES_TABLE, DSL.name("series_table_pkey"), new TableField[] { SeriesTable.SERIES_TABLE.ID }, true);
-    public static final UniqueKey<TaskRecord> TASK_NAME_KEY = Internal.createUniqueKey(Task.TASK, DSL.name("task_name_key"), new TableField[] { Task.TASK.NAME }, true);
     public static final UniqueKey<TaskRecord> TASK_PKEY = Internal.createUniqueKey(Task.TASK, DSL.name("task_pkey"), new TableField[] { Task.TASK.ID }, true);
     public static final UniqueKey<TaskColumnSelectorRecord> TASK_COLUMN_SELECTOR_PKEY = Internal.createUniqueKey(TaskColumnSelector.TASK_COLUMN_SELECTOR, DSL.name("task_column_selector_pkey"), new TableField[] { TaskColumnSelector.TASK_COLUMN_SELECTOR.ID }, true);
     public static final UniqueKey<TaskOutputColumnRecord> TASK_OUTPUT_COLUMN_PKEY = Internal.createUniqueKey(TaskOutputColumn.TASK_OUTPUT_COLUMN, DSL.name("task_output_column_pkey"), new TableField[] { TaskOutputColumn.TASK_OUTPUT_COLUMN.ID }, true);

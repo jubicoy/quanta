@@ -1,6 +1,8 @@
 export { default as useRouter } from './useRouter';
 export { useDataConnections } from './useDataConnections';
 export { useDataConnection } from './useDataConnection';
+export { useMultipleDataSeries } from './useMultipleDataSeries';
+export { useDataSeries } from './useDataSeries';
 export { useQueryParams } from './useQueryParams';
 export { useQueryTimeSeries } from './useQueryTimeSeries';
 export { useColumns } from './useColumns';
@@ -20,3 +22,4 @@ export { useMultipleNamesCheck } from './useMultipleNamesCheck';
 export { useMultipleParametersValidation } from './useMultipleParametersValidation';
 export { useCronValidation } from './useCronValidation';
 export { useDrivers } from './useDrivers';
+export { useDataSeriesNameCheck } from './useDataSeriesNameCheck';

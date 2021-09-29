@@ -19,7 +19,7 @@ import {
   sample,
   getDataConnectionMetadata
 } from '../../../client';
-
+import { useDataSeriesNameCheck } from '../../../hooks';
 import StepperButtons from '../StepperButtons';
 import { dataStyles } from '../DataStyles';
 import {
@@ -40,6 +40,7 @@ export const JdbcDataPreprocessingConfigurator = () => {
     setError,
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
+  const { nameIsValid, helperText } = useDataSeriesNameCheck(dataSeries.name);
 
   const classes = dataStyles();
 
@@ -117,6 +118,33 @@ export const JdbcDataPreprocessingConfigurator = () => {
       <Card>
         <CardContent>
           <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                style={{ marginBottom: '15px' }}
+                fullWidth
+                error={!nameIsValid}
+                helperText={helperText}
+                variant='outlined'
+                label='Data Series Name'
+                value={dataSeries.name}
+                onChange={(e) => setDataSeries({
+                  ...dataSeries,
+                  name: e.target.value
+                })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                variant='outlined'
+                label='Description'
+                value={dataSeries.description}
+                onChange={(e) => setDataSeries({
+                  ...dataSeries,
+                  description: e.target.value
+                })}
+              />
+            </Grid>
             <Grid item xs={6}>
               <Typography
                 variant='h6'
@@ -197,7 +225,7 @@ export const JdbcDataPreprocessingConfigurator = () => {
       </Card>
       <StepperButtons
         onNextClick={handleForward}
-        disableNext={!complete}
+        disableNext={!complete || !nameIsValid}
       />
     </>);
 };

@@ -17,8 +17,7 @@ import {
 } from './csv';
 
 import {
-  JdbcDataConnectionConfigurator,
-  JdbcDataPreprocessingConfigurator
+  JdbcDataConnectionConfigurator
 } from './jdbc';
 
 import {
@@ -37,6 +36,9 @@ import {
   DataSeries,
   DEFAULT_JDBC_DATA_CONNECTION,
   DEFAULT_JDBC_DATA_SERIES,
+  DEFAULT_CSV_DATA_SERIES,
+  DEFAULT_JSON_INGEST_DATA_SERIES,
+  DEFAULT_IMPORT_WORKER_DATA_SERIES,
   Worker
 } from '../../types';
 
@@ -45,14 +47,14 @@ import { SampleResponse } from '../../types/Api';
 
 import { _DataConnectionConfiguratorContext } from '../context';
 
-function getSteps () {
+const getSteps = () => {
   return [
     'Type',
     'Connection',
     'Select',
     'Confirm'
   ];
-}
+};
 
 export const DataImportPage = () => {
   const classes = dataStyles();
@@ -130,12 +132,14 @@ export const DataImportPage = () => {
           ...dataConnection,
           type: 'CSV'
         });
+        setDataSeries(DEFAULT_CSV_DATA_SERIES);
         break;
 
       case 'JDBC':
         setDataConnection({
           ...dataConnection,
-          type: 'JDBC'
+          type: 'JDBC',
+          series: []
         });
         break;
 
@@ -144,6 +148,7 @@ export const DataImportPage = () => {
           ...dataConnection,
           type: 'JSON_INGEST'
         });
+        setDataSeries(DEFAULT_JSON_INGEST_DATA_SERIES);
         break;
 
       case 'IMPORT_WORKER':
@@ -151,6 +156,7 @@ export const DataImportPage = () => {
           ...dataConnection,
           type: 'IMPORT_WORKER'
         });
+        setDataSeries(DEFAULT_IMPORT_WORKER_DATA_SERIES);
         break;
 
       default:
@@ -224,7 +230,7 @@ export const DataImportPage = () => {
                   case 'CSV':
                     return <CsvDataPreprocessingConfigurator />;
                   case 'JDBC':
-                    return <JdbcDataPreprocessingConfigurator />;
+                    return null;
                   case 'JSON_INGEST':
                     return <JsonIngestDataPreprocessingConfigurator />;
                   case 'IMPORT_WORKER':

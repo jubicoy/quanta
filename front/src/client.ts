@@ -21,7 +21,8 @@ import {
   LoginRequest,
   ExternalClient,
   DataConnectionQuery,
-  WorkerDefQuery
+  WorkerDefQuery,
+  DataSeriesQuery
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -274,6 +275,20 @@ export const updateDataConnection = (
 };
 
 // DataSeries
+
+export const getAllDataSeries = (query: DataSeriesQuery = {}): Promise<DataSeries[]> => window
+  .fetch(
+    `/api/data-connections/data-series${queryEncode(query)}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then(res => res.json());
 
 export const getDataSeries = (id: number): Promise<DataSeries> => window
   .fetch(

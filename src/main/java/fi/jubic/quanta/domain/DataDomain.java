@@ -86,9 +86,8 @@ public class DataDomain {
                 });
         return series.toBuilder()
                 .setId(0L)
-                // TODO: DataSeries has own name and description
-                .setName(dataConnection.getName())
-                .setDescription(dataConnection.getDescription())
+                .setName(series.getName())
+                .setDescription(series.getDescription())
                 .setDataConnection(dataConnection)
                 .setTableName(
                         String.format(
