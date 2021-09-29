@@ -47,6 +47,10 @@ export interface DataConnectionQuery {
   notDeleted?: boolean;
 }
 
+export interface DataSeriesQuery {
+  notDeleted?: boolean;
+}
+
 export interface DataSeries {
   id: number;
   name: string;

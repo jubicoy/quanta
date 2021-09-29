@@ -33,6 +33,7 @@ import javax.inject.Singleton;
 import javax.ws.rs.NotFoundException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -87,13 +88,15 @@ public class DataController {
     }
 
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
-        return dataConnectionDao.search(query)
-                .stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(dataConnectionDao.search(query));
     }
 
     public Optional<DataConnection> getConnectionDetails(Long connectionId) {
         return dataConnectionDao.getDetails(connectionId);
+    }
+
+    public List<DataSeries> searchDataSeries(DataSeriesQuery query) {
+        return new ArrayList<>(dataSeriesDao.search(query));
     }
 
     public Optional<DataSeries> getDataSeriesDetails(Long seriesId) {

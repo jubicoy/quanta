@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fi.jubic.quanta.db.Tables.COLUMN;
 import static fi.jubic.quanta.db.Tables.DATA_CONNECTION;
@@ -34,7 +35,17 @@ public class DataSeriesDao {
     }
 
     public List<DataSeries> search(DataSeriesQuery query) {
-        // TODO: Apply query
+        Condition condition = Stream
+                .of(
+                        query.getNotDeleted().map(notDeleted ->
+                                DATA_SERIES.DELETED_AT.isNull()
+                        )
+                )
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .reduce(Condition::and)
+                .orElseGet(DSL::trueCondition);
+
         return DSL.using(conf)
                 .select()
                 .from(DATA_SERIES)
@@ -42,6 +53,7 @@ public class DataSeriesDao {
                 .on(DATA_SERIES.ID.eq(COLUMN.DATA_SERIES_ID))
                 .leftJoin(DATA_CONNECTION)
                 .on(DATA_SERIES.DATA_CONNECTION_ID.eq(DATA_CONNECTION.ID))
+                .where(condition)
                 .fetchStream()
                 .collect(
                         DataSeries.mapper

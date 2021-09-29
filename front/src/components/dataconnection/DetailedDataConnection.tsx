@@ -75,7 +75,14 @@ const useStyles = makeStyles((theme) =>
   })
 );
 
-const CustomTableCell = ({ editable, name, value, onChange, driverClassOptions, driverJarOptions }: TableCellProps) => {
+const CustomTableCell = ({
+  editable,
+  name,
+  value,
+  onChange,
+  driverClassOptions,
+  driverJarOptions
+}: TableCellProps) => {
   if (name === 'driverJar') {
     return (
       <TableCell align='left'>

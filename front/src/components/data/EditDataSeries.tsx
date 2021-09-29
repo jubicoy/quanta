@@ -161,7 +161,6 @@ export const EditDataSeries = ({ match: { params } }: Props) => {
             switch (activeStep) {
               case 0:
                 return <JdbcDataPreprocessingConfigurator />;
-
               case 1:
                 return (
                   <DataConnectionPreview

@@ -16,6 +16,7 @@ import {
 import StepperButtons from '../StepperButtons';
 
 import { submitDataConnection } from '../../../client';
+import { useDataSeriesNameCheck } from '../../../hooks';
 import {
   DataConnection,
   JsonIngestDataConnectionConfiguration,
@@ -30,10 +31,16 @@ export const JsonIngestDataConnectionConfigurator = () => {
     dataConnection,
     setDataConnection,
 
+    dataSeries,
+    setDataSeries,
+
     setSuccess,
+    setError,
 
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
+
+  const { nameIsValid, helperText } = useDataSeriesNameCheck(dataSeries.name);
 
   useEffect(() => {
     const updatedDataConnection: DataConnection = {
@@ -42,7 +49,8 @@ export const JsonIngestDataConnectionConfigurator = () => {
       configuration: DEFAULT_JSON_INGEST_DATA_CONNECTION_CONFIGURATION
     };
     submitDataConnection(updatedDataConnection)
-      .then((dataConnection) => setDataConnection(dataConnection));
+      .then((dataConnection) => setDataConnection(dataConnection))
+      .catch((err: Error) => setError('Create Data Connection fail', err));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataConnection.name, dataConnection.description]);
 
@@ -93,11 +101,40 @@ export const JsonIngestDataConnectionConfigurator = () => {
               </InputAdornment>
             }}
           />
+          <Divider
+            style={{
+              marginTop: '16px',
+              marginBottom: '26px'
+            }}
+          />
+          <TextField
+            style={{ marginBottom: '15px' }}
+            fullWidth
+            error={!nameIsValid}
+            helperText={helperText}
+            variant='outlined'
+            label='Data Series Name'
+            value={dataSeries.name}
+            onChange={(e) => setDataSeries({
+              ...dataSeries,
+              name: e.target.value
+            })}
+          />
+          <TextField
+            fullWidth
+            variant='outlined'
+            label='Description'
+            value={dataSeries.description}
+            onChange={(e) => setDataSeries({
+              ...dataSeries,
+              description: e.target.value
+            })}
+          />
         </CardContent>
       </Card>
       <StepperButtons
         onNextClick={handleForward}
-        disableNext={false}
+        disableNext={!nameIsValid}
       />
     </>
   );

@@ -5,6 +5,7 @@ package fi.jubic.quanta.db.tables;
 
 
 import fi.jubic.quanta.db.DefaultSchema;
+import fi.jubic.quanta.db.Indexes;
 import fi.jubic.quanta.db.Keys;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import org.jooq.Field;
 import org.jooq.ForeignKey;
 import org.jooq.Identity;
+import org.jooq.Index;
 import org.jooq.Name;
 import org.jooq.Record;
 import org.jooq.Row9;
@@ -133,6 +135,11 @@ public class Task extends TableImpl<TaskRecord> {
     }
 
     @Override
+    public List<Index> getIndexes() {
+        return Arrays.<Index>asList(Indexes.TASK_NAME_KEY);
+    }
+
+    @Override
     public Identity<TaskRecord, Long> getIdentity() {
         return (Identity<TaskRecord, Long>) super.getIdentity();
     }
@@ -144,7 +151,7 @@ public class Task extends TableImpl<TaskRecord> {
 
     @Override
     public List<UniqueKey<TaskRecord>> getKeys() {
-        return Arrays.<UniqueKey<TaskRecord>>asList(Keys.TASK_PKEY, Keys.TASK_NAME_KEY);
+        return Arrays.<UniqueKey<TaskRecord>>asList(Keys.TASK_PKEY);
     }
 
     @Override

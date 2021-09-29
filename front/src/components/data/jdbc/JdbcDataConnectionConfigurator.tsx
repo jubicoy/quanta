@@ -15,28 +15,25 @@ import {
 import {
   JdbcDataConnectionConfiguration,
   DefaultJdbcDataConnectionConfiguration,
-  DataConnectionMetadata,
-  DataSeries,
-  DataConnection
+  DataConnectionMetadata
 } from '../../../types';
 import {
   submitDataConnection,
   getDataConnectionMetadata
 } from '../../../client';
-import { useDrivers } from '../../../hooks';
+import { useDrivers, useRouter } from '../../../hooks';
 import StepperButtons from '../StepperButtons';
 
 // Set JDBC configurations
 export const JdbcDataConnectionConfigurator = () => {
   const {
-    dataSeries,
-    setDataSeries,
+    dataConnection,
+    setDataConnection,
 
     setSuccess,
-    setError,
-
-    handleForward
+    setError
   } = useContext(_DataConnectionConfiguratorContext);
+  const { history } = useRouter();
 
   const {
     drivers,
@@ -45,46 +42,12 @@ export const JdbcDataConnectionConfigurator = () => {
   const [complete, setComplete] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Set default config
-  // Called once at start
-  useEffect(() => {
-    // Set default JDBC DataSeries if need
-    if (
-      dataSeries.dataConnection
-      && dataSeries.dataConnection.configuration
-    ) {
-      // Configurations are available
-    }
-    else {
-      const newDataConnection: DataConnection = {
-        id: 0,
-        name: '',
-        description: '',
-        series: [],
-        ...dataSeries.dataConnection,
-        type: 'JDBC',
-        configuration: DefaultJdbcDataConnectionConfiguration
-      };
-      const newDataSeries: DataSeries = {
-        ...dataSeries,
-        configuration: {
-          type: 'JDBC',
-          query: ''
-        },
-        dataConnection: newDataConnection
-      };
-      setDataSeries(newDataSeries);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   useEffect(() => {
     // Check if configurations are valid to allow next
-    const currentDataConnection = dataSeries.dataConnection;
-    if (!currentDataConnection) {
+    if (!dataConnection) {
       return;
     }
-    const currentJdbcConfiguration = currentDataConnection.configuration as JdbcDataConnectionConfiguration;
+    const currentJdbcConfiguration = dataConnection.configuration as JdbcDataConnectionConfiguration;
     setComplete(
       currentJdbcConfiguration !== null
       && currentJdbcConfiguration !== undefined
@@ -94,14 +57,9 @@ export const JdbcDataConnectionConfigurator = () => {
       && currentJdbcConfiguration.username !== ''
       && currentJdbcConfiguration.password !== ''
     );
-  }, [dataSeries]);
+  }, [dataConnection]);
 
-  const currentDataConnection = dataSeries.dataConnection;
-  if (!currentDataConnection) {
-    return null;
-  }
-
-  const currentJdbcConfiguration = currentDataConnection.configuration as JdbcDataConnectionConfiguration
+  const currentJdbcConfiguration = dataConnection.configuration as JdbcDataConnectionConfiguration
     || DefaultJdbcDataConnectionConfiguration;
 
   const selectedDriver = drivers.find(driver => driver.jar === currentJdbcConfiguration.driverJar);
@@ -114,14 +72,11 @@ export const JdbcDataConnectionConfigurator = () => {
   const handleNextClick = () => {
     // Submit JDBC DataConnection
     // and get SQL tables from metadata
-    if (dataSeries.dataConnection) {
+    if (dataConnection) {
       setIsLoading(true);
-      submitDataConnection(dataSeries.dataConnection)
+      submitDataConnection(dataConnection)
         .then((resDataConnection) => {
-          setDataSeries({
-            ...dataSeries,
-            dataConnection: resDataConnection
-          });
+          setDataConnection(resDataConnection);
 
           // Check if tables are available for next step
           getDataConnectionMetadata(resDataConnection.id)
@@ -132,7 +87,7 @@ export const JdbcDataConnectionConfigurator = () => {
               ) {
                 setIsLoading(false);
                 setSuccess('Connection successful');
-                handleForward();
+                history.replace('/data-connections');
               }
               else {
                 setIsLoading(false);
@@ -179,21 +134,10 @@ export const JdbcDataConnectionConfigurator = () => {
       };
     }
 
-    const newDataConnection: DataConnection = {
-      id: 0,
-      name: '',
-      description: '',
-      series: [],
-      type: 'JDBC',
-      ...dataSeries.dataConnection,
+    setDataConnection({
+      ...dataConnection,
       configuration: newJdbcConfiguration
-    };
-    const newDataSeries: DataSeries = {
-      ...dataSeries,
-      dataConnection: newDataConnection
-    };
-
-    setDataSeries(newDataSeries);
+    });
   };
 
   return (

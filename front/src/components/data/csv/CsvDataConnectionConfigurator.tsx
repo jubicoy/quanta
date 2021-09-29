@@ -4,16 +4,23 @@ import { _DataConnectionConfiguratorContext } from '../../context';
 
 import { FileSelect } from '..';
 
-import { Card, CardContent, TextField, InputLabel, CardHeader } from '@material-ui/core';
+import {
+  Card,
+  CardContent,
+  TextField,
+  InputLabel,
+  CardHeader,
+  Divider
+} from '@material-ui/core';
 import StepperButtons from '../StepperButtons';
 import { dataStyles } from '../DataStyles';
 
 import { uploadFile, submitDataConnection } from '../../../client';
+import { useDataSeriesNameCheck } from '../../../hooks';
 import {
   DataConnection,
   DataSeries,
   DEFAULT_CSV_DATA_CONNECTION,
-  DEFAULT_CSV_DATA_SERIES,
   FileUploadResponse
 } from '../../../types';
 
@@ -26,6 +33,7 @@ export const CsvDataConnectionConfigurator = () => {
     setUploadProgress,
 
     dataConnection,
+    dataSeries,
     setDataConnection,
     setDataSeries,
 
@@ -34,6 +42,8 @@ export const CsvDataConnectionConfigurator = () => {
 
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
+
+  const { nameIsValid, helperText } = useDataSeriesNameCheck(dataSeries.name);
 
   const [selectedDataFile, setSelectedDataFile] = useState<File | null>(null);
   const [path, setPath] = useState<string>('/');
@@ -101,7 +111,7 @@ export const CsvDataConnectionConfigurator = () => {
               // Create new base DataSeries to call /sample
               // Call backend to sample csv
               const sampleDataSeries: DataSeries = {
-                ...DEFAULT_CSV_DATA_SERIES,
+                ...dataSeries,
                 dataConnection: resDataConnection
               };
               setDataSeries(sampleDataSeries);
@@ -126,6 +136,34 @@ export const CsvDataConnectionConfigurator = () => {
       <Card style={{ marginTop: '15px' }}>
         <CardHeader title='CSV configuration' />
         <CardContent>
+          <TextField
+            style={{ marginBottom: '15px' }}
+            fullWidth
+            error={!nameIsValid}
+            helperText={helperText}
+            label='Data Series Name'
+            value={dataSeries.name}
+            onChange={e => setDataSeries({
+              ...dataSeries,
+              name: e.target.value
+            })}
+          />
+          <TextField
+            style={{ marginBottom: '15px' }}
+            fullWidth
+            label='Data Series Description'
+            value={dataSeries.description}
+            onChange={e => setDataSeries({
+              ...dataSeries,
+              description: e.target.value
+            })}
+          />
+          <Divider
+            style={{
+              marginTop: '16px',
+              marginBottom: '26px'
+            }}
+          />
           <form>
             <TextField
               // TODO: Remove this afterwards
@@ -147,7 +185,7 @@ export const CsvDataConnectionConfigurator = () => {
       </Card>
       <StepperButtons
         onNextClick={uploadDataFile}
-        disableNext={!complete || isLoading}
+        disableNext={!complete || isLoading || !nameIsValid}
       />
     </>
   );
