@@ -49,7 +49,6 @@ public class SyncTaskSchedulerTask implements fi.jubic.easyschedule.Task {
                 )
                 .stream()
                 .filter(invocation -> invocation.getTask().getTaskType() == TaskType.sync)
-                .filter(invocation -> invocation.getTask().getWorkerDef() == null)
                 .min(Comparator.comparing(Invocation::getId));
     }
 
