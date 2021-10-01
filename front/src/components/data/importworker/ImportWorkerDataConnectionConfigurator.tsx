@@ -64,7 +64,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
         ...dataConnection,
         configuration: {
           type: 'IMPORT_WORKER',
-          workerDefId: selectedWorker.id
+          workerDefId: selectedWorker.definition.id
         }
       };
       /// Submit DataConnection
