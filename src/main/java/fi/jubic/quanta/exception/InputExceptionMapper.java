@@ -16,8 +16,8 @@ public class InputExceptionMapper implements ExceptionMapper<InputException> {
     @Override
     public Response toResponse(InputException throwable) {
         return Response
-                .ok(throwable)
                 .status(HttpStatus.SC_BAD_REQUEST)
+                .entity(throwable.getMessage())
                 .build();
     }
 }
