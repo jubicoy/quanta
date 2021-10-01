@@ -1,5 +1,7 @@
 FROM adoptopenjdk/maven-openjdk11 AS builder
 
+RUN apt-get update && apt-get install ca-certificates -y
+
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
   && apt-get install -y nodejs git \
   && mkdir -p /opt/build/front /opt/build/lib
