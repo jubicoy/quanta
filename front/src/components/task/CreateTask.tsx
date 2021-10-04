@@ -1,16 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Icon,
-  InputLabel,
   Fab,
-  MenuItem,
-  Paper,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
   Typography as T
 } from '@material-ui/core';
 
@@ -20,9 +11,7 @@ import {
   commonStyles
 } from '../common';
 import {
-  useDataConnections,
   useRouter,
-  useDataConnection,
   useTasks,
   useNameCheck,
   useMultipleNamesCheck,
@@ -33,12 +22,13 @@ import { useAlerts } from '../../alert';
 import {
   Task,
   WorkerType,
-  DataSeries,
   TaskType,
   ColumnSelector,
   Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
+import { WorkerDefConfiguration } from './WorkerDefConfiguration';
+import { ColumnsConfiguration } from './ColumnsConfiguration';
 
 const initialTask = {
   id: -1,
@@ -71,6 +61,8 @@ export default ({
     params
   }
 }: Props) => {
+  const common = commonStyles();
+
   const [task, setTask] = useState<Task>(
     params.dataConnectionId
       ? {
@@ -80,15 +72,11 @@ export default ({
       }
       : initialTask
   );
-  const [dataConnectionId, setDataConnectionId] = useState<number>(-1);
-  const [dataSeries, setDataSeries] = useState<DataSeries | null>(null);
+  const [columnsForSyncTask, setColumnForSyncTask] = useState<ColumnSelector[]>([]);
+
   const [triggersAreValid, setTriggersAreValid] = useState<boolean>(true);
-  const [connectionOptions, setConnectionOptions] = useState<JSX.Element[]>([<MenuItem key={-1} value={-1}>Unset</MenuItem>]);
 
   const { create, tasks } = useTasks();
-  const { dataConnection } = useDataConnection(dataConnectionId);
-  const dataConnectionQuery = useMemo(() => ({ notDeleted: true }), []);
-  const { dataConnections } = useDataConnections(dataConnectionQuery);
   const { history } = useRouter();
 
   const alertContext = useAlerts('CREATE-TASK');
@@ -110,42 +98,6 @@ export default ({
     nameArray
   );
 
-  const common = commonStyles();
-
-  const useConnections = useCallback(
-    () => {
-      if (dataConnections) {
-        setConnectionOptions(
-          [
-            <MenuItem key={-1} value={-1}>Unset</MenuItem>,
-            ...dataConnections
-              .filter(({ type }) => task.taskType === TaskType.process || type === 'JDBC')
-              .map((conn, idx) => (
-                <MenuItem key={idx} value={conn.id}>{conn.name}</MenuItem>
-              ))
-          ]
-        );
-        if (params.dataConnectionId) {
-          setDataConnectionId(params.dataConnectionId);
-        }
-      }
-    },
-    [dataConnections, params.dataConnectionId, task.taskType]
-  );
-
-  useEffect(() => {
-    useConnections();
-  }, [params.dataConnectionId, useConnections]);
-
-  useEffect(() => {
-    if (dataConnection && dataConnection.series.length > 0) {
-      setDataSeries(dataConnection.series[0]);
-    }
-    else if (!dataConnection) {
-      setDataSeries(null);
-    }
-  }, [dataConnection]);
-
   const validateTriggers = useCallback(
     () => {
       const bothTriggesAreSet = ((task.cronTrigger && task.cronTrigger.length > 0) && task.taskTrigger) as boolean;
@@ -165,43 +117,9 @@ export default ({
     [validateTriggers]
   );
 
-  const taskTypeChange = useCallback(
-    () => {
-      if (task.taskType === TaskType.sync) {
-        // Unset the DataConnection if taskType sync is selected with non-JDBC DataConnection
-        if (dataConnection && dataConnection?.type !== 'JDBC') {
-          setDataConnectionId(-1);
-        }
-        setTask(({
-          ...task,
-          workerDef: undefined,
-          columnSelectors: [],
-          outputColumns: []
-        }));
-      }
-    },
-    [dataConnection, task.taskType]
-  );
-
-  useEffect(
-    () => {
-      taskTypeChange();
-    },
-    [taskTypeChange]
-  );
-
   const { isCronTriggerValid, cronHelperText } = useCronValidation(
     task.cronTrigger ?? ''
   );
-
-  const seriesOptions = dataConnection?.series.map(series => (
-    <MenuItem key={series.id} value={series.id}>{series.name}</MenuItem>
-  )) ?? [];
-
-  const connectionColumns = dataSeries?.columns.map(column => ({
-    ...column,
-    series: dataSeries
-  })) ?? [];
 
   const useMultipleNamesCheckProps = useMemo(
     () => {
@@ -255,7 +173,7 @@ export default ({
           && isCronTriggerValid;
       case TaskType.sync:
         return task.name !== ''
-          && connectionColumns.length > 0
+          && columnsForSyncTask.length > 0
           && nameIsValid
           && triggersAreValid
           && isCronTriggerValid;
@@ -264,29 +182,13 @@ export default ({
     }
   };
 
-  const createColumnSelectorForSyncTask = (): ColumnSelector[] => {
-    if (dataSeries) {
-      return connectionColumns
-        .filter(({ index }) => index === 0)
-        .map(({ index, name, type }) => ({
-          id: -1,
-          columnIndex: index,
-          columnName: name,
-          type: type,
-          series: dataSeries
-        })
-        );
-    }
-    return [];
-  };
-
   const onCreate = () => {
     if (validateTask()) {
       if (task.taskType === TaskType.sync) {
       // Data sync task requires one column selector because data series are bound to columns
         create({
           ...task,
-          columnSelectors: createColumnSelectorForSyncTask()
+          columnSelectors: columnsForSyncTask
         })
           .then(res => history.push(`/task/${res.id}`));
       }
@@ -307,17 +209,6 @@ export default ({
       name
     });
   };
-
-  function handleDataConnectionChange (
-    value: number
-  ) {
-    setDataConnectionId(value);
-    // Clear column selectors on data connection change
-    setTask({
-      ...task,
-      columnSelectors: []
-    });
-  }
 
   return (
     <>
@@ -345,82 +236,17 @@ export default ({
           </Fab>
         </div>
       </div>
-      <T variant='h5'>Data Connection</T>
-      <Paper className={clsx(common.topMargin, common.bottomMargin)}>
-        <div className={common.padding}>
-          <InputLabel
-            htmlFor='task-connection-select'
-            shrink
-          >
-            Data Connection
-          </InputLabel>
-          <Select
-            fullWidth
-            value={dataConnectionId || ''}
-            onChange={e => {
-              handleDataConnectionChange(e.target.value as number);
-            }}
-            inputProps={{ id: 'task-connection-select' }}
-          >
-            {connectionOptions}
-          </Select>
-          {dataConnection
-          && dataConnection.series.length > 1
-          && (
-            <>
-              <InputLabel
-                htmlFor='task-series-select'
-                shrink
-              >
-                Data Series
-              </InputLabel>
-              <Select
-                fullWidth
-                value={dataSeries ? dataSeries.id : undefined}
-                onChange={e => {
-                  const series = dataConnection && dataConnection.series.find(s => s.id === e.target.value as number);
-                  setDataSeries(series || null);
-                }}
-                inputProps={{ id: 'task-series-select' }}
-              >
-                {seriesOptions}
-              </Select>
-            </>
-          )}
-        </div>
-        <Table>
-          <TableHead>
-            <TableRow key={0}>
-              <TableCell key={1}>Name</TableCell>
-              <TableCell key={2}>Class</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {connectionColumns.map((column, i) => (
-              <TableRow key={i}>
-                <TableCell>{column.name}</TableCell>
-                <TableCell>{column.type.className}</TableCell>
-                <TableCell />
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Paper>
       <TaskConfiguration
         editable
         creatingTask
         nameIsValid={nameIsValid}
         helperText={helperText}
-        aliasesIsValid={aliasesIsValid}
-        aliasHelperTexts={aliasHelperTexts}
         name={task.name}
         setName={name => handleTaskNameChange(name)}
-        workerDef={task.workerDef}
-        setWorkerDef={(workerDef, outputColumns) => setTask({
+        taskType={task.taskType}
+        setType={taskType => setTask({
           ...task,
-          workerDef,
-          outputColumns,
-          columnSelectors: []
+          taskType
         })}
         cronTrigger={task.cronTrigger}
         setCronTrigger={cronTrigger => setTask({
@@ -432,19 +258,25 @@ export default ({
           ...task,
           taskTrigger
         })}
-        dataConnection={dataConnection}
-        setTaskColumnSelectors={columnSelectors => setTask({
+        triggersAreValid={triggersAreValid}
+        isCronTriggerValid={isCronTriggerValid}
+        cronHelperText={cronHelperText}
+        tasks={tasks}
+        syncIntervalOffset={task.syncIntervalOffset}
+        setSyncIntervalOffset={syncIntervalOffset => setTask({
           ...task,
-          columnSelectors
+          syncIntervalOffset
         })}
-        setTaskOutputColumns={outputColumns => setTask({
+      />
+      <WorkerDefConfiguration
+        editable
+        creatingTask
+        workerDef={task.workerDef}
+        setWorkerDef={(workerDef, outputColumns) => setTask({
           ...task,
-          outputColumns
-        })}
-        taskType={task.taskType}
-        setType={taskType => setTask({
-          ...task,
-          taskType
+          workerDef,
+          outputColumns,
+          columnSelectors: []
         })}
         parameters={task.parameters}
         setParameters={(parameters?: Parameter[]) => setTask({
@@ -453,15 +285,32 @@ export default ({
         })}
         parametersIsValid={parametersValidation}
         parametersHelperTexts={parametersHelperTexts}
-        tasks={tasks}
-        triggersAreValid={triggersAreValid}
-        isCronTriggerValid={isCronTriggerValid}
-        cronHelperText={cronHelperText}
-        syncIntervalOffset={task.syncIntervalOffset}
-        setSyncIntervalOffset={syncIntervalOffset => setTask({
+        task={task}
+      />
+      <ColumnsConfiguration
+        editable
+        creatingTask
+        aliasesIsValid={aliasesIsValid}
+        aliasHelperTexts={aliasHelperTexts}
+        workerDef={task.workerDef}
+        setWorkerDef={(workerDef, outputColumns) => setTask({
           ...task,
-          syncIntervalOffset
+          workerDef,
+          outputColumns,
+          columnSelectors: []
         })}
+        setTaskColumnSelectors={columnSelectors => setTask({
+          ...task,
+          columnSelectors
+        })}
+        setTaskOutputColumns={outputColumns => setTask({
+          ...task,
+          outputColumns
+        })}
+        task={task}
+        setTask={setTask}
+        dataConnectionParam={params.dataConnectionId}
+        setColumnForSyncTask={setColumnForSyncTask}
       />
     </>
   );

@@ -26,6 +26,8 @@ public abstract class WorkerDefColumn {
 
     public abstract WorkerDefColumnType getColumnType();
 
+    public abstract String getSeriesKey();
+
     public abstract Integer getIndex();
 
     public abstract Builder toBuilder();
@@ -51,10 +53,15 @@ public abstract class WorkerDefColumn {
                 .setColumnType(WorkerDefColumnType.input)
                 .setIndex(0)
                 .setDescription("");
-
     }
 
     public static class Builder extends EasyValue_WorkerDefColumn.Builder {
+        @Override
+        public Builder defaults(Builder builder) {
+            return builder
+                    .setId(-1L)
+                    .setSeriesKey("");
+        }
     }
 
     public static final WorkerDefColumnRecordMapper<WorkerDefinitionColumnRecord>
@@ -72,6 +79,7 @@ public abstract class WorkerDefColumn {
                     WorkerDefColumnType::toString,
                     WorkerDefColumnType::parse
             )
+            .setSeriesKeyAccessor(WORKER_DEFINITION_COLUMN.SERIES_KEY)
             .setIndexAccessor(WORKER_DEFINITION_COLUMN.INDEX)
             .setDescriptionAccessor(WORKER_DEFINITION_COLUMN.DESCRIPTION)
             .build();

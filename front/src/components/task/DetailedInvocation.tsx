@@ -104,8 +104,9 @@ export default ({
             <TableRowItem title={'Parameters'} value={null} />
             {
               invocation.parameters && invocation.parameters
-                .map(workerParameter => (
+                .map((workerParameter, index) => (
                   <TableRowItem
+                    key={index}
                     title={workerParameter.name}
                     value={workerParameter.value} />
                 ))

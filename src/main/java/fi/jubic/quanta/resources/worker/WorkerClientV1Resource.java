@@ -12,6 +12,7 @@ import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.request.UpdateStatusRequest;
 import fi.jubic.quanta.models.response.InvocationResponse;
 
+import javax.annotation.Nullable;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.ws.rs.BeanParam;
@@ -24,6 +25,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -97,11 +99,13 @@ public class WorkerClientV1Resource {
     public List<Map<String, Object>> getInvocationDataFromDataSeries(
             @HeaderParam("Authorization") String token,
             @PathParam("id") Long invocationId,
+            @QueryParam("seriesKey") @Nullable String seriesKey,
             @BeanParam Pagination pagination
     ) {
 
         return timeSeriesController.loadInvocationDataFromDataSeries(
                 getInvocation(invocationId, token),
+                seriesKey,
                 pagination
         );
     }

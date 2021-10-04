@@ -78,18 +78,15 @@ export interface Type {
   nullable?: boolean;
 }
 
-export function isSupportedType (
+export const isSupportedType = (
   type: Type,
   inputType: Type
-) {
+) => {
   if (type.className === inputType.className) {
     return true;
   }
-  if (inputType.className === 'java.lang.String') {
-    return true;
-  }
   return false;
-}
+};
 
 export const NAMING_PATTERN_REGEX = /^[a-zA-Z0-9-_]+$/;
 
