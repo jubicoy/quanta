@@ -1,3 +1,4 @@
+import { DataSeries } from '.';
 import {
   Type,
   Column
@@ -35,6 +36,7 @@ export interface WorkerDefColumn {
   name: string;
   description: string;
   columnType: WorkerDefColumnType;
+  seriesKey: string | undefined;
   index: number;
 }
 
@@ -43,59 +45,62 @@ export interface WorkerDefInputColumnWithSelector extends WorkerDefColumn {
   alias?: string;
   modifier?: TIME_SERIES_MODIFIERS;
   inputWorkerDefColumn?: WorkerDefInputColumnWithSelector;
+  series: DataSeries | null;
 }
 
 export interface WorkerDefOutputColumnWithAlias extends WorkerDefColumn {
   alias?: string;
 }
 
-export function mapWorkerDefInputColumnWithoutSelector (
+export const mapWorkerDefInputColumnWithoutSelector = (
   inputColumn: WorkerDefInputColumnWithSelector
-): WorkerDefColumn {
+): WorkerDefColumn => {
   return {
     id: inputColumn.id,
     valueType: inputColumn.valueType,
     name: inputColumn.name,
     description: inputColumn.description,
     columnType: inputColumn.columnType,
+    seriesKey: inputColumn.seriesKey,
     index: inputColumn.index
   };
-}
+};
 
-export function mapWorkerDefInputColumnWithSelector (
+export const mapWorkerDefInputColumnWithSelector = (
   inputColumn: WorkerDefColumn
-): WorkerDefInputColumnWithSelector {
+): WorkerDefInputColumnWithSelector => {
   return {
     ...inputColumn,
     selectedColumn: undefined,
     modifier: undefined,
-    inputWorkerDefColumn: undefined
+    inputWorkerDefColumn: undefined,
+    series: null
   };
-}
+};
 
-export function mapWorkerDefOutputColumnWithAlias (
+export const mapWorkerDefOutputColumnWithAlias = (
   outputColumn: WorkerDefColumn
-): WorkerDefOutputColumnWithAlias {
+): WorkerDefOutputColumnWithAlias => {
   return {
     ...outputColumn,
     alias: undefined
   };
-}
+};
 
-export function mapWorkerDefColumnToOutputColumn (
+export const mapWorkerDefColumnToOutputColumn = (
   workerDefOutputColumn: WorkerDefColumn
-): OutputColumn {
+): OutputColumn => {
   return {
     id: -1,
     index: workerDefOutputColumn.index,
     columnName: workerDefOutputColumn.name,
     type: workerDefOutputColumn.valueType
   };
-}
+};
 
-export function mapWorkerDefColumnWithAliasToOutputColumn (
+export const mapWorkerDefColumnWithAliasToOutputColumn = (
   workerDefColumnWithAlias: WorkerDefOutputColumnWithAlias
-): OutputColumn {
+): OutputColumn => {
   return {
     id: -1,
     index: workerDefColumnWithAlias.index,
@@ -103,7 +108,7 @@ export function mapWorkerDefColumnWithAliasToOutputColumn (
     type: workerDefColumnWithAlias.valueType,
     alias: workerDefColumnWithAlias.alias ?? undefined
   };
-}
+};
 
 export interface WorkerDef {
   id: number;

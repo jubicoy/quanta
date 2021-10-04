@@ -2,6 +2,7 @@ package fi.jubic.quanta.models.response;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easyvalue.EasyValue;
+import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Parameter;
 import fi.jubic.quanta.models.Task;
@@ -16,6 +17,8 @@ public abstract class InvocationResponse {
     public abstract List<Parameter> getParameters();
 
     public abstract Task getTask();
+
+    public abstract List<ColumnSelector> getColumnSelectors();
 
     public abstract Builder toBuilder();
 
@@ -32,6 +35,7 @@ public abstract class InvocationResponse {
                 .setInvocationId(invocation.getId())
                 .setParameters(invocation.getParameters())
                 .setTask(invocation.getTask())
+                .setColumnSelectors(invocation.getColumnSelectors())
                 .build();
     }
 }

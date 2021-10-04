@@ -93,9 +93,33 @@ public class TimeSeriesController {
 
     public List<Map<String, Object>> loadInvocationDataFromDataSeries(
             Invocation invocation,
+            String seriesKey,
             Pagination pagination
     ) {
-        DataSeries invocationDataSeries = getInvocationDataSeries(invocation);
+        List<ColumnSelector> columnSelectors = new ArrayList<>(Collections.emptyList());
+        if (Objects.nonNull(seriesKey)) {
+            columnSelectors.addAll(
+                    invocation.getColumnSelectors()
+                            .stream()
+                            .filter(
+                                    columnSelector -> Objects.nonNull(
+                                            columnSelector.getWorkerDefColumn()
+                                    )
+                            )
+                            .filter(
+                                    columnSelector -> columnSelector
+                                            .getWorkerDefColumn()
+                                            .getSeriesKey()
+                                            .equals(seriesKey)
+                            )
+                            .collect(Collectors.toList())
+            );
+        }
+        else {
+            columnSelectors.addAll(invocation.getColumnSelectors());
+        }
+
+        DataSeries invocationDataSeries = getInvocationDataSeries(columnSelectors);
 
         List<DataSeries> listOfInvocationDataSeries = new ArrayList<>();
         listOfInvocationDataSeries.add(invocationDataSeries);
@@ -105,7 +129,7 @@ public class TimeSeriesController {
                 .map(dataSeries ->
                 timeSeriesDomain.parseTimeSeriesSelectorsWithInvocation(
                         dataSeries,
-                        invocation.getColumnSelectors()
+                        columnSelectors
                 )
         ).collect(Collectors.toList());
 
@@ -438,9 +462,9 @@ public class TimeSeriesController {
     }
 
     private DataSeries getInvocationDataSeries(
-            Invocation invocation
+            List<ColumnSelector> columnSelectors
     ) {
-        DataSeries invocationDataSeries = invocation.getColumnSelectors()
+        DataSeries invocationDataSeries = columnSelectors
                 .stream()
                 .findFirst()
                 .map(ColumnSelector::getSeries)

@@ -649,4 +649,11 @@
                 tableName="data_series"
         />
     </changeSet>
+    <changeSet id="15" author="Do Bao Khanh &lt;khanh.do@jubic.fi&gt;">
+        <addColumn tableName="worker_definition_column">
+            <column name="series_key" type="varchar(255)" defaultValue="">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

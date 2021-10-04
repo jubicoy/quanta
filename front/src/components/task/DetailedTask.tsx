@@ -37,6 +37,8 @@ import {
   Parameter
 } from '../../types';
 import { TaskConfiguration } from './TaskConfiguration';
+import { WorkerDefConfiguration } from './WorkerDefConfiguration';
+import { DeepSet } from '../../utils';
 
 interface Props {
   match: { params: {id: string } };
@@ -72,9 +74,8 @@ export default ({
   const { history } = useRouter();
 
   const dataSeries = (task && task.columnSelectors.length > 0)
-    ? task?.columnSelectors[0].series
+    ? [...new DeepSet(task.columnSelectors.map(col => col.series))]
     : null;
-  const dataConnection = dataSeries?.dataConnection ?? null;
 
   const triggersAreValid = !(editTask?.cronTrigger && editTask?.taskTrigger);
   const nameArray = useMemo(
@@ -249,23 +250,27 @@ export default ({
       </div>
       <T variant='h5'>Data Connection</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>
-        {dataSeries
-        && dataConnection
-        && (
-          <div className={common.padding}>
-            <T variant='body1'>
-              Connection Name:&nbsp;
-              <Link
-                to={`/data-connections/${dataConnection.id}/${dataConnection.name}`}
-              >
-                {dataConnection.name}
-              </Link>
-            </T>
-            <T variant='body1'>Connection Description: <b>{dataConnection.description}</b></T>
-            <T variant='body1'>Connection Type: <b>{dataConnection.type}</b></T>
-            <T variant='body1'>Series Name: <b>{dataSeries.name}</b></T>
-            <T variant='body1'>Series Description: <b>{dataSeries.description}</b></T>
-          </div>
+        {dataSeries?.map(
+          (series, index) => (
+            <div key={index} className={common.padding}>
+              {
+                series.dataConnection && <>
+                  <T variant='body1'>
+                    Connection Name:&nbsp;
+                    <Link
+                      to={`/data-connections/${series.dataConnection.id}/${series.dataConnection.name}`}
+                    >
+                      {series.dataConnection.name}
+                    </Link>
+                  </T>
+                  <T variant='body1'>Connection Description: <b>{series.dataConnection.description}</b></T>
+                  <T variant='body1'>Connection Type: <b>{series.dataConnection.type}</b></T>
+                </>
+              }
+              <T variant='body1'>Series Name: <b>{series.name}</b></T>
+              <T variant='body1'>Series Description: <b>{series.description}</b></T>
+            </div>
+          )
         )}
         {
           (task.taskType === TaskType.process)
@@ -290,12 +295,6 @@ export default ({
           ...editTask,
           name
         })}
-        workerDef={editTask.workerDef}
-        setWorkerDef={(workerDef, outputColumns) => setEditTask({
-          ...editTask,
-          workerDef,
-          outputColumns
-        })}
         cronTrigger={editTask.cronTrigger}
         setCronTrigger={cronTrigger => setEditTask({
           ...editTask,
@@ -306,28 +305,12 @@ export default ({
           ...editTask,
           taskTrigger
         })}
-        dataConnection={dataConnection}
-        setTaskColumnSelectors={columnSelectors => setEditTask({
-          ...editTask,
-          columnSelectors
-        })}
-        setTaskOutputColumns={outputColumns => setEditTask({
-          ...editTask,
-          outputColumns
-        })}
         tasks={tasks?.filter(({ id }) => id !== editTask.id)}
         taskType={editTask.taskType}
         setType={taskType => setEditTask({
           ...editTask,
           taskType
         })}
-        parameters={editTask.parameters}
-        setParameters={(parameters?: Parameter[]) => setEditTask({
-          ...editTask,
-          parameters
-        })}
-        parametersIsValid={parametersValidation}
-        parametersHelperTexts={parametersHelperTexts}
         isCronTriggerValid={isCronTriggerValid}
         triggersAreValid={triggersAreValid}
         cronHelperText={cronHelperText}
@@ -336,6 +319,23 @@ export default ({
           ...editTask,
           syncIntervalOffset
         })}
+      />
+      <WorkerDefConfiguration
+        editable={editOpen}
+        workerDef={editTask.workerDef}
+        setWorkerDef={(workerDef, outputColumns) => setEditTask({
+          ...editTask,
+          workerDef,
+          outputColumns
+        })}
+        parameters={editTask.parameters}
+        setParameters={(parameters?: Parameter[]) => setEditTask({
+          ...editTask,
+          parameters
+        })}
+        parametersIsValid={parametersValidation}
+        parametersHelperTexts={parametersHelperTexts}
+        task={editTask}
       />
       <T variant='h5'>Invocations</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>

@@ -1,35 +1,29 @@
 import React, { useState, useCallback } from 'react';
 import {
   Typography as T,
-  Button,
-  Icon,
   MenuItem,
   Paper,
   Select,
   Table,
   TableBody,
   TextField,
-  makeStyles,
-  createStyles
+  Button,
+  Icon,
+  createStyles,
+  makeStyles
 } from '@material-ui/core';
 import clsx from 'clsx';
 import moment from 'moment';
 
 import {
   commonStyles,
-  DateQuickSelector,
-  TableRowItem
+  TableRowItem,
+  DateQuickSelector
 } from '../common';
 import {
-  WorkerDef,
-  DataConnection,
-  ColumnSelector,
-  OutputColumn,
   Task,
-  TaskType,
-  Parameter
+  TaskType
 } from '../../types';
-import { WorkerDefConfiguration } from './WorkerDefConfiguration';
 
 const useStyles = makeStyles(() => {
   const height = 46;
@@ -53,68 +47,46 @@ const useStyles = makeStyles(() => {
   });
 });
 
+const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
+
 interface TaskProps {
   editable: boolean;
   creatingTask?: boolean;
   nameIsValid: boolean;
   helperText?: string;
-  aliasesIsValid?: boolean[];
-  aliasHelperTexts?: string[];
   name: string;
   setName: (name: string) => void;
-  workerDef: WorkerDef | undefined;
+  taskType: TaskType;
+  setType: (set: TaskType) => void;
   cronTrigger: string | null;
   setCronTrigger: (set: string | null) => void;
   taskTrigger: number | null;
   setTaskTrigger: (set: number | null) => void;
-  dataConnection: DataConnection | null | undefined;
-  setTaskColumnSelectors: (columnSelectors: ColumnSelector[]) => void;
-  setTaskOutputColumns: (outputColumns: OutputColumn[]) => void;
-  setWorkerDef: (workerDef: WorkerDef | undefined, outputColumns: OutputColumn[]) => void;
-  taskType: TaskType;
-  setType: (set: TaskType) => void;
-  parameters?: Parameter[];
-  setParameters: (parameters?: Parameter[]) => void;
-  parametersIsValid?: boolean[];
-  parametersHelperTexts?: string[];
-  tasks: Task[] | undefined;
   triggersAreValid?: boolean;
   isCronTriggerValid?: boolean;
   cronHelperText?: string;
+  tasks: Task[] | undefined;
   syncIntervalOffset?: number;
   setSyncIntervalOffset: (syncIntervalOffset: number | undefined) => void;
 }
-
-const INPUT_DATE_FORMAT = 'YYYY-MM-DDTHH:mm';
 
 export const TaskConfiguration = ({
   editable,
   creatingTask,
   nameIsValid,
   helperText,
-  aliasesIsValid,
-  aliasHelperTexts,
   name,
   setName,
-  workerDef,
+  taskType,
+  setType,
   cronTrigger,
   setCronTrigger,
   taskTrigger,
   setTaskTrigger,
-  dataConnection,
-  setTaskColumnSelectors,
-  setTaskOutputColumns,
-  setWorkerDef,
-  taskType,
-  setType,
-  parameters,
-  setParameters,
-  parametersIsValid,
-  parametersHelperTexts,
-  tasks,
   triggersAreValid,
   isCronTriggerValid,
   cronHelperText,
+  tasks,
   syncIntervalOffset,
   setSyncIntervalOffset
 }: TaskProps) => {
@@ -122,6 +94,7 @@ export const TaskConfiguration = ({
   const classes = useStyles();
 
   const taskTriggerList = tasks?.map(({ id, name }) => ({ id, name }));
+
   const [startDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(
     syncIntervalOffset
@@ -150,7 +123,7 @@ export const TaskConfiguration = ({
 
   return (
     <>
-      <T variant='h5'>Configuration</T>
+      <T variant='h5'>Task Configuration</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>
         <Table>
           <TableBody>
@@ -189,157 +162,130 @@ export const TaskConfiguration = ({
                 : `${taskType || ''}`
               }
             />
-            {taskType === TaskType.process
-              && <WorkerDefConfiguration
-                editable={editable}
-                creatingTask={creatingTask}
-                aliasesIsValid={aliasesIsValid}
-                aliasHelperTexts={aliasHelperTexts}
-                workerDef={workerDef}
-                cronTrigger={cronTrigger}
-                setCronTrigger={setCronTrigger}
-                taskTrigger={taskTrigger}
-                setTaskTrigger={setTaskTrigger}
-                dataConnection={dataConnection}
-                setTaskColumnSelectors={setTaskColumnSelectors}
-                setTaskOutputColumns={setTaskOutputColumns}
-                setWorkerDef={setWorkerDef}
-                parameters={parameters}
-                setParameters={setParameters}
-                parametersIsValid={parametersIsValid}
-                parametersHelperTexts={parametersHelperTexts}
-                tasks={tasks}
-                triggersAreValid={triggersAreValid}
-                isCronTriggerValid={isCronTriggerValid}
-                cronHelperText={cronHelperText}
-              />
-            }
+            <TableRowItem
+              title='Cron Trigger'
+              value={editable
+                ? (
+                  <div>
+                    <TextField
+                      style={{
+                        width: '90%'
+                      }}
+                      error={!isCronTriggerValid || !triggersAreValid}
+                      helperText={cronHelperText}
+                      value={cronTrigger || ''}
+                      onChange={e => setCronTrigger(e.target.value.length > 0 ? e.target.value : null)}
+                    />
+                    <Button
+                      style={{
+                        color: 'grey',
+                        background: 'none',
+                        width: '10%'
+                      }}
+                      onClick={() => {
+                        setCronTrigger(null);
+                      }}
+                    >
+                      <Icon>close</Icon>
+                    </Button>
+                  </div>
+                )
+                : `${cronTrigger || ''}`}
+            />
+            <TableRowItem
+              title='Task Trigger'
+              value={editable
+                ? (
+                  <div>
+                    <Select
+                      style={{
+                        width: '90%'
+                      }}
+                      error={!triggersAreValid}
+                      value={taskTrigger || ''}
+                      onChange={e => {
+                        setTaskTrigger(Number(e.target.value));
+                      }}
+                      inputProps={{ id: 'task-trigger' }}
+                    >
+                      {
+                        taskTriggerList?.map(({ id, name }) => (
+                          <MenuItem key={id} value={id}>
+                            {id + ': ' + name}
+                          </MenuItem>
+                        )) ?? []
+                      }
+                    </Select>
+                    <Button
+                      style={{
+                        color: 'grey',
+                        background: 'none',
+                        width: '10%'
+                      }}
+                      onClick={() => {
+                        setTaskTrigger(null);
+                      }}
+                    >
+                      <Icon>close</Icon>
+                    </Button>
+                  </div>
+                )
+                : `${taskTrigger || ''}`}
+              tooltip={'Task is launched whenever an Invocation of referred Task is completed'}
+            />
             {
               taskType === TaskType.sync
-                && <>
-                  <TableRowItem
-                    title='Cron Trigger'
-                    value={editable
-                      ? (
-                        <div>
-                          <TextField
-                            style={{
-                              width: '90%'
-                            }}
-                            error={!isCronTriggerValid || !triggersAreValid}
-                            helperText={'Requires valid CRON expression'}
-                            value={cronTrigger || ''}
-                            onChange={e => setCronTrigger(e.target.value.length > 0 ? e.target.value : null)}
-                          />
-                          <Button
-                            style={{
-                              color: 'grey',
-                              background: 'none',
-                              width: '10%'
-                            }}
-                            onClick={() => {
-                              setCronTrigger(null);
-                            }}
-                          >
-                            <Icon>close</Icon>
-                          </Button>
-                        </div>
-                      )
-                      : `${cronTrigger || ''}`}
-                  />
-                  <TableRowItem
-                    title='Task Trigger'
-                    value={editable
-                      ? (
-                        <div>
-                          <Select
-                            style={{
-                              width: '90%'
-                            }}
-                            error={!triggersAreValid}
-                            value={taskTrigger || ''}
-                            onChange={e => {
-                              setTaskTrigger(Number(e.target.value));
-                            }}
-                            inputProps={{ id: 'task-trigger' }}
-                          >
-                            {
-                              taskTriggerList?.map(({ id, name }) => (
-                                <MenuItem key={id} value={id}>
-                                  {id + ': ' + name}
-                                </MenuItem>
-                              )) ?? []
-                            }
-                          </Select>
-                          <Button
-                            style={{
-                              color: 'grey',
-                              background: 'none',
-                              width: '10%'
-                            }}
-                            onClick={() => {
-                              setTaskTrigger(null);
-                            }}
-                          >
-                            <Icon>close</Icon>
-                          </Button>
-                        </div>
-                      )
-                      : `${taskTrigger || ''}`}
-                    tooltip={'Task is launched whenever an Invocation of referred Task is completed'}
-                  />
-                  <TableRowItem
-                    title='Sync Interval'
-                    value={editable
-                      ? (
-                        <div>
-                          <TextField
-                            select
-                            label='Select'
-                            variant='outlined'
-                            className={clsx(classes.toolbarDateInput)}
-                            value={enableSyncInterval}
-                            onChange={(e) => handleEnableSyncInterval(e.target.value)}
-                          >
-                            <MenuItem value='enable'>Enable</MenuItem>
-                            <MenuItem value='disable'>Disable</MenuItem>
-                          </TextField>
-                          {
-                            enableSyncInterval === 'enable'
-                              ? <>
-                                <DateQuickSelector
-                                  startDate={endDate}
-                                  setStartDate={handleSyncIntervalOffset}
-                                  endDate={startDate}
-                                />
-                                <TextField
-                                  className={clsx(classes.toolbarDateInput)}
-                                  variant='outlined'
-                                  label='From'
-                                  type='datetime-local'
-                                  value={moment.utc(startDate).format(INPUT_DATE_FORMAT)}
-                                  disabled
-                                />
-                                <TextField
-                                  className={clsx(classes.toolbarDateInput)}
-                                  variant='outlined'
-                                  label='To'
-                                  type='datetime-local'
-                                  value={moment.utc(endDate).format(INPUT_DATE_FORMAT)}
-                                  inputProps={{
-                                    max: `${moment.utc(startDate).format(INPUT_DATE_FORMAT)}`
-                                  }}
-                                  onChange={(e) => handleSyncIntervalOffset(new Date(e.target.value))}
-                                />
-                              </>
-                              : null
-                          }
-                        </div>
-                      )
-                      : `${syncIntervalOffset || ''}`
-                    }
-                  />
-                </>
+                && <TableRowItem
+                  title='Sync Interval'
+                  value={editable
+                    ? (
+                      <div>
+                        <TextField
+                          select
+                          label='Select'
+                          variant='outlined'
+                          className={clsx(classes.toolbarDateInput)}
+                          value={enableSyncInterval}
+                          onChange={(e) => handleEnableSyncInterval(e.target.value)}
+                        >
+                          <MenuItem value='enable'>Enable</MenuItem>
+                          <MenuItem value='disable'>Disable</MenuItem>
+                        </TextField>
+                        {
+                          enableSyncInterval === 'enable'
+                            ? <>
+                              <DateQuickSelector
+                                startDate={endDate}
+                                setStartDate={handleSyncIntervalOffset}
+                                endDate={startDate}
+                              />
+                              <TextField
+                                className={clsx(classes.toolbarDateInput)}
+                                variant='outlined'
+                                label='From'
+                                type='datetime-local'
+                                value={moment.utc(startDate).format(INPUT_DATE_FORMAT)}
+                                disabled
+                              />
+                              <TextField
+                                className={clsx(classes.toolbarDateInput)}
+                                variant='outlined'
+                                label='To'
+                                type='datetime-local'
+                                value={moment.utc(endDate).format(INPUT_DATE_FORMAT)}
+                                inputProps={{
+                                  max: `${moment.utc(startDate).format(INPUT_DATE_FORMAT)}`
+                                }}
+                                onChange={(e) => handleSyncIntervalOffset(new Date(e.target.value))}
+                              />
+                            </>
+                            : null
+                        }
+                      </div>
+                    )
+                    : `${syncIntervalOffset || ''}`
+                  }
+                />
             }
           </TableBody>
         </Table>

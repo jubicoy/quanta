@@ -99,6 +99,12 @@ export default ({
   }
   const parameters = worker.definition.parameters || [];
 
+  const seriesKey = [...new Set(
+    worker.definition.columns
+      .filter(col => col.seriesKey)
+      .map(col => col.seriesKey)
+  )];
+
   return (
     <>
       <div className={clsx(common.verticalPadding, common.header)}>
@@ -156,18 +162,24 @@ export default ({
           </Paper>
         </>
       )}
-
-      {worker.definition.columns.length > 0 && (
+      {
+        seriesKey.map((s, index) => (
+          <div key={index}>
+            <T variant='h5'>{`Input Columns - ${s}`}</T>
+            <Paper className={clsx(common.topMargin, common.bottomMargin)}>
+              <WorkerDefColumnTable workerColumns={
+                worker.definition.columns
+                  .filter(column => column.seriesKey === s)
+                  .filter(column => column.columnType === 'input')
+                  .sort((a, b) => a.index - b.index)
+              } />
+            </Paper>
+          </div>
+        ))
+      }
+      {
         <>
-          <T variant='h5'>Input Columns</T>
-          <Paper className={clsx(common.topMargin, common.bottomMargin)}>
-            <WorkerDefColumnTable workerColumns={
-              worker.definition.columns
-                .filter(column => column.columnType === 'input')
-                .sort((a, b) => a.index - b.index)
-            } />
-          </Paper>
-          <T variant='h5'>Output Columns</T>
+          <T variant='h5'>{`Output Columns`}</T>
           <Paper className={clsx(common.topMargin, common.bottomMargin)}>
             <WorkerDefColumnTable workerColumns={
               worker.definition.columns
@@ -176,8 +188,7 @@ export default ({
             } />
           </Paper>
         </>
-      )}
-
+      }
       <T variant='h5'>Invocations</T>
       <Paper className={clsx(common.topMargin, common.bottomMargin)}>
         <InvocationTable

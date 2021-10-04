@@ -16,7 +16,7 @@ import org.jooq.ForeignKey;
 import org.jooq.Identity;
 import org.jooq.Name;
 import org.jooq.Record;
-import org.jooq.Row9;
+import org.jooq.Row10;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
@@ -92,6 +92,11 @@ public class WorkerDefinitionColumn extends TableImpl<WorkerDefinitionColumnReco
      * The column <code>worker_definition_column.definition_id</code>.
      */
     public final TableField<WorkerDefinitionColumnRecord, Long> DEFINITION_ID = createField(DSL.name("definition_id"), SQLDataType.BIGINT.nullable(false), this, "");
+
+    /**
+     * The column <code>worker_definition_column.series_key</code>.
+     */
+    public final TableField<WorkerDefinitionColumnRecord, String> SERIES_KEY = createField(DSL.name("series_key"), SQLDataType.VARCHAR(255).nullable(false).defaultValue(DSL.field("''::character varying", SQLDataType.VARCHAR)), this, "");
 
     private WorkerDefinitionColumn(Name alias, Table<WorkerDefinitionColumnRecord> aliased) {
         this(alias, aliased, null);
@@ -182,11 +187,11 @@ public class WorkerDefinitionColumn extends TableImpl<WorkerDefinitionColumnReco
     }
 
     // -------------------------------------------------------------------------
-    // Row9 type methods
+    // Row10 type methods
     // -------------------------------------------------------------------------
 
     @Override
-    public Row9<Long, String, String, String, Boolean, String, Integer, String, Long> fieldsRow() {
-        return (Row9) super.fieldsRow();
+    public Row10<Long, String, String, String, Boolean, String, Integer, String, Long, String> fieldsRow() {
+        return (Row10) super.fieldsRow();
     }
 }
