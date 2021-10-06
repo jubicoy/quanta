@@ -74,8 +74,14 @@ public class WorkerDomain {
             WorkerDef existingWorkerDef
     ) {
         WorkerDef workerDef;
-        if (existingWorker != null) {
+        if (existingWorkerDef != null) {
             workerDef = existingWorkerDef;
+
+            if (
+                    !workerDef.isEqual(worker.getDefinition())
+            ) {
+                throw new ApplicationException("WorkerDef changed");
+            }
         }
         else {
             workerDef = worker.getDefinition()

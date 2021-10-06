@@ -7,6 +7,8 @@ import fi.jubic.quanta.db.tables.records.WorkerDefinitionColumnRecord;
 
 import javax.annotation.Nullable;
 
+import java.util.Objects;
+
 import static fi.jubic.quanta.db.tables.WorkerDefinitionColumn.WORKER_DEFINITION_COLUMN;
 
 @EasyValue
@@ -73,4 +75,12 @@ public abstract class WorkerDefColumn {
             .setIndexAccessor(WORKER_DEFINITION_COLUMN.INDEX)
             .setDescriptionAccessor(WORKER_DEFINITION_COLUMN.DESCRIPTION)
             .build();
+
+    public boolean isEqual(WorkerDefColumn defCol) {
+        return Objects.equals(getName(), defCol.getName())
+                && Objects.equals(getDescription(), defCol.getDescription())
+                && Objects.deepEquals(getValueType(), defCol.getValueType())
+                && Objects.deepEquals(getColumnType(), defCol.getColumnType())
+                && Objects.equals(getIndex(), defCol.getIndex());
+    }
 }
