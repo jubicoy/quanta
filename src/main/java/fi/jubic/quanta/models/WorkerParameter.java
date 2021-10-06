@@ -7,6 +7,8 @@ import fi.jubic.quanta.db.tables.records.WorkerParameterRecord;
 
 import javax.annotation.Nullable;
 
+import java.util.Objects;
+
 import static fi.jubic.quanta.db.tables.WorkerParameter.WORKER_PARAMETER;
 
 @EasyValue
@@ -26,15 +28,15 @@ public abstract class WorkerParameter {
     @Nullable
     public abstract String getDefaultValue();
 
-    public abstract WorkerParameter.Builder toBuilder();
+    public abstract Builder toBuilder();
 
-    public static WorkerParameter.Builder builder() {
-        return new WorkerParameter.Builder();
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static class Builder extends EasyValue_WorkerParameter.Builder {
         @Override
-        public WorkerParameter.Builder defaults(WorkerParameter.Builder builder) {
+        public Builder defaults(Builder builder) {
             return builder
                     .setId(-1L)
                     .setNullable(false);
@@ -51,4 +53,12 @@ public abstract class WorkerParameter {
                     .setDefaultValueAccessor(WORKER_PARAMETER.DEFAULT_VALUE)
                     .setNullableAccessor(WORKER_PARAMETER.NULLABLE)
                     .build();
+
+    public boolean isEqual(WorkerParameter param) {
+        return Objects.equals(getName(), param.getName())
+                && Objects.equals(getDescription(), param.getDescription())
+                && Objects.equals(getType(), param.getType())
+                && Objects.equals(getNullable(), param.getNullable())
+                && Objects.equals(getDefaultValue(), param.getDefaultValue());
+    }
 }

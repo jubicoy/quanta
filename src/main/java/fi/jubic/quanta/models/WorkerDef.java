@@ -10,6 +10,8 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import static fi.jubic.quanta.db.tables.WorkerDefinition.WORKER_DEFINITION;
 
@@ -68,4 +70,31 @@ public abstract class WorkerDef {
                     DateUtil::toInstant
             )
             .build();
+
+    public boolean isEqual(WorkerDef def) {
+        boolean isColumnsEqual = IntStream.range(0, def.getColumns().size())
+                .allMatch(i -> def.getColumns().get(i).isEqual(
+                        getColumns().get(i)
+                ));
+
+        boolean isParameterEqual = getParameters() == null && def.getParameters() == null;
+
+        if (getParameters() != null && def.getParameters() != null) {
+            if (getParameters().size() != def.getParameters().size()) {
+                isParameterEqual = false;
+            }
+            else {
+                isParameterEqual = IntStream.range(0, def.getParameters().size())
+                        .allMatch(i -> def.getParameters().get(i).isEqual(
+                                getParameters().get(i)
+                        ));
+            }
+        }
+
+        return Objects.deepEquals(getType(), def.getType())
+                && Objects.equals(getName(), def.getName())
+                && Objects.equals(getDescription(), def.getDescription())
+                && isColumnsEqual
+                && isParameterEqual;
+    }
 }

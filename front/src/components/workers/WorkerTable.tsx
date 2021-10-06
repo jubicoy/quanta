@@ -63,7 +63,7 @@ export default ({
               onClick={() => goToDetails(item)}
               className={classes.row}
             >
-              <TableCell>{item.definition.name}</TableCell>
+              <TableCell>{`Worker ${item.id}: ${item.definition.name}`}</TableCell>
               <TableCell>{item.definition.type}</TableCell>
               <TableCell>{item.definition.description}</TableCell>
               <TableCell align='right'>
