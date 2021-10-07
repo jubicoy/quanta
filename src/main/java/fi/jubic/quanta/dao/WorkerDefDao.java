@@ -43,6 +43,9 @@ public class WorkerDefDao {
                                 nameLike -> WORKER_DEFINITION.NAME
                                         .lower()
                                         .contains(nameLike.toLowerCase())
+                        ),
+                        query.getWorkerType().map(
+                                WORKER_DEFINITION.TYPE::eq
                         )
                 )
                 .filter(Optional::isPresent)

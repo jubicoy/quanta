@@ -5,7 +5,7 @@ import {
   DataSeries,
   DEFAULT_JDBC_DATA_CONNECTION,
   DEFAULT_JDBC_DATA_SERIES,
-  Worker
+  WorkerDef
 } from '../../types';
 
 import { SampleResponse } from '../../types/Api';
@@ -14,8 +14,8 @@ interface DataConnectionConfiguratorContext {
   uploadedData: FileUploadResponse | null;
   setUploadedData: (data: FileUploadResponse | null) => void;
 
-  selectedWorker: Worker | null;
-  setSelectedWorker: (data: Worker | null) => void;
+  selectedWorkerDef: WorkerDef | null;
+  setSelectedWorkerDef: (workerDef: WorkerDef | null) => void;
 
   dataConnection: DataConnection;
   setDataConnection: (dataConnection: DataConnection) => void;
@@ -71,8 +71,8 @@ export const _DataConnectionConfiguratorContext = React.createContext<DataConnec
   setSuccess: () => {},
   setError: () => {},
 
-  selectedWorker: null,
-  setSelectedWorker: () => {},
+  selectedWorkerDef: null,
+  setSelectedWorkerDef: () => {},
 
   // In context so every step can operate Stepper
   handleForward: () => {},

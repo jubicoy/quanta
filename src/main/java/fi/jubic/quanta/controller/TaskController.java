@@ -253,30 +253,23 @@ public class TaskController {
 
             List<Measurement> newMeasurements = new ArrayList<>();
 
-            DataSeries createdSeries = DSL.using(conf).transactionResult(transaction -> {
-
-                DataSeries invocationSeries = Objects.requireNonNull(
+            DataSeries createdSeries =  Objects.requireNonNull(
                         invocation.getTask().getSeries()
-                );
+            );
 
-                if (invocation.getTask().getSyncIntervalOffset() != null) {
-                    newMeasurements.addAll(measurements.stream()
-                            .filter(measurement -> measurement.getTime()
-                                    .isAfter(Instant.now().minusSeconds(
-                                            invocation.getTask().getSyncIntervalOffset()
-                                    )))
-                            .filter(measurement -> measurement.getTime()
-                                    .isBefore(Instant.now()))
-                            .collect(Collectors.toList()));
-                }
-
-                else {
-                    newMeasurements.addAll(measurements);
-                }
-
-                return invocationSeries;
-
-            });
+            if (invocation.getTask().getSyncIntervalOffset() != null) {
+                newMeasurements.addAll(measurements.stream()
+                        .filter(measurement -> measurement.getTime()
+                                .isAfter(Instant.now().minusSeconds(
+                                        invocation.getTask().getSyncIntervalOffset()
+                                )))
+                        .filter(measurement -> measurement.getTime()
+                                .isBefore(Instant.now()))
+                        .collect(Collectors.toList()));
+            }
+            else {
+                newMeasurements.addAll(measurements);
+            }
 
             //if offset != null, we replace data within that offset...
             if (invocation.getTask().getSyncIntervalOffset() != null) {
@@ -293,9 +286,12 @@ public class TaskController {
                         .min(Instant::compareTo)
                         .orElseThrow();
 
-                DateTimeFormatter dateTimeFormatter = DateUtil.dateTimeFormatter(
+                DateTimeFormatter dateTimeFormatter = invocation.getColumnSelectors().size() == 0
+                        ? DateUtil.dateTimeFormatter(null)
+                        : DateUtil.dateTimeFormatter(
                         invocation.getColumnSelectors().get(0).getType().getFormat()
                 );
+
                 timeSeriesDao.deleteRowsWithTableName(
                         createdSeries.getTableName(),
                         "0",
