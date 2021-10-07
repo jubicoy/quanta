@@ -39,7 +39,7 @@ import {
   DEFAULT_CSV_DATA_SERIES,
   DEFAULT_JSON_INGEST_DATA_SERIES,
   DEFAULT_IMPORT_WORKER_DATA_SERIES,
-  Worker
+  WorkerDef
 } from '../../types';
 
 import { DataConnectionType } from '../../types/DataConnections';
@@ -65,8 +65,8 @@ export const DataImportPage = () => {
   const [uploadedData, setUploadedData] = React
     .useState<FileUploadResponse | null>(null);
 
-  const [selectedWorker, setSelectedWorker] = React
-    .useState<Worker | null>(null);
+  const [selectedWorkerDef, setSelectedWorkerDef] = React
+    .useState<WorkerDef | null>(null);
 
   const [dataConnection, setDataConnection] = useState<DataConnection>(DEFAULT_JDBC_DATA_CONNECTION);
   const [dataSeries, setDataSeries] = React
@@ -95,7 +95,7 @@ export const DataImportPage = () => {
     setDataConnection(DEFAULT_JDBC_DATA_CONNECTION);
     setDataSeries(DEFAULT_JDBC_DATA_SERIES);
     setUploadedData(null);
-    setSelectedWorker(null);
+    setSelectedWorkerDef(null);
     setSampleResponse(null);
     setSampleData([]);
   };
@@ -182,8 +182,8 @@ export const DataImportPage = () => {
           setUploadedData: setUploadedData,
           setUploadProgress: setUploadProgress,
 
-          selectedWorker: selectedWorker,
-          setSelectedWorker: setSelectedWorker,
+          selectedWorkerDef: selectedWorkerDef,
+          setSelectedWorkerDef: setSelectedWorkerDef,
 
           dataConnection: dataConnection,
           setDataConnection: setDataConnection,

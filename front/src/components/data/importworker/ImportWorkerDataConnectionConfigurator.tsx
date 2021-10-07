@@ -1,5 +1,8 @@
 import React, { useContext, useMemo } from 'react';
-import { useWorkers, useDataSeriesNameCheck } from '../../../hooks';
+import {
+  useDataSeriesNameCheck,
+  useWorkerDefs
+} from '../../../hooks';
 import { _DataConnectionConfiguratorContext } from '../../context';
 import {
   MenuItem,
@@ -13,7 +16,7 @@ import {
 import {
   DataConnection,
   DataSeries,
-  Worker,
+  WorkerDef,
   DEFAULT_IMPORT_WORKER_DATA_CONNECTION,
   DEFAULT_IMPORT_WORKER_DATA_SERIES
 } from '../../../types';
@@ -37,34 +40,35 @@ export const ImportWorkerDataConnectionConfigurator = () => {
     setSuccess,
     setError,
 
-    selectedWorker,
-    setSelectedWorker,
+    selectedWorkerDef,
+    setSelectedWorkerDef,
 
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
-  const workerQuery = useMemo(
+  const workerDefQuery = useMemo(
     () => ({
+      workerType: 'Import',
       notDeleted: true
     }),
     []
   );
 
-  const { workers } = useWorkers(workerQuery);
+  const { workerDefs } = useWorkerDefs(workerDefQuery);
   const { nameIsValid, helperText } = useDataSeriesNameCheck(dataSeries.name);
 
-  const workerOptions = workers && workers.filter(w => w.definition.type === 'Import').map((worker: any, idx) =>
-    <MenuItem key={idx} value={worker}>{worker.definition.name}</MenuItem>
+  const workerDefOptions = workerDefs && workerDefs.map((workerDef: WorkerDef, idx) =>
+    <MenuItem key={idx} value={workerDef.name}>{workerDef.name}</MenuItem>
   );
 
   const onHandleNext = () => {
-    if (selectedWorker) {
+    if (selectedWorkerDef) {
       const updatedDataConnection: DataConnection = {
         ...DEFAULT_IMPORT_WORKER_DATA_CONNECTION,
         ...dataConnection,
         configuration: {
           type: 'IMPORT_WORKER',
-          workerDefId: selectedWorker.definition.id
+          workerDefId: selectedWorkerDef.id
         }
       };
       /// Submit DataConnection
@@ -76,6 +80,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
           // Call backend to sample csv
           const sampleDataSeries: DataSeries = {
             ...DEFAULT_IMPORT_WORKER_DATA_SERIES,
+            ...dataSeries,
             dataConnection: resDataConnection
           };
           /// Sample DataSeries
@@ -116,20 +121,18 @@ export const ImportWorkerDataConnectionConfigurator = () => {
           </InputLabel>
           <Select
             fullWidth
-            value={selectedWorker}
-            onChange={e => {
-              const value = e.target.value as Worker;
-              setSelectedWorker(value);
-            }}
+            value={selectedWorkerDef?.name}
+            onChange={e => setSelectedWorkerDef(
+              workerDefs?.find(worker => worker.name === e.target.value) || null)
+            }
           >
-            {workerOptions}
+            {workerDefOptions}
           </Select>
-          {selectedWorker
+          {selectedWorkerDef
             && <div style={{ padding: '15px 0' }}>
-              <T variant='body1'>Name: <b>{selectedWorker.definition.name}</b></T>
-              <T variant='body1'>Description: <b>{selectedWorker.definition.description}</b></T>
+              <T variant='body1'>Name: <b>{selectedWorkerDef.name}</b></T>
+              <T variant='body1'>Description: <b>{selectedWorkerDef.description}</b></T>
             </div> }
-
           <Divider
             style={{
               marginTop: '16px',
@@ -164,7 +167,7 @@ export const ImportWorkerDataConnectionConfigurator = () => {
 
       <StepperButtons
         onNextClick={onHandleNext}
-        disableNext={!selectedWorker || !nameIsValid}
+        disableNext={!selectedWorkerDef || !nameIsValid}
       />
     </>
   );

@@ -33,7 +33,7 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     setSuccess,
     setError,
 
-    selectedWorker,
+    selectedWorkerDef,
     handleForward
   } = useContext(_DataConnectionConfiguratorContext);
 
@@ -90,17 +90,17 @@ export const ImportWorkerDataPreprocessingConfigurator = () => {
     });
   };
 
-  return (selectedWorker !== null) ? (
+  return (selectedWorkerDef !== null) ? (
     <>
       <Card>
         <CardContent>
           <Grid item xs={12}>
-            <T variant='button'>Worker Name: <b>{selectedWorker.definition.name}</b></T>
+            <T variant='button'>Worker Name: <b>{selectedWorkerDef.name}</b></T>
           </Grid>
           <Grid item xs={12}>
-            <T variant='button'>Description: <b>{selectedWorker.definition.description}</b></T>
+            <T variant='button'>Description: <b>{selectedWorkerDef.description}</b></T>
           </Grid>
-          {selectedWorker.definition.parameters && (
+          {selectedWorkerDef.parameters && (
             <>
               <T variant='button'>Parameters:</T>
               <Table style={{ marginBottom: '30px' }}>

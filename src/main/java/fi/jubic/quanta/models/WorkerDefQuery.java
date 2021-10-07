@@ -9,6 +9,10 @@ public class WorkerDefQuery {
     @Nullable
     private String nameLike;
 
+    @QueryParam("workerType")
+    @Nullable
+    private String workerType;
+
     @QueryParam("notDeleted")
     @Nullable
     private Boolean notDeleted;
@@ -19,15 +23,26 @@ public class WorkerDefQuery {
 
     private WorkerDefQuery(
             @Nullable String nameLike,
+            @Nullable String workerType,
             @Nullable Boolean notDeleted
     ) {
         this.nameLike = nameLike;
+        this.workerType = workerType;
         this.notDeleted = notDeleted;
     }
 
     public WorkerDefQuery withNameLike(String nameLike) {
         return new WorkerDefQuery(
                 nameLike,
+                this.workerType,
+                this.notDeleted
+        );
+    }
+
+    public WorkerDefQuery withWorkerType(String workerType) {
+        return new WorkerDefQuery(
+                this.nameLike,
+                workerType,
                 this.notDeleted
         );
     }
@@ -35,6 +50,7 @@ public class WorkerDefQuery {
     public WorkerDefQuery withNotDeleted(Boolean notDeleted) {
         return new WorkerDefQuery(
                 this.nameLike,
+                this.workerType,
                 notDeleted
         );
     }
@@ -45,5 +61,9 @@ public class WorkerDefQuery {
 
     public Optional<Boolean> getNotDeleted() {
         return Optional.ofNullable(notDeleted);
+    }
+
+    public Optional<String> getWorkerType() {
+        return Optional.ofNullable(workerType);
     }
 }
