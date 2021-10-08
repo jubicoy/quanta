@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.7] - 2021-10-08
+### Added
+- CSV output for query API.
+
 ## [0.3.6] - 2021-08-02
 ### Added
 - Add env variable controlled logback config.
