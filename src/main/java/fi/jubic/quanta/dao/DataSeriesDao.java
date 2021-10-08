@@ -118,17 +118,41 @@ public class DataSeriesDao {
 
     public DataSeries update(
             Long id,
+            Function<Optional<DataSeries>, DataSeries> updater,
+            Configuration transaction
+    ) {
+        return updateSeries(
+                id,
+                updater,
+                transaction
+        );
+    }
+
+    public DataSeries update(
+            Long id,
             Function<Optional<DataSeries>, DataSeries> updater
     ) {
+        return updateSeries(
+                id,
+                updater,
+                conf
+        );
+    }
+
+    private DataSeries updateSeries(
+            Long id,
+            Function<Optional<DataSeries>, DataSeries> updater,
+            Configuration transaction
+    ) {
         try {
-            return DSL.using(conf).transactionResult(transaction -> {
+            return DSL.using(transaction).transactionResult(transactionResult -> {
                 DataSeries dataSeries = updater.apply(getDetails(id));
 
-                DSL.using(conf)
+                DSL.using(transactionResult)
                         .update(DATA_SERIES)
                         .set(
                                 DataSeries.mapper.write(
-                                        DSL.using(conf).newRecord(DATA_SERIES),
+                                        DSL.using(transactionResult).newRecord(DATA_SERIES),
                                         dataSeries
                                 )
                         )

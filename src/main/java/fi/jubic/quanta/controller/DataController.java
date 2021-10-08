@@ -234,7 +234,8 @@ public class DataController {
 
         // Updating the old SeriesTable with deleteAt
         updateSeriesTableWithDeleteAt(
-                dataSeries.getTableName()
+                dataSeries.getTableName(),
+                conf
         );
     }
 
@@ -363,10 +364,11 @@ public class DataController {
     }
 
     public SeriesTable updateSeriesTableWithDeleteAt(
-            String tableName
+            String tableName,
+            org.jooq.Configuration transaction
     ) {
         SeriesTable seriesTable = seriesTableDao
-                .getSeriesTableByName(tableName, conf)
+                .getSeriesTableByName(tableName, transaction)
                 .orElseThrow(NotFoundException::new);
 
         return seriesTableDao.update(
@@ -383,7 +385,8 @@ public class DataController {
                                         configuration.getPersistOldSeriesTables()
                                 ))
                                 .build()
-                )
+                ),
+                transaction
         );
     }
 

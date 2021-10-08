@@ -349,6 +349,23 @@ public class TimeSeriesDao {
     public long insertDataWithOutputColumns(
             SeriesResult seriesResult,
             List<OutputColumn> outputColumns,
+            Stream<List<String>> data,
+            Configuration transaction
+    ) {
+        return insertDataWithOutputColumns(
+                seriesResult.getTableName(),
+                outputColumns
+                        .stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                data,
+                transaction
+        );
+    }
+
+    public long insertDataWithOutputColumns(
+            SeriesResult seriesResult,
+            List<OutputColumn> outputColumns,
             Stream<List<String>> data
     ) {
         return insertDataWithOutputColumns(
@@ -357,7 +374,25 @@ public class TimeSeriesDao {
                         .stream()
                         .sorted(Comparator.comparingInt(OutputColumn::getIndex))
                         .collect(Collectors.toList()),
-                data
+                data,
+                conf
+        );
+    }
+
+    public long insertDataWithOutputColumns(
+            DataSeries dataSeries,
+            List<OutputColumn> outputColumns,
+            Stream<List<String>> data,
+            Configuration transaction
+    ) {
+        return insertDataWithOutputColumns(
+                dataSeries.getTableName(),
+                outputColumns
+                        .stream()
+                        .sorted(Comparator.comparingInt(OutputColumn::getIndex))
+                        .collect(Collectors.toList()),
+                data,
+                transaction
         );
     }
 
@@ -372,14 +407,16 @@ public class TimeSeriesDao {
                         .stream()
                         .sorted(Comparator.comparingInt(OutputColumn::getIndex))
                         .collect(Collectors.toList()),
-                data
+                data,
+                conf
         );
     }
 
     private long insertDataWithOutputColumns(
             String tableName,
             List<OutputColumn> outputColumns,
-            Stream<List<String>> data
+            Stream<List<String>> data,
+            Configuration transaction
     ) {
         List<Type> types = outputColumns.stream()
                 .map(OutputColumn::getType)
@@ -398,7 +435,7 @@ public class TimeSeriesDao {
                 .filter(Optional::isPresent)
                 .map(Optional::get);
 
-        return DSL.using(conf).connectionResult(connection -> {
+        return DSL.using(transaction).connectionResult(connection -> {
             try (InputStream is = new StreamInputStream(stream)) {
                 CopyManager copyManager = new CopyManager(
                         connection.unwrap(BaseConnection.class)
