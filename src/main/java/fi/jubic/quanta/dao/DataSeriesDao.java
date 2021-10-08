@@ -132,11 +132,11 @@ public class DataSeriesDao {
             Long id,
             Function<Optional<DataSeries>, DataSeries> updater
     ) {
-        return updateSeries(
+        return DSL.using(conf).transactionResult(transaction -> updateSeries(
                 id,
                 updater,
-                conf
-        );
+                transaction
+        ));
     }
 
     private DataSeries updateSeries(
@@ -145,23 +145,21 @@ public class DataSeriesDao {
             Configuration transaction
     ) {
         try {
-            return DSL.using(transaction).transactionResult(transactionResult -> {
-                DataSeries dataSeries = updater.apply(getDetails(id));
+            DataSeries dataSeries = updater.apply(getDetails(id, transaction));
 
-                DSL.using(transactionResult)
-                        .update(DATA_SERIES)
-                        .set(
-                                DataSeries.mapper.write(
-                                        DSL.using(transactionResult).newRecord(DATA_SERIES),
-                                        dataSeries
-                                )
-                        )
-                        .where(DATA_SERIES.ID.eq(dataSeries.getId()))
-                        .execute();
+            DSL.using(transaction)
+                    .update(DATA_SERIES)
+                    .set(
+                            DataSeries.mapper.write(
+                                    DSL.using(transaction).newRecord(DATA_SERIES),
+                                    dataSeries
+                            )
+                    )
+                    .where(DATA_SERIES.ID.eq(dataSeries.getId()))
+                    .execute();
 
-                return getDetails(id)
-                        .orElseThrow(IllegalStateException::new);
-            });
+            return getDetails(id, transaction)
+                    .orElseThrow(IllegalStateException::new);
         }
         catch (DataAccessException exception) {
             throw new ApplicationException("Could not update a DataSeries", exception);

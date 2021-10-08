@@ -161,6 +161,8 @@ public class TimeSeriesDao {
                         .collect(Collectors.toList()),
                 transaction
         );
+
+        seriesTableDao.create(seriesTable, transaction);
     }
 
     private void createTableWithOutputColumns(
