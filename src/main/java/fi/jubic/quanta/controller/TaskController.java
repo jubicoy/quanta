@@ -8,6 +8,7 @@ import fi.jubic.quanta.dao.SeriesResultDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
+import fi.jubic.quanta.domain.DataDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.domain.TimeSeriesDomain;
 import fi.jubic.quanta.domain.WorkerDomain;
@@ -49,14 +50,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Singleton
 public class TaskController {
+    private final DataController dataController;
     private final TaskDomain taskDomain;
     private final TimeSeriesDomain timeSeriesDomain;
     private final WorkerDomain workerDomain;
+    private final DataDomain dataDomain;
 
     private final AnomalyDao anomalyDao;
     private final InvocationDao invocationDao;
@@ -71,9 +75,11 @@ public class TaskController {
 
     @Inject
     TaskController(
+            DataController dataController,
             TaskDomain taskDomain,
             TimeSeriesDomain timeSeriesDomain,
             WorkerDomain workerDomain,
+            DataDomain dataDomain,
             AnomalyDao anomalyDao,
             InvocationDao invocationDao,
             SeriesResultDao seriesResultDao,
@@ -84,9 +90,11 @@ public class TaskController {
             DataSeriesDao dataSeriesDao,
             fi.jubic.quanta.config.Configuration configuration
     ) {
+        this.dataController = dataController;
         this.taskDomain = taskDomain;
         this.timeSeriesDomain = timeSeriesDomain;
         this.workerDomain = workerDomain;
+        this.dataDomain = dataDomain;
         this.anomalyDao = anomalyDao;
         this.invocationDao = invocationDao;
         this.seriesResultDao = seriesResultDao;
@@ -237,6 +245,55 @@ public class TaskController {
         }
     }
 
+    private DataSeries syncReplace(
+            DataSeries dataSeries,
+            List<OutputColumn> outputColumn,
+            Configuration transaction
+    ) {
+        DataSeries dataSeriesWithNewTableName = dataSeries.toBuilder()
+                .setTableName(
+                        String.format(
+                                "series_%s",
+                                UUID.randomUUID().toString().replace('-', '_')
+                        )
+                )
+                .build();
+
+        SeriesTable table = SeriesTable
+                .builder()
+                .setId(-1L)
+                .setTableName(dataSeriesWithNewTableName.getTableName())
+                .setDataSeries(dataSeriesWithNewTableName)
+                .build();
+
+        // Creating new table
+        timeSeriesDao.createTableWithOutputColumns(
+                table,
+                outputColumn,
+                transaction
+        );
+
+        // Updating the old SeriesTable with deleteAt
+        dataController.updateSeriesTableWithDeleteAt(
+                dataSeries.getTableName(),
+                transaction
+        );
+
+        // Updating the dataSeries with new table
+        return dataSeriesDao.update(
+                dataSeries.getId(),
+                optionalSeries -> dataDomain.update(
+                        optionalSeries.orElseThrow(
+                                () -> new ApplicationException(
+                                        "Can't update non-existing DataSeries"
+                                )
+                        ),
+                        dataSeriesWithNewTableName
+                ),
+                transaction
+        );
+    }
+
     public void storeSeriesResult(
             Invocation invocation,
             List<Measurement> measurements
@@ -253,7 +310,7 @@ public class TaskController {
 
             List<Measurement> newMeasurements = new ArrayList<>();
 
-            DataSeries createdSeries =  Objects.requireNonNull(
+            DataSeries createdSeries = Objects.requireNonNull(
                         invocation.getTask().getSeries()
             );
 
@@ -292,57 +349,60 @@ public class TaskController {
                         invocation.getColumnSelectors().get(0).getType().getFormat()
                 );
 
-                timeSeriesDao.deleteRowsWithTableName(
-                        createdSeries.getTableName(),
-                        "0",
-                        deleteEdge,
-                        Instant.from(Instant.now()),
-                        dateTimeFormatter,
-                        conf
-                );
+                DSL.using(conf).transaction(transaction -> {
+                    timeSeriesDao.deleteRowsWithTableName(
+                            createdSeries.getTableName(),
+                            "0",
+                            deleteEdge,
+                            Instant.from(Instant.now()),
+                            dateTimeFormatter,
+                            transaction
+                    );
+
+                    timeSeriesDao.insertDataWithOutputColumns(
+                            createdSeries,
+                            outputColumns,
+                            timeSeriesDomain.convertFromMeasurement(
+                                    invocation,
+                                    newMeasurements
+                            ),
+                            transaction
+                    );
+                });
             }
             //...and if offset == null we replace everything
             else {
-                SeriesTable table = SeriesTable
-                        .builder()
-                        .setId(-1L)
-                        .setTableName(createdSeries.getTableName())
-                        .setDataSeries(createdSeries)
-                        .build();
+                DSL.using(conf).transaction(transaction -> {
+                    DataSeries intermediateUpdatedDataSeries = syncReplace(
+                            createdSeries,
+                            outputColumns,
+                            transaction
+                    );
 
-                timeSeriesDao.deleteTable(createdSeries, conf);
+                    timeSeriesDao.insertDataWithOutputColumns(
+                            intermediateUpdatedDataSeries,
+                            outputColumns,
+                            timeSeriesDomain.convertFromMeasurement(
+                                    invocation,
+                                    newMeasurements
+                            ),
+                            transaction
+                    );
 
-                timeSeriesDao.createTableWithOutputColumns(
-                        table,
-                        outputColumns,
-                        conf
-                );
+                    importWorkerDataSampleDao.putSample(invocation.getId(),
+                            ImportWorkerDataSample.builder()
+                                    .setColumns(Collections.emptyList())
+                                    .setErrorFlag(false)
+                                    .setData(
+                                            timeSeriesDomain.convertFromMeasurement(
+                                                    invocation,
+                                                    newMeasurements
+                                            ).collect(Collectors.toList())
+                                    )
+                                    .build());
+                });
             }
-
-
-            timeSeriesDao.insertDataWithOutputColumns(
-                    createdSeries,
-                    outputColumns,
-                    timeSeriesDomain.convertFromMeasurement(
-                            invocation,
-                            newMeasurements
-                    )
-            );
-
-            importWorkerDataSampleDao.putSample(invocation.getId(),
-                    ImportWorkerDataSample.builder()
-                            .setColumns(Collections.emptyList())
-                            .setErrorFlag(false)
-                            .setData(
-                                    timeSeriesDomain.convertFromMeasurement(
-                                            invocation,
-                                            newMeasurements
-                                    ).collect(Collectors.toList())
-                            )
-                            .build());
         }
-
-
         else {
             SeriesResult createdResult = DSL.using(conf).transactionResult(transaction -> {
                 SeriesResult intermediateResult = seriesResultDao.create(

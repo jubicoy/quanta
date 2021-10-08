@@ -54,23 +54,47 @@ public class SeriesTableDao {
             String tableName,
             Function<Optional<SeriesTable>, SeriesTable> updater
     ) {
+        return updateTableName(
+                tableName,
+                updater,
+                conf
+        );
+    }
+
+    public SeriesTable update(
+            String tableName,
+            Function<Optional<SeriesTable>, SeriesTable> updater,
+            Configuration transaction
+    ) {
+        return updateTableName(
+                tableName,
+                updater,
+                transaction
+        );
+    }
+
+    private SeriesTable updateTableName(
+            String tableName,
+            Function<Optional<SeriesTable>, SeriesTable> updater,
+            Configuration transaction
+    ) {
         try {
-            return DSL.using(conf).transactionResult(transaction -> {
+            return DSL.using(transaction).transactionResult(transactionResult -> {
                 SeriesTable seriesTable = updater.apply(
-                        getSeriesTableByName(tableName, transaction)
+                        getSeriesTableByName(tableName, transactionResult)
                 );
 
-                DSL.using(conf)
+                DSL.using(transactionResult)
                         .update(SERIES_TABLE)
                         .set(
                                 SeriesTable.mapper.write(
-                                        DSL.using(conf).newRecord(SERIES_TABLE),
+                                        DSL.using(transactionResult).newRecord(SERIES_TABLE),
                                         seriesTable
                                 )
                         )
                         .where(SERIES_TABLE.TABLE_NAME.eq(seriesTable.getTableName()))
                         .execute();
-                return getSeriesTableByName(tableName, transaction)
+                return getSeriesTableByName(tableName, transactionResult)
                         .orElseThrow(IllegalStateException::new);
             });
         }
