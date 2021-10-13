@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2021-10-13
+### Changed
+- Split DataConnection and DataSeries creation phases for JDBC.
+- Improve import worker error messages.
+
+### Fixed
+- Import worker DataConnection assignment with definition id.
+- Allow registering multiple workers with the same definition.
+
 ## [0.4.1] - 2021-09-24
 ### Added
 - Improved incremental sync with query range restriction.
