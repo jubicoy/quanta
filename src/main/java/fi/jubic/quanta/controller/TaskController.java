@@ -52,7 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Singleton
 public class TaskController {
@@ -330,16 +329,8 @@ public class TaskController {
 
             //if offset != null, we replace data within that offset...
             if (invocation.getTask().getSyncIntervalOffset() != null) {
-                Instant deleteEdge = Stream
-                        .concat(
-                                newMeasurements.stream()
-                                        .map(Measurement::getTime),
-                                Stream.of(
-                                        Instant.from(Instant.now().minusSeconds(
-                                                invocation.getTask().getSyncIntervalOffset()
-                                        ))
-                                )
-                        )
+                Instant deleteEdge = newMeasurements.stream()
+                        .map(Measurement::getTime)
                         .min(Instant::compareTo)
                         .orElseThrow();
 
