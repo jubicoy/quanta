@@ -395,23 +395,27 @@ public class TaskController {
             }
         }
         else {
-            SeriesResult createdResult = DSL.using(conf).transactionResult(transaction -> {
-                SeriesResult intermediateResult = seriesResultDao.create(
-                        taskDomain.createSeriesResult(invocation),
-                        transaction
-                );
+            SeriesResult result = seriesResultDao
+                    .search(new SeriesResultQuery().withInvocationId(invocation.getId()))
+                    .stream()
+                    .findFirst()
+                    .orElseGet(() -> DSL.using(conf).transactionResult(transaction -> {
+                        SeriesResult intermediateResult = seriesResultDao.create(
+                                taskDomain.createSeriesResult(invocation),
+                                transaction
+                        );
 
-                timeSeriesDao.createTableWithOutputColumns(
-                        intermediateResult,
-                        invocation.getOutputColumns(),
-                        transaction
-                );
+                        timeSeriesDao.createTableWithOutputColumns(
+                                intermediateResult,
+                                invocation.getOutputColumns(),
+                                transaction
+                        );
 
-                return intermediateResult;
-            });
+                        return intermediateResult;
+                    }));
 
             timeSeriesDao.insertDataWithOutputColumns(
-                    createdResult,
+                    result,
                     invocation.getOutputColumns(),
                     timeSeriesDomain.convertFromMeasurement(
                             invocation,
