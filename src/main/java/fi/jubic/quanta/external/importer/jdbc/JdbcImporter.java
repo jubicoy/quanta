@@ -37,9 +37,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -133,15 +132,11 @@ public class JdbcImporter implements Importer {
                 : DateUtil.dateTimeFormatter(
                         columns.get(0).getType().getFormat()
         );
-        DateTimeFormatter dateFormat = DateTimeFormatter
-                .ofPattern("yyyy-MM-dd")
-                .withZone(ZoneId.from(ZoneOffset.UTC));
-        DateTimeFormatter timeFormat = DateTimeFormatter
-                .ofPattern("HH:mm:ss")
-                .withZone(ZoneId.from(ZoneOffset.UTC));
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
 
         String rawQuery = jdbcSeriesConfig.getQuery();
-        String query = rawQuery.contains("$START") || rawQuery.contains("$END")
+        String query = rawQuery.contains("$START") && rawQuery.contains("$END")
                 ? rawQuery
                 .replace(
                         "$START",
@@ -185,9 +180,7 @@ public class JdbcImporter implements Importer {
                             Date date = resultSet.getDate(i);
                             row.add(
                                     date != null
-                                            ? dateFormat.format(
-                                                    date.toInstant()
-                                    )
+                                            ? dateFormat.format(date)
                                             : null
                             );
                             break;
@@ -196,9 +189,7 @@ public class JdbcImporter implements Importer {
                             Time time = resultSet.getTime(i);
                             row.add(
                                     time != null
-                                            ? timeFormat.format(
-                                                    time.toInstant()
-                                    )
+                                            ? timeFormat.format(time)
                                             : null
                             );
                             break;
@@ -424,7 +415,6 @@ public class JdbcImporter implements Importer {
                         dateTimeFormatter.format(end)
                 )
                 : rawQuery;
-        System.out.println(query);
 
         List<AutoCloseable> closeables = new ArrayList<>();
         Runnable onClose = () -> {
