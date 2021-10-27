@@ -7,7 +7,7 @@ export interface TimeSeriesQuery extends Record<string, any> {
   start?: string;
   end?: string;
   selectors: string[];
-  interval?: number;
+  interval?: string;
 }
 
 export interface Measurement {

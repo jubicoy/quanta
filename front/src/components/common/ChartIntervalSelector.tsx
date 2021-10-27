@@ -33,22 +33,22 @@ const useStyles = makeStyles(() => {
 interface Props {
   styles?: string;
   intervalError: boolean;
-  chartInterval: number;
+  chartInterval: string;
   setChartInterval: (interval: string) => void ;
 }
 
 const INTERVAL_SECONDS = {
-  'None': 0,
-  '15 minutes': 15 * 60,
-  '1 hour': 60 * 60,
-  '6 hours': 60 * 60 * 6,
-  '12 hours': 60 * 60 * 12,
-  '1 day': 60 * 60 * 24,
-  '3 days': 60 * 60 * 24 * 3,
-  '1 week': 60 * 60 * 24 * 7,
-  '2 weeks': 60 * 60 * 24 * 7 * 2,
-  '1 month': 60 * 60 * 24 * 30,
-  '3 months': 60 * 60 * 24 * 30 * 3
+  'None': '0',
+  '15 minutes': '15m',
+  '1 hour': '1h',
+  '6 hours': '6h',
+  '12 hours': '12h',
+  '1 day': '1d',
+  '3 days': '3d',
+  '1 week': '1w',
+  '2 weeks': '2w',
+  '1 month': '1M',
+  '1 year': '1y'
 };
 
 export default ({

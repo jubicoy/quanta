@@ -25,7 +25,7 @@ public class TimeSeriesQuery {
 
     @QueryParam("interval")
     @Nullable
-    private Long intervalSeconds;
+    private String interval;
 
     public TimeSeriesQuery() {
 
@@ -35,12 +35,12 @@ public class TimeSeriesQuery {
             Instant start,
             Instant end,
             @Nullable List<String> selectors,
-            @Nullable Long intervalSeconds
+            @Nullable String interval
     ) {
         this.start = start;
         this.end = end;
         this.selectors = selectors;
-        this.intervalSeconds = intervalSeconds;
+        this.interval = interval;
     }
 
     public TimeSeriesQuery withStart(Instant start) {
@@ -48,7 +48,7 @@ public class TimeSeriesQuery {
                 start,
                 this.end,
                 this.selectors,
-                this.intervalSeconds
+                this.interval
         );
     }
 
@@ -57,7 +57,7 @@ public class TimeSeriesQuery {
                 this.start,
                 end,
                 this.selectors,
-                this.intervalSeconds
+                this.interval
         );
     }
 
@@ -66,16 +66,16 @@ public class TimeSeriesQuery {
                 this.start,
                 this.end,
                 filters,
-                this.intervalSeconds
+                this.interval
         );
     }
 
-    public TimeSeriesQuery withIntervalSeconds(Long intervalSeconds) {
+    public TimeSeriesQuery withInterval(String interval) {
         return new TimeSeriesQuery(
                 this.start,
                 this.end,
                 this.selectors,
-                intervalSeconds
+                interval
         );
     }
 
@@ -91,9 +91,8 @@ public class TimeSeriesQuery {
         return selectors;
     }
 
-    public Long getIntervalSeconds() {
-        return Optional.ofNullable(intervalSeconds)
-                .orElse(0L);
+    public Optional<String> getInterval() {
+        return Optional.ofNullable(interval);
     }
 
     @SuppressFBWarnings(

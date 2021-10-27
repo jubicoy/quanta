@@ -4,6 +4,7 @@ import fi.jubic.quanta.external.importer.Types;
 import fi.jubic.quanta.models.Column;
 import fi.jubic.quanta.models.ColumnSelector;
 import fi.jubic.quanta.models.DataSeries;
+import fi.jubic.quanta.models.IntervalUnit;
 import fi.jubic.quanta.models.Measurement;
 import fi.jubic.quanta.models.OutputColumn;
 import fi.jubic.quanta.models.Pagination;
@@ -485,7 +486,7 @@ public class TimeSeriesDao {
             DataSeries selectionDataSeries,
             Pagination pagination
     ) {
-        Field<?> timeField;
+        Field<?> timeField = getTimeField(query);
         String selectorPrefix;
         String tableName;
         List<Column> columns = null;
@@ -559,19 +560,6 @@ public class TimeSeriesDao {
                     buildConditionResultOutput(resultOutputFilters, query),
                     pagination
             );
-        }
-
-        if (query.getIntervalSeconds() == 0L) {
-            timeField = TIMESTAMP_FIELD.as(TIME_BUCKET_FIELD);
-        }
-        else {
-            timeField = DSL.field(DSL.sql(
-                    String.format(
-                            "time_bucket('%d seconds', %s)",
-                            query.getIntervalSeconds(),
-                            DSL.name(TIMESTAMP_COLUMN)
-                    )
-            )).as(TIME_BUCKET_FIELD);
         }
 
         if (selection.getSeriesResultOutput() != null) {
@@ -1063,7 +1051,7 @@ public class TimeSeriesDao {
             Boolean filterNonNumericalValues,
             Pagination pagination
     ) {
-        Field<?> timeField;
+        Field<?> timeField = getTimeField(query);
         String selectorPrefix;
         String tableName;
         List<TimeSeriesColumnSelector> selectColumns = selection.getColumnSelectors();
@@ -1090,19 +1078,6 @@ public class TimeSeriesDao {
                     filterNonNumericalValues,
                     pagination
             );
-        }
-
-        if (query.getIntervalSeconds() == 0L) {
-            timeField = TIMESTAMP_FIELD.as(TIME_BUCKET_FIELD);
-        }
-        else {
-            timeField = DSL.field(DSL.sql(
-                    String.format(
-                            "time_bucket('%d seconds', %s)",
-                            query.getIntervalSeconds(),
-                            DSL.name(TIMESTAMP_COLUMN)
-                    )
-            )).as(TIME_BUCKET_FIELD);
         }
 
         return queryToWorkerInputFormat(
@@ -1255,7 +1230,7 @@ public class TimeSeriesDao {
             Boolean filterNonNumericalValues,
             Pagination pagination
     ) {
-        Field<?> timeField;
+        Field<?> timeField = getTimeField(query);
         String selectorPrefix;
         String tableName;
         List<TimeSeriesResultOutputColumnSelector> selectResultOutputColumns
@@ -1287,19 +1262,6 @@ public class TimeSeriesDao {
                     buildConditionResultOutput(filters, query),
                     pagination
             );
-        }
-
-        if (query.getIntervalSeconds() == 0L) {
-            timeField = TIMESTAMP_FIELD.as(TIME_BUCKET_FIELD);
-        }
-        else {
-            timeField = DSL.field(DSL.sql(
-                    String.format(
-                            "time_bucket('%d seconds', %s)",
-                            query.getIntervalSeconds(),
-                            DSL.name(TIMESTAMP_COLUMN)
-                    )
-            )).as(TIME_BUCKET_FIELD);
         }
 
         return queryResultOutputs(
@@ -1789,5 +1751,77 @@ public class TimeSeriesDao {
         if (values.isEmpty()) return Optional.empty();
 
         return Optional.of(values);
+    }
+
+    private Field<?> getTimeField(TimeSeriesQuery query) {
+        if (query.getInterval().isEmpty()) {
+            return TIMESTAMP_FIELD.as(TIME_BUCKET_FIELD);
+        }
+
+        Pattern pattern = Pattern.compile(
+                "^([0-9]+)([shdwmMy])?"
+        );
+
+        Matcher matcher = pattern.matcher(query.getInterval().get());
+
+        if (!matcher.matches()) {
+            throw new IllegalStateException("Invalid interval");
+        }
+
+        // If there is no time interval unit, return directly interval seconds
+        if (matcher.group(2) == null) {
+            return DSL.field(
+                    DSL.sql(
+                            String.format(
+                                    "time_bucket('%ss', %s)",
+                                    matcher.group(1),
+                                    DSL.name(TIMESTAMP_COLUMN)
+                            )
+                    )).as(TIME_BUCKET_FIELD);
+        }
+
+        IntervalUnit intervalUnit = Enum.valueOf(
+                IntervalUnit.class, matcher.group(2)
+        );
+
+        if (Objects.equals(intervalUnit, IntervalUnit.M)) {
+            if (Integer.parseInt(matcher.group(1)) != 1) {
+                throw new IllegalStateException(
+                        "The interval for monthly must be 1 month"
+                );
+            }
+            return DSL.field(
+                    DSL.sql(
+                            String.format(
+                                    "date_trunc('month', time_bucket(interval '1d', %s))",
+                                    DSL.name(TIMESTAMP_COLUMN)
+                            )
+                    )).as(TIME_BUCKET_FIELD);
+        }
+
+        if (Objects.equals(intervalUnit, IntervalUnit.y)) {
+            if (Integer.parseInt(matcher.group(1)) != 1) {
+                throw new IllegalStateException(
+                        "The interval for yearly must be 1 year"
+                );
+            }
+            return DSL.field(
+                    DSL.sql(
+                            String.format(
+                                    "date_trunc('year', time_bucket(interval '1d', %s))",
+                                    DSL.name(TIMESTAMP_COLUMN)
+                            )
+                    )).as(TIME_BUCKET_FIELD);
+        }
+
+        return DSL.field(
+                DSL.sql(
+                        String.format(
+                                "time_bucket('%s%s', %s)",
+                                matcher.group(1),
+                                matcher.group(2),
+                                DSL.name(TIMESTAMP_COLUMN)
+                        )
+                )).as(TIME_BUCKET_FIELD);
     }
 }
