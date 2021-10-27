@@ -90,8 +90,11 @@ public class GrafanaTimeSeriesResource {
                                         .withFilters(selectorsString)
                                         .withStart(grafanaQueryRequest.getRange().getFrom())
                                         .withEnd(grafanaQueryRequest.getRange().getTo())
-                                        .withIntervalSeconds(
-                                                grafanaQueryRequest.getIntervalMs() / 1000
+                                        .withInterval(
+                                                String.format(
+                                                        "%ss",
+                                                        grafanaQueryRequest.getIntervalMs() / 1000
+                                                )
                                         ),
                                         pagination
                                 )

@@ -215,8 +215,8 @@ const ChartsPage = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [enableEndDate, setEnableEndDate] = useState<boolean>(endDateParam !== null);
 
-  const [chartInterval, setChartInterval] = useState<number>(
-    Number(query.get('interval')) || 0
+  const [chartInterval, setChartInterval] = useState<string>(
+    query.get('interval') || '0'
   );
 
   // Used for input, no validation
@@ -466,7 +466,7 @@ const ChartsPage = () => {
           );
 
           // Requires grouping/timeInterval if timeInterval is 0
-          if (chartInterval === 0) {
+          if (chartInterval === '0') {
             if (hasDataSelect && !hasGroup) {
               setError('Input Error', 'Grouping selector or Interval is needed.');
               setSelectorError(true);
@@ -661,7 +661,7 @@ const ChartsPage = () => {
 
   useEffect(() => {
     if (isRawDataMode) {
-      setChartInterval(0);
+      setChartInterval('0');
       query.remove('interval');
     }
     setSelectorSelections([]);
@@ -887,7 +887,7 @@ const ChartsPage = () => {
 
   const handleSetChartInterval = (interval: string) => {
     query.set('interval', interval);
-    setChartInterval(Number.parseInt(interval));
+    setChartInterval(interval);
   };
 
   // Render

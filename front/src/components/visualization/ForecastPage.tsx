@@ -163,8 +163,8 @@ export default ({
     query.get('trend') === 'true' || false
   );
 
-  const [chartInterval, setChartInterval] = useState<number>(
-    Number(query.get('interval')) || 0
+  const [chartInterval, setChartInterval] = useState<string>(
+    query.get('interval') || '0'
   );
 
   // Used for query, with validation
@@ -330,7 +330,7 @@ export default ({
       setIntervalError(false);
 
       let isValid = true;
-      if (chartInterval === 0) {
+      if (chartInterval === '0') {
         setIntervalError(true);
         isValid = false;
       }
@@ -419,7 +419,7 @@ export default ({
 
   const handleSetChartInterval = (interval: string) => {
     query.set('interval', interval);
-    setChartInterval(Number.parseInt(interval));
+    setChartInterval(interval);
   };
 
   const startDateRef = React.createRef<HTMLInputElement>();

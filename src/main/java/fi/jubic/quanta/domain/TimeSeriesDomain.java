@@ -860,7 +860,7 @@ public class TimeSeriesDomain {
             TimeSeriesSelector selection
     ) {
         if (selection.getGroupings().size() <= 0) {
-            if (query.getIntervalSeconds() <= 0L) {
+            if (Objects.isNull(query.getInterval())) {
                 // Has useless agg
                 if (selection.getColumnSelectors().size() > 0) {
                     selection.getColumnSelectors()
@@ -893,7 +893,7 @@ public class TimeSeriesDomain {
             }
         }
         else if (selection.getResultOutputGroupings().size() <= 0) {
-            if (query.getIntervalSeconds() <= 0L) {
+            if (Objects.isNull(query.getInterval())) {
                 if (selection.getResultOutputColumnSelectors().size() > 0) {
                     selection.getResultOutputColumnSelectors()
                             .stream()

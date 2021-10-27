@@ -482,7 +482,12 @@ public class TimeSeriesController {
         TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery()
                 .withStart(Instant.EPOCH)
                 .withEnd(Instant.now())
-                .withIntervalSeconds(60 * 60 * 24 * 7L)
+                .withInterval(
+                        String.format(
+                                "%ss",
+                                60 * 60 * 24 * 7L
+                        )
+                )
                 .withFilters(Collections.emptyList());
         TimeSeriesQuery[] finalTimeSeriesQuery = {timeSeriesQuery};
 
@@ -522,7 +527,12 @@ public class TimeSeriesController {
         TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery()
                 .withStart(Instant.EPOCH)
                 .withEnd(Instant.now())
-                .withIntervalSeconds(60 * 60 * 24 * 7L)
+                .withInterval(
+                        String.format(
+                                "%ss",
+                                60 * 60 * 24 * 7L
+                        )
+                )
                 .withFilters(Collections.emptyList());
         TimeSeriesQuery[] finalTimeSeriesQuery = {timeSeriesQuery};
 
