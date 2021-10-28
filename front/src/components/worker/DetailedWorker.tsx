@@ -105,6 +105,10 @@ export default ({
       .map(col => col.seriesKey)
   )];
 
+  if (seriesKey.length === 0) {
+    seriesKey.push('');
+  };
+
   return (
     <>
       <div className={clsx(common.verticalPadding, common.header)}>
