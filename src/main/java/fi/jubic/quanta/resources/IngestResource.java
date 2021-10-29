@@ -31,7 +31,7 @@ public class IngestResource {
     @PermitAll
     public IngestResponse ingest(
             @HeaderParam("Data-Connection-Token") String dataConnectionToken,
-            Object payload
+            String payload
     ) {
         long updatedRows = dataController.ingestData(dataConnectionToken, payload);
         return IngestResponse

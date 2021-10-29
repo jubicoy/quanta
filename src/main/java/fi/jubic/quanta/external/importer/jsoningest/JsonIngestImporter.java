@@ -104,6 +104,13 @@ public class JsonIngestImporter implements Importer, Ingester {
     private List<List<String>> getJsonRows(DataSeries dataSeries, Object jsonDocument) {
         LinkedHashMap<Column, String> mappings = getJsonColumnPathMappings(dataSeries);
 
+        Configuration configuration = Configuration
+                .defaultConfiguration();
+
+        ReadContext jsonContext = JsonPath
+                .using(configuration)
+                .parse(jsonDocument.toString());
+
         // Calculate how many rows are there
         // based on how many rows does time column have
 
@@ -113,7 +120,7 @@ public class JsonIngestImporter implements Importer, Ingester {
                 .findFirst()
                 .orElseThrow(InputException::new);
         List<?> timeRows = getJsonRowsOfOneColumn(
-                jsonDocument,
+                jsonContext,
                 timeColumnEntry.getValue(),
                 timeColumnEntry.getKey().getType().getClassName(),
                 dataSeries
@@ -130,7 +137,7 @@ public class JsonIngestImporter implements Importer, Ingester {
                         integer -> {
                             List<Object> row = getJsonRow(
                                             mappings,
-                                            jsonDocument,
+                                            jsonContext,
                                             integer,
                                             dataSeries
                                     );
@@ -214,19 +221,12 @@ public class JsonIngestImporter implements Importer, Ingester {
     }
 
     private <T> List<T> getJsonRowsOfOneColumn(
-            Object jsonDocument,
+            ReadContext jsonContext,
             String path,
             Class<T> className,
             DataSeries dataSeries
     ) {
         boolean isCollections = getJsonConfig(dataSeries).getIsCollections();
-        Configuration configuration = Configuration
-                .defaultConfiguration();
-
-
-        ReadContext jsonContext = JsonPath
-                .using(configuration)
-                .parse(jsonDocument.toString());
 
         if (!isCollections) {
             try {
@@ -278,7 +278,7 @@ public class JsonIngestImporter implements Importer, Ingester {
 
     private List<Object> getJsonRow(
             LinkedHashMap<Column, String> mappings,
-            Object jsonDocument,
+            ReadContext jsonContext,
             Integer rowIndex,
             DataSeries dataSeries
     ) {
@@ -289,7 +289,7 @@ public class JsonIngestImporter implements Importer, Ingester {
                     Column column = entry.getKey();
                     Object result;
                     result = getJsonRowsOfOneColumn(
-                            jsonDocument,
+                            jsonContext,
                             entry.getValue(),
                             column
                                     .getType()
