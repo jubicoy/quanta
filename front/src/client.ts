@@ -206,9 +206,7 @@ export const ingestJson = (
           'Authorization': localStorage.getItem('token') || '',
           'Content-type': 'application/json'
         },
-        body: JSON.stringify(
-          jsonDocument
-        )
+        body: jsonDocument
       }
     )
     .then(res => checkResponse(res));
