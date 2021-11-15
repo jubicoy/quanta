@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2021-11-15
+### Added
+- Multiple DataSeries support for tasks/workers.
+- Better interval support with [mhdwMy] units that supports month and year time buckets that match calendar months and years perfectly.
+
+### Fixed
+- JSON ingest parsing bug introduced in 0.4.0.
+- SQL date parsing.
+- Show worker columns on worker page when no series keys are defined.
+
 ## [0.5.1] - 2021-10-15
 ### Changed
 - Allow batched result upload from worker.
