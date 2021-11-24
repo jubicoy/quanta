@@ -245,11 +245,32 @@ public class DataController {
             Instant end,
             DateTimeFormatter dateTimeFormatter
     ) {
+        List<List<String>> data = new ArrayList<>();
+
+        importer.getRows(
+                dataSeries,
+                batch -> data.addAll(
+                        batch.collect(Collectors.toList())
+                ),
+                start,
+                end
+        ).join();
+
+        // If no data found, delete edge should take end time
+        // to prevent discard any data
+        Instant deleteEdge = data
+                .stream()
+                .map(row -> row.get(0))
+                .map(Instant::parse)
+                .sorted()
+                .findFirst()
+                .orElse(end);
+
         DSL.using(conf).transaction(transaction -> {
             timeSeriesDao.deleteRowsWithTableName(
                     dataSeries.getTableName(),
                     "0",
-                    start,
+                    deleteEdge,
                     end,
                     dateTimeFormatter,
                     transaction
@@ -259,12 +280,10 @@ public class DataController {
                     dataSeries,
                     batch -> timeSeriesDao.insertData(
                             dataSeries,
-                            batch,
+                            data.stream(),
                             transaction
-                    ),
-                    start,
-                    end
-            ).join();
+                    )
+            );
         });
     }
 
