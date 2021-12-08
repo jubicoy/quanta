@@ -1541,7 +1541,7 @@ public class TimeSeriesDao {
             String selectorPrefix
     ) {
         Pattern pattern = Pattern.compile(
-                "^(?:(avg|min|max|sum)\\()?\"([0-9]+)\"(?:\\))?$"
+                "^(?:(avg|min|max|sum|count)\\()?\"([0-9]+)\"(?:\\))?$"
         );
         Map<String, Object> values = new HashMap<>();
         for (int selectIndex = 0; selectIndex < selectFields.size(); selectIndex++) {
