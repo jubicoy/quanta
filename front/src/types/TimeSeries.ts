@@ -26,7 +26,7 @@ export interface QueryResult {
 
 /* eslint-disable no-multi-spaces */
 export const QUERY_SELECTOR_REGEX
-  = '^(?:(avg|min|max|sum|group_by|where)\\()?'             // G1: (Optional) Modifiers (grouping/modifier)
+  = '^(?:(avg|min|max|sum|group_by|where|count)\\()?'       // G1: (Optional) Modifiers (grouping/modifier)
   + '(series|result|result_output):'                        // G2: Type
   + '([a-zA-Z0-9-_]+)'                                      // G3: Series name
   + '(?:\\.([0-9]+|latest))?'                               // G4: (Optional) InvocationNumber
@@ -48,7 +48,8 @@ export enum TIME_SERIES_MODIFIERS {
   'max' = 'max',
   'sum' = 'sum',
   'group_by' = 'group_by',
-  'where' = 'where'
+  'where' = 'where',
+  'count' = 'count'
 }
 
 export enum TIME_SERIES_QUERY_TYPE {
