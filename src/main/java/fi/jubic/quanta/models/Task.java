@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static fi.jubic.quanta.db.tables.Task.TASK;
 
@@ -51,8 +52,7 @@ public abstract class Task {
     @Nullable
     public abstract List<Parameter> getParameters();
 
-    @Nullable
-    public abstract List<String> getTags();
+    public abstract Set<String> getTags();
 
     public abstract Builder toBuilder();
 
@@ -106,7 +106,7 @@ public abstract class Task {
                     .setColumnSelectors(Collections.emptyList())
                     .setSeries(null)
                     .setOutputColumns(Collections.emptyList())
-                    .setTags((Collections.emptyList()));
+                    .setTags(Collections.emptySet());
         }
     }
 

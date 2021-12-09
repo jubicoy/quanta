@@ -1,12 +1,7 @@
 package fi.jubic.quanta.controller;
 
 import fi.jubic.quanta.config.Configuration;
-import fi.jubic.quanta.dao.DataConnectionDao;
-import fi.jubic.quanta.dao.DataSeriesDao;
-import fi.jubic.quanta.dao.InvocationDao;
-import fi.jubic.quanta.dao.SeriesTableDao;
-import fi.jubic.quanta.dao.TaskDao;
-import fi.jubic.quanta.dao.TimeSeriesDao;
+import fi.jubic.quanta.dao.*;
 import fi.jubic.quanta.domain.DataDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.exception.ApplicationException;
@@ -49,6 +44,7 @@ public class DataController {
     private final SeriesTableDao seriesTableDao;
     private final TaskDao taskDao;
     private final TimeSeriesDao timeSeriesDao;
+    private final TagDao tagDao;
 
     private final Importer importer;
     private final Ingester ingester;
@@ -64,6 +60,7 @@ public class DataController {
             DataConnectionDao dataConnectionDao,
             DataSeriesDao dataSeriesDao,
             InvocationDao invocationDao,
+            TagDao tagDao,
             SeriesTableDao seriesTableDao,
             TaskDao taskDao,
             TimeSeriesDao timeSeriesDao,
@@ -77,6 +74,7 @@ public class DataController {
         this.dataSeriesDao = dataSeriesDao;
         this.invocationDao = invocationDao;
         this.seriesTableDao = seriesTableDao;
+        this.tagDao = tagDao;
         this.taskDao = taskDao;
         this.timeSeriesDao = timeSeriesDao;
         this.importer = importer;
@@ -88,7 +86,10 @@ public class DataController {
     }
 
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
-        return new ArrayList<>(dataConnectionDao.search(query));
+        List<DataConnection> dataConnections = dataConnectionDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+        return new ArrayList<>(tagDao.enrichDataConnectionTags(dataConnections));
     }
 
     public Optional<DataConnection> getConnectionDetails(Long connectionId) {

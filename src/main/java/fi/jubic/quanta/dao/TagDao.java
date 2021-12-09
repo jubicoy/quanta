@@ -1,6 +1,9 @@
 package fi.jubic.quanta.dao;
 
+import fi.jubic.quanta.models.DataConnection;
+import fi.jubic.quanta.models.Tag;
 import fi.jubic.quanta.models.TagAssignment;
+import fi.jubic.quanta.models.Task;
 import org.jooq.Record;
 import org.jooq.impl.DSL;
 
@@ -8,9 +11,11 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static fi.jubic.quanta.db.Tables.TAG;
 import static fi.jubic.quanta.db.Tables.TAG_DATACONNECTION;
@@ -45,32 +50,49 @@ public class TagDao {
                 .collect(TagAssignment.tagDataConnectionMapper);
     }
 
-    /* public List<DataConnection> enrichDataConnectionTags(List<DataConnection> dataConnections) {
+    public List<DataConnection> enrichDataConnectionTags(List<DataConnection> dataConnections) {
         // Fetch all assignments for all data connections
-        List<Long> dataConnIds = dataConnections.stream()
-                .map(DataConnection::getId).collect(Collectors.toList());
-        Map<Long, Set<String>> tagsMap = getAllDataConnectionTags(dataConnIds).stream()
-                .collect(Collectors.
-                groupingBy(TagAssignment::getParentId,
-
-                        Collectors.
-                        mapping(ta -> ta.getTag().getName(), Collectors.toSet())));
-
-        return dataConnections.stream().map(conn -> conn.toBuilder().
-        setTags(tagsMap.getOrDefault(conn.getId(),
-
-         Collections.emptyList())).build());
-
+        List<Long> dataConnIds = dataConnections
+                .stream()
+                .map(DataConnection::getId)
+                .collect(Collectors.toList());
 
         // map through data connections and assign tags into the objects
+        Map<Long, Set<String>> tagsMap = getAllDataConnectionTags(dataConnIds)
+                .stream()
+                .collect(Collectors.groupingBy(TagAssignment::getParentId,
+                        Collectors.mapping(ta -> ta.getTag().getName(), Collectors.toSet())));
+
+        return dataConnections.stream()
+                .map(dataConnection -> dataConnection.toBuilder()
+                .setTags(
+                        tagsMap.get(dataConnection.getId())
+                ).build()).collect(Collectors.toList());
+
     }
 
     public List<Task> enrichTaskTags(List<Task> tasks) {
+        // Fetch all assignments for all data connections
+        List<Long> taskIds = tasks
+                .stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+
+        // map through data connections and assign tags into the objects
+        Map<Long, Set<String>> tagsMap = getAllTaskTags(taskIds)
+                .stream()
+                .collect(Collectors.groupingBy(TagAssignment::getParentId,
+                        Collectors.mapping(ta -> ta.getTag().getName(), Collectors.toSet())));
+
+        return tasks.stream()
+                .map(task -> task.toBuilder()
+                        .setTags(
+                                tagsMap.get(task.getId())
+                        ).build()).collect(Collectors.toList());
 
     }
 
-    // TODO: Remove
-    public List<TagAssignment> getDataConnectionTags(Long dataConnectionId) {
+    public List<Tag> getDataConnectionTags(Long dataConnectionId) {
         return DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -78,11 +100,10 @@ public class TagDao {
                 .on(TAG.ID.eq(TAG_DATACONNECTION.TAG_ID))
                 .where(TAG_DATACONNECTION.DATACONNECTION_ID.eq(dataConnectionId))
                 .fetchStream()
-                .collect(TagAssignment.taskTagMapper);
+                .collect(Tag.mapper);
     }
 
-    // TODO: Remove
-    public List<TagAssignment> getTaskTags(Long taskId) {
+    public List<Tag> getTaskTags(Long taskId) {
         return DSL.using(conf)
                 .select()
                 .from(TAG)
@@ -90,20 +111,8 @@ public class TagDao {
                 .on(TAG.ID.eq(TAG_TASK.TAG_ID))
                 .where(TAG_TASK.TASK_ID.eq(taskId))
                 .fetchStream()
-                .collect(TagAssignment.dataConnectionTagMapper);
+                .collect(Tag.mapper);
     }
-
-    /* public Task setTaskTags(Task task) {
-        List<String> existingTags = getTaskTags(task.getId());
-        List<String> newTags = task.getTags();
-
-    }
-
-
-    public DataConnection setDataConnectionTags(DataConnection dataConnection) {
-
-    }
-    */
 
     private void addTagsToTask(Long taskId, Set<String> tagNames) {
         tagNames.forEach((name) -> {
@@ -177,13 +186,13 @@ public class TagDao {
 
     }
 
-    public void updateTaskTags(Long taskId, List<String> tagNames) {
+    public Task updateTaskTags(Task task, List<String> tagNames) {
         Set<String> oldTags = DSL.using(conf)
                 .select()
                 .from(TAG)
                 .leftJoin(TAG_TASK)
                 .on(TAG.ID.eq(TAG_TASK.TAG_ID))
-                .where(TAG_TASK.TASK_ID.eq(taskId))
+                .where(TAG_TASK.TASK_ID.eq(task.getId()))
                 .fetch()
                 .getValues(TAG.NAME).stream().collect(Collectors.toSet());
 
@@ -195,7 +204,7 @@ public class TagDao {
                 .collect(Collectors.toSet());
 
         if (tagsToRemove.size() > 0) {
-            removeTagsFromTask(taskId, tagsToRemove);
+            removeTagsFromTask(task.getId(), tagsToRemove);
         }
 
         Set<String> tagsToAdd = newTags
@@ -204,20 +213,23 @@ public class TagDao {
                 .collect(Collectors.toSet());
 
         if (tagsToAdd.size() > 0) {
-            addTagsToTask(taskId, tagsToAdd);
+            addTagsToTask(task.getId(), tagsToAdd);
         }
 
-        // return getTaskTags(taskId);
+        Set<String> combined = Stream.concat(newTags.stream(), oldTags.stream())
+                .collect(Collectors.toSet());
+
+        return task.toBuilder().setTags(combined).build();
     }
 
 
-    public void updateDataConnectionTags(Long dataConnectionId, List<String> tagNames) {
+    public DataConnection updateDataConnectionTags(DataConnection dataConnection, List<String> tagNames) {
         Set<String> oldTags = DSL.using(conf)
                 .select()
                 .from(TAG)
                 .leftJoin(TAG_DATACONNECTION)
                 .on(TAG.ID.eq(TAG_DATACONNECTION.TAG_ID))
-                .where(TAG_DATACONNECTION.DATACONNECTION_ID.eq(dataConnectionId))
+                .where(TAG_DATACONNECTION.DATACONNECTION_ID.eq(dataConnection.getId()))
                 .fetch()
                 .getValues(TAG.NAME).stream().collect(Collectors.toSet());
 
@@ -229,7 +241,7 @@ public class TagDao {
                 .collect(Collectors.toSet());
 
         if (tagsToRemove.size() > 0) {
-            removeTagsFromDataConnection(dataConnectionId, tagsToRemove);
+            removeTagsFromDataConnection(dataConnection.getId(), tagsToRemove);
         }
 
         Set<String> tagsToAdd = newTags
@@ -238,10 +250,13 @@ public class TagDao {
                 .collect(Collectors.toSet());
 
         if (tagsToAdd.size() > 0) {
-            addTagsToDataConnection(dataConnectionId, tagsToAdd);
+            addTagsToDataConnection(dataConnection.getId(), tagsToAdd);
         }
 
-        // return getDataConnectionTags(dataConnectionId);
+        Set<String> combined = Stream.concat(newTags.stream(), oldTags.stream())
+                .collect(Collectors.toSet());
+
+        return dataConnection.toBuilder().setTags(combined).build();
     }
 
 }

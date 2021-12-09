@@ -1,12 +1,9 @@
 export { default as useRouter } from './useRouter';
 export { useDataConnections } from './useDataConnections';
 export { useDataConnection } from './useDataConnection';
-<<<<<<< HEAD
 export { useMultipleDataSeries } from './useMultipleDataSeries';
 export { useDataSeries } from './useDataSeries';
-=======
 export { useDataConnectionTags } from './useDataConnectionTags';
->>>>>>> ed00949 (frontend for adding, updating and searching tags)
 export { useQueryParams } from './useQueryParams';
 export { useQueryTimeSeries } from './useQueryTimeSeries';
 export { useColumns } from './useColumns';

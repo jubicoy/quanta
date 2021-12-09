@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static fi.jubic.quanta.db.tables.DataConnection.DATA_CONNECTION;
 
@@ -42,7 +43,7 @@ public abstract class DataConnection {
     public abstract Instant getDeletedAt();
 
     @Nullable
-    public abstract List<String> getTags();
+    public abstract Set<String> getTags();
 
     public abstract Builder toBuilder();
 
@@ -80,7 +81,7 @@ public abstract class DataConnection {
                     .setDescription("")
                     .setDeletedAt(null)
                     .setSeries(Collections.emptyList())
-                    .setTags(Collections.emptyList());
+                    .setTags(Collections.emptySet());
         }
     }
 

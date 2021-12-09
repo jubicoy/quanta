@@ -5,6 +5,7 @@ import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
+import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
@@ -69,6 +70,7 @@ public class TaskController {
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
     private final DataSeriesDao dataSeriesDao;
+    private final TagDao tagDao;
 
     private final Configuration conf;
 
@@ -84,6 +86,7 @@ public class TaskController {
             SeriesResultDao seriesResultDao,
             TaskDao taskDao,
             TimeSeriesDao timeSeriesDao,
+            TagDao tagDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
             DataSeriesDao dataSeriesDao,
@@ -98,6 +101,7 @@ public class TaskController {
         this.invocationDao = invocationDao;
         this.seriesResultDao = seriesResultDao;
         this.taskDao = taskDao;
+        this.tagDao = tagDao;
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
@@ -107,7 +111,11 @@ public class TaskController {
     }
 
     public List<Task> search(TaskQuery query) {
-        return taskDao.search(query);
+        List<Task> tasks = taskDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+
+        return tagDao.enrichTaskTags(tasks);
     }
 
     public Optional<Task> getDetails(Long taskId) {
