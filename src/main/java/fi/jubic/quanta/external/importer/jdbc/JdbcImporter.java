@@ -124,7 +124,7 @@ public class JdbcImporter implements Importer {
         jdbcSeriesConfig = getSeriesConfiguration(dataSeries);
 
         List<List<String>> data = new ArrayList<>();
-        List<Column> columns = dataSeries.getColumns();
+        List<Column> columns = new ArrayList<>(dataSeries.getColumns());
 
         // Is this period in the format pattern below intentional ?
         DateTimeFormatter dateTimeFormatter = columns.isEmpty()

@@ -1,15 +1,9 @@
 package fi.jubic.quanta.util;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.security.SecureRandom;
 
-import java.util.Random;
-
-@SuppressFBWarnings(
-        value = "PREDICTABLE_RANDOM",
-        justification = "Not used for security"
-)
 public class StringUtil {
-    private static final Random RANDOM = new Random();
+    private static final SecureRandom RANDOM = new SecureRandom();
     private static final String ALPHANUMS = "abcdefghijklmnopqrstuvwxyz0123456789";
 
     public static String alphaNumericIdentifier(int length) {
