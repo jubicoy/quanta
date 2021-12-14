@@ -94,15 +94,9 @@ public class App implements AuthenticatedApplication<User> {
                 .build();
     }
 
-
-    public Configuration getConfiguration() {
-        return this.configuration;
-    }
-
     public static void main(String[] args) {
         App app = DaggerAppComponent.create()
                 .getApp();
-        Configuration configuration = app.getConfiguration();
 
         TaskScheduler taskScheduler = new InMemoryScheduler(1)
                 .registerStartupTask(
@@ -114,7 +108,7 @@ public class App implements AuthenticatedApplication<User> {
 
         taskScheduler.start();
 
-        new UndertowServer().start(app, configuration);
+        new UndertowServer().start(app, app.configuration);
         app.authenticator.reloadExternalClients();
     }
 }

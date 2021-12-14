@@ -10,10 +10,11 @@ import java.util.Base64;
 import java.util.Objects;
 
 public class HashUtil {
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     public static String generateSalt() {
-        SecureRandom random = new SecureRandom();
         byte[] salt = new byte[16];
-        random.nextBytes(salt);
+        RANDOM.nextBytes(salt);
         return Base64.getEncoder().encodeToString(salt);
     }
 
