@@ -33,7 +33,7 @@ import {
 import { TaskConfiguration } from './TaskConfiguration';
 import { WorkerDefConfiguration } from './WorkerDefConfiguration';
 import { ColumnsConfiguration } from './ColumnsConfiguration';
-import { updateTaskTags } from '../../client';
+import { updateTask } from '../../client';
 
 const initialTask = {
   id: -1,
@@ -190,9 +190,8 @@ export default ({
   };
 
   const updateTags = (res: Task) => {
-    console.log(res);
     if (task.tags.length > 0) {
-      updateTaskTags(res.id, task.tags)
+      updateTask({ ...task, id: res.id })
         .catch((e: Error) => {
           setError('Fail to add tags', e.toString());
         });

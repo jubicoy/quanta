@@ -694,33 +694,3 @@ export const getTags = (): Promise<Tag[]> => window
   )
   .then(checkResponse)
   .then((res) => res.json());
-
-export const updateTaskTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
-  .fetch(
-    `/api/tags/tasks/${id}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': localStorage.getItem('token') || ''
-      },
-      body: JSON.stringify(tagNames)
-    }
-  )
-  .then(checkResponse)
-  .then((res) => res.json());
-
-export const updateDataConnectionTags = (id: number, tagNames: string[]): Promise<Tag[]> => window
-  .fetch(
-    `/api/tags/data-connections/${id}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': localStorage.getItem('token') || ''
-      },
-      body: JSON.stringify(tagNames)
-    }
-  )
-  .then(checkResponse)
-  .then((res) => res.json());

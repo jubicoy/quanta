@@ -18,7 +18,7 @@ import {
   Column,
   DataSeries
 } from '../../../types';
-import { updateDataConnectionTags } from '../../../client';
+import { updateDataConnection } from '../../../client';
 import { useTags } from '../../../hooks';
 import { JsonIngestDataSeriesConfigurator } from '.';
 
@@ -155,7 +155,7 @@ export const JsonIngestDataPreprocessingConfigurator = () => {
     });
 
     if (dataSeries.dataConnection && dataSeries.dataConnection.tags.length > 0) {
-      updateDataConnectionTags(dataSeries.dataConnection.id, dataSeries.dataConnection.tags)
+      updateDataConnection(dataSeries.dataConnection)
         .catch((e: Error) => {
           setError('Fail to add tags', e);
         });

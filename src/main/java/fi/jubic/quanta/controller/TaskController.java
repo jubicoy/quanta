@@ -129,9 +129,12 @@ public class TaskController {
 
 
     public Task create(Task task) {
-        return taskDao.create(
+
+        Task newTask = taskDao.create(
                 taskDomain.create(task)
         );
+
+        return newTask;
     }
 
     public Task update(Task task) {

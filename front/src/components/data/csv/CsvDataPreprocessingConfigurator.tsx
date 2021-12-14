@@ -15,7 +15,7 @@ import {
 } from '../../../hooks';
 import { SampleResponse } from '../../../types/Api';
 import StepperButtons from '../StepperButtons';
-import { sample, updateDataConnectionTags } from '../../../client';
+import { sample, updateDataConnection } from '../../../client';
 
 export const CsvDataPreprocessingConfigurator = () => {
   const {
@@ -84,7 +84,7 @@ export const CsvDataPreprocessingConfigurator = () => {
 
   const nextStep = () => {
     if (dataSeries.dataConnection && dataSeries.dataConnection.tags.length > 0) {
-      updateDataConnectionTags(dataSeries.dataConnection.id, dataSeries.dataConnection.tags)
+      updateDataConnection(dataSeries.dataConnection)
         .catch((e: Error) => {
           setError('Fail to add tags', e);
         });
