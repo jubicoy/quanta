@@ -11,7 +11,6 @@ import java.util.List;
 public class TagController {
     private final TagDao tagDao;
 
-
     @Inject
     TagController(
             TagDao tagDao
@@ -22,5 +21,4 @@ public class TagController {
     public List<Tag> getAll() {
         return tagDao.getAll();
     }
-
 }

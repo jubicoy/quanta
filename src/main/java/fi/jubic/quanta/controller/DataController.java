@@ -9,7 +9,6 @@ import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.domain.DataDomain;
-import fi.jubic.quanta.domain.TagDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.exception.InputException;
@@ -23,6 +22,7 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.SeriesTable;
+import fi.jubic.quanta.models.Tag;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
@@ -58,7 +58,6 @@ public class DataController {
 
     private final DataDomain dataDomain;
     private final TaskDomain taskDomain;
-    private final TagDomain tagDomain;
 
     private final Configuration configuration;
     private final org.jooq.Configuration conf;
@@ -76,7 +75,6 @@ public class DataController {
             Ingester ingester,
             DataDomain dataDomain,
             TaskDomain taskDomain,
-            TagDomain tagDomain,
             Configuration configuration
     ) {
         this.dataConnectionDao = dataConnectionDao;
@@ -90,7 +88,6 @@ public class DataController {
         this.ingester = ingester;
         this.dataDomain = dataDomain;
         this.taskDomain = taskDomain;
-        this.tagDomain = tagDomain;
         this.conf = configuration.getJooqConfiguration().getConfiguration();
         this.configuration = configuration;
     }
@@ -178,7 +175,8 @@ public class DataController {
         );
 
         tagDao.updateDataConnectionTags(
-                dataConnection.getId(), tagDomain.validate(dataConnection.getTags())
+                dataConnection.getId(),
+                Tag.validate(Objects.requireNonNull(dataConnection.getTags()))
         );
 
         return updatedDataConnection.toBuilder()

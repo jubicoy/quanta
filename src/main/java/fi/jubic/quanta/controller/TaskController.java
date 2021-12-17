@@ -10,7 +10,6 @@ import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
 import fi.jubic.quanta.domain.DataDomain;
-import fi.jubic.quanta.domain.TagDomain;
 import fi.jubic.quanta.domain.TaskDomain;
 import fi.jubic.quanta.domain.TimeSeriesDomain;
 import fi.jubic.quanta.domain.WorkerDomain;
@@ -31,6 +30,7 @@ import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.SeriesResultQuery;
 import fi.jubic.quanta.models.SeriesTable;
+import fi.jubic.quanta.models.Tag;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.TaskType;
@@ -59,7 +59,6 @@ import java.util.stream.Collectors;
 public class TaskController {
     private final DataController dataController;
     private final TaskDomain taskDomain;
-    private final TagDomain tagDomain;
     private final TimeSeriesDomain timeSeriesDomain;
     private final WorkerDomain workerDomain;
     private final DataDomain dataDomain;
@@ -88,7 +87,6 @@ public class TaskController {
             SeriesResultDao seriesResultDao,
             TaskDao taskDao,
             TagDao tagDao,
-            TagDomain tagDomain,
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
@@ -97,7 +95,6 @@ public class TaskController {
     ) {
         this.dataController = dataController;
         this.taskDomain = taskDomain;
-        this.tagDomain = tagDomain;
         this.timeSeriesDomain = timeSeriesDomain;
         this.workerDomain = workerDomain;
         this.dataDomain = dataDomain;
@@ -152,7 +149,8 @@ public class TaskController {
         );
 
         tagDao.updateTaskTags(
-                task.getId(), tagDomain.validate(task.getTags())
+                task.getId(),
+                Tag.validate(Objects.requireNonNull(task.getTags()))
         );
 
         return updatedTask.toBuilder().setTags(task.getTags()).build();
