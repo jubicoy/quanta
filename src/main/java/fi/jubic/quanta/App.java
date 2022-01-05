@@ -94,10 +94,7 @@ public class App implements AuthenticatedApplication<User> {
                 .build();
     }
 
-    public static void main(String[] args) {
-        App app = DaggerAppComponent.create()
-                .getApp();
-
+    public static void startServices(App app) {
         TaskScheduler taskScheduler = new InMemoryScheduler(1)
                 .registerStartupTask(
                         app.adminAuthenticationTask
@@ -107,8 +104,15 @@ public class App implements AuthenticatedApplication<User> {
                 .registerTask("0 0 0/2 ? * * *", app.timeSeriesTableCleanupTask);
 
         taskScheduler.start();
+        app.authenticator.reloadExternalClients();
+    }
+
+    public static void main(String[] args) {
+        App app = DaggerAppComponent.create()
+                .getApp();
+
+        startServices(app);
 
         new UndertowServer().start(app, app.configuration);
-        app.authenticator.reloadExternalClients();
     }
 }

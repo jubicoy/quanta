@@ -7,12 +7,9 @@ import fi.jubic.easyconfig.ConfigMapper;
 import fi.jubic.quanta.config.Configuration;
 import fi.jubic.quanta.external.ExternalModule;
 import fi.jubic.quanta.resources.ResourceModule;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.impl.StdSchedulerFactory;
 
 import javax.inject.Singleton;
-import java.util.Properties;
+import java.util.function.Supplier;
 
 @Singleton
 @Component(modules = {
@@ -25,26 +22,20 @@ public interface AppComponent {
 
     @Module
     class AppModule {
-        @Provides
-        @Singleton
-        static Configuration provideConfiguration() {
-            return new ConfigMapper().read(Configuration.class);
+        private final Supplier<Configuration> provider;
+
+        public AppModule() {
+            this.provider = () -> new ConfigMapper().read(Configuration.class);
+        }
+
+        public AppModule(Supplier<Configuration> provider) {
+            this.provider = provider;
         }
 
         @Provides
-        static Scheduler provideScheduler() {
-            StdSchedulerFactory schedulerFactory = new StdSchedulerFactory();
-            Properties properties = new Properties();
-            properties.setProperty("org.quartz.jobStore.class", "org.quartz.simpl.RAMJobStore");
-            properties.setProperty("org.quartz.threadPool.threadCount", Integer.toString(2));
-            try {
-                schedulerFactory.initialize(properties);
-                return schedulerFactory.getScheduler();
-            }
-            catch (SchedulerException e) {
-                e.printStackTrace();
-                return null;
-            }
+        @Singleton
+        public Configuration provideConfiguration() {
+            return provider.get();
         }
     }
 }
