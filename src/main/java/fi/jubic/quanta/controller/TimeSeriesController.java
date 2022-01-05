@@ -601,9 +601,11 @@ public class TimeSeriesController {
             Map<String, Object> values,
             Map<String, ?> groupingParams
     ) {
-        Map temp = new HashMap(groupingParams);
+        Map<String, Object> temp = new HashMap<>(groupingParams);
         temp.keySet().removeAll(values.keySet());
-        values.putAll(temp);
+        if (temp.size() > 0) {
+            values.putAll(temp);
+        }
         return values;
     }
 
