@@ -133,7 +133,7 @@ public class TimeSeriesController {
                 )
         ).collect(Collectors.toList());
 
-        return getWorkerInputs(selections, invocation, pagination);
+        return getWorkerInputs(selections, columnSelectors, pagination);
     }
 
     public List<Measurement> loadInvocationDataFromSeriesResult(
@@ -476,7 +476,7 @@ public class TimeSeriesController {
 
     private List<Map<String, Object>> getWorkerInputs(
             List<TimeSeriesSelector> selections,
-            Invocation invocation,
+            List<ColumnSelector> columnSelectors,
             Pagination pagination
     ) {
         TimeSeriesQuery timeSeriesQuery = new TimeSeriesQuery()
@@ -497,7 +497,7 @@ public class TimeSeriesController {
                         timeSeriesDao.queryToWorkerInputFormat(
                                 finalTimeSeriesQuery[0],
                                 selection,
-                                invocation.getColumnSelectors(),
+                                columnSelectors,
                                 false,
                                 pagination
                         )
@@ -510,7 +510,7 @@ public class TimeSeriesController {
                                                         .mapWorkerInputGroupingParamsToValues(
                                                                 selection,
                                                                 entry.getKey(),
-                                                                invocation.getColumnSelectors()
+                                                                columnSelectors
                                                         )
                                         )
                                         .stream()
