@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.1] - 2022-02-02
+### Fixed
+- Fix no-op grouping for raw queries that were causing intermittently failing queries.
+- Fix worker fetching wrong columns selector.
+
+### Security
+- Update dependencies.
+
 ## [0.7.0] - 2021-12-09
 ### Added
 - `count` aggregation for time series queries.
