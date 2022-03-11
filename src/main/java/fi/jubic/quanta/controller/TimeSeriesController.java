@@ -601,12 +601,13 @@ public class TimeSeriesController {
             Map<String, Object> values,
             Map<String, ?> groupingParams
     ) {
+        Map<String, Object> initializedValues = new HashMap<>(values);
         Map<String, Object> temp = new HashMap<>(groupingParams);
         temp.keySet().removeAll(values.keySet());
         if (temp.size() > 0) {
-            values.putAll(temp);
+            initializedValues.putAll(temp);
         }
-        return values;
+        return initializedValues;
     }
 
     private Long getSeriesResultIdFromSelection(
