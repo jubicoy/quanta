@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2022-19-05
+### Fixed
+- Group By fixes
+
 ## [0.7.1] - 2022-02-02
 ### Fixed
 - Fix no-op grouping for raw queries that were causing intermittently failing queries.
