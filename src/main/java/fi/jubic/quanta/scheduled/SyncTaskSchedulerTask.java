@@ -55,23 +55,31 @@ public class SyncTaskSchedulerTask implements fi.jubic.easyschedule.Task {
     private void tryRunNextInvocation() {
         synchronized (lock) {
             getNextInternalInvocation().ifPresent(invocation -> {
-                taskController.updateInvocationStatus(invocation, InvocationStatus.Running);
-                Optional<DataSeries> optionalDataSeries = invocation.getColumnSelectors()
-                        .stream()
-                        .findFirst()
-                        .map(ColumnSelector::getSeries)
-                        .or(() -> Optional.ofNullable(invocation.getTask().getSeries()));
-
-                if (optionalDataSeries.isEmpty()) {
-                    LOGGER.error("No data series present for invocation {}", invocation.getId());
-                    taskController.updateInvocationStatus(invocation, InvocationStatus.Error);
-                    return;
-                }
-
-                DataSeries dataSeries = optionalDataSeries.get();
-
                 internalExecutor.submit(() -> {
                     try {
+                        taskController.updateInvocationStatus(
+                                invocation, InvocationStatus.Running
+                        );
+                        Optional<DataSeries> optionalDataSeries = invocation.getColumnSelectors()
+                                .stream()
+                                .findFirst()
+                                .map(ColumnSelector::getSeries)
+                                .or(() -> Optional.ofNullable(invocation.getTask().getSeries()));
+
+                        if (optionalDataSeries.isEmpty()) {
+                            LOGGER.error(
+                                    "No data series present for invocation {}",
+                                    invocation.getId()
+                            );
+                            taskController.updateInvocationStatus(
+                                    invocation,
+                                    InvocationStatus.Error
+                            );
+                            return;
+                        }
+
+                        DataSeries dataSeries = optionalDataSeries.get();
+
                         dataController.sync(dataSeries, invocation.getTask());
                         taskController.updateInvocationStatus(
                                 invocation,
