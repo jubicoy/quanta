@@ -6,7 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.2] - 2022-19-05
+## [0.7.3] - 2022-06-16
+### Fixed
+- Set sync status when the sync is started instead of when the sync is scheduled.
+
+## [0.7.2] - 2022-05-19
 ### Fixed
 - Group By fixes
 
