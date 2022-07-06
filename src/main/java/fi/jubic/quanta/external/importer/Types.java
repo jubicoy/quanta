@@ -153,7 +153,7 @@ public class Types {
     ) {
         switch (className.getName()) {
             case "java.lang.String":
-                return Optional.of(String.format("\"%s\"", value));
+                return Optional.of(String.format("\"%s\"", value.replace("\"", "\"\"")));
             case "java.lang.Boolean":
                 return Optional.of(Boolean.parseBoolean(value) ? "1" : "0");
             case "java.lang.Long":
