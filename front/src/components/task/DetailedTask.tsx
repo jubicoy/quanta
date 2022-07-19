@@ -342,7 +342,7 @@ export default ({
         <InvocationTable
           invocations={
             invocations?.filter(({ invocationNumber }) => invocationNumber !== 'latest')
-              .sort((a, b) => (a.invocationNumber as number) - (b.invocationNumber as number)) ?? []
+              .sort((a, b) => (b.invocationNumber as number) - (a.invocationNumber as number)) ?? []
           }
           status={invocationStatus}
           setStatus={setInvocationStatus}
