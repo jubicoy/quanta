@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.4] - 2022-08-01
+### Changed
+- List task invocations sorted from latest to oldest.
+
 ## [0.7.3] - 2022-06-16
 ### Fixed
 - Set sync status when the sync is started instead of when the sync is scheduled.
