@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import hljs from 'highlight.js';
 import { useDataConnection, useRouter, useDrivers } from '../../hooks';
+import { DisplayData } from '../datapreview';
 
 import {
   Table,
@@ -30,7 +31,8 @@ import {
   Box,
   Input,
   Select,
-  MenuItem
+  MenuItem,
+  Tab
 } from '@material-ui/core';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -49,6 +51,8 @@ import {
 } from '../../types';
 import { useAlerts } from '../../alert';
 import { commonStyles } from '../common';
+import { SendRounded } from '@material-ui/icons';
+import { keys } from '@material-ui/core/styles/createBreakpoints';
 
 const useStyles = makeStyles((theme) =>
   createStyles({
@@ -169,6 +173,7 @@ export default ({ match: { params } }: Props) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showColumns, setShowColumns] = useState<number>(-1);
+  const [showTable, setShowTable] = useState<number>(-1);
 
   const [isEditMode, setEditMode] = useState<boolean>(false);
 
@@ -506,7 +511,6 @@ export default ({ match: { params } }: Props) => {
           </Fab>}
         </Link>
         <T variant='h4'>Data series details</T>
-
         {dataSeries.length <= 0 ? (
           <i>No Data Series available</i>
         ) : (
@@ -609,7 +613,6 @@ export default ({ match: { params } }: Props) => {
                                 </TableCell>
                               </TableRow>
                             </TableHead>
-
                             <TableBody>
                               {series.columns.map((column, i) => (
                                 <TableRow key={i}>
@@ -629,9 +632,41 @@ export default ({ match: { params } }: Props) => {
                       </Collapse>
                     </TableCell>
                   </TableRow>
+                  <TableRow>
+                    <TableCell
+                      component='th'
+                      scope='row'
+                      variant='head'
+                      colSpan={4}
+                    >
+                      Data Preview
+                      <IconButton
+                        edge='start'
+                        size='small'
+                        onClick={() => showTable !== i ? setShowTable(i) : setShowTable(-1)}
+                      >
+                        {showTable === i ? (
+                          <KeyboardArrowUpIcon />
+                        ) : (
+                          <KeyboardArrowDownIcon />
+                        )}
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                  <Table>
+                  <TableRow>
+                    <TableCell className={classes.tableCell} colSpan={8}>
+                        <Collapse in={showTable === i}>
+                          <Box margin={3}>
+                              <DisplayData series={series} key={series.id }/>
+                          </Box>                          
+                      </Collapse>
+                    </TableCell>
+                  </TableRow>
+                  </Table>
                 </>
               </Paper>
-            </div>
+            </div>  
           ))
         )}
       </div>
