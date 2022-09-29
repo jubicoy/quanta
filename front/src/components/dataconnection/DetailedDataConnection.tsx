@@ -654,19 +654,19 @@ export default ({ match: { params } }: Props) => {
                     </TableCell>
                   </TableRow>
                   <Table>
-                  <TableRow>
-                    <TableCell className={classes.tableCell} colSpan={8}>
+                    <TableRow>
+                      <TableCell className={classes.tableCell} colSpan={8}>
                         <Collapse in={showTable === i}>
                           <Box margin={3}>
-                              <DisplayData series={series} key={series.id }/>
-                          </Box>                          
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
+                            <DisplayData series={series} key={series.id} />
+                          </Box>
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
                   </Table>
                 </>
               </Paper>
-            </div>  
+            </div>
           ))
         )}
       </div>

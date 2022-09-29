@@ -227,16 +227,19 @@ export default () => {
                 <TableCell>
                   {showToken[i] ? item.token : null}
                   {showToken[i]
-                    ? <Icon
-                      style={{ margin: '0 0 0 16px' }}
-                      onClick={() => handleShowToken(i)}>
-                      visibility_off
-                    </Icon>
-                    : <Icon
-                      style={{ margin: '0 0 0 16px' }}
-                      onClick={() => handleShowToken(i)}>
-                      visibility
-                    </Icon>}
+                    ? (
+                      <Icon
+                        style={{ margin: '0 0 0 16px' }}
+                        onClick={() => handleShowToken(i)}>
+                        visibility_off
+                      </Icon>
+                    ) : (
+                      <Icon
+                        style={{ margin: '0 0 0 16px' }}
+                        onClick={() => handleShowToken(i)}>
+                        visibility
+                      </Icon>
+                    )}
                 </TableCell>
                 <TableCell>{item.description}</TableCell>
                 <TableCell>{item.createdBy.name}</TableCell>

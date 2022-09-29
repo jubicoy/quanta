@@ -193,13 +193,15 @@ export const JsonIngestPage = ({
         {
           dataSeries.length <= 0
             ? <i>No Data Series available</i>
-            : <JsonIngestDataSeriesConfigurator
-              readOnly
-              dataConnection={dataConnection}
-              dataSeries={dataSeries[0]}
-              setDataSeries={() => undefined}
-              sampleJson={sampleJson}
-            />
+            : (
+              <JsonIngestDataSeriesConfigurator
+                readOnly
+                dataConnection={dataConnection}
+                dataSeries={dataSeries[0]}
+                setDataSeries={() => undefined}
+                sampleJson={sampleJson}
+              />
+            )
         }
       </Paper>
     </>

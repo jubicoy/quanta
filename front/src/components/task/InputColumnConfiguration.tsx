@@ -50,6 +50,7 @@ export const InputColumnConfiguration = ({
   creatingTask = false,
   workerDef,
   seriesKey,
+  setTaskColumnSelectors,
   task,
   setTask,
   dataConnectionParam,

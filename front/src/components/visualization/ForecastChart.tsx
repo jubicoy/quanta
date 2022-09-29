@@ -45,6 +45,7 @@ export const ForecastChart = ({
   timeSeriesQueryResult,
   startDate,
   endDate,
+  setSuccess,
   setError,
   trend
 }: ChartProps) => {

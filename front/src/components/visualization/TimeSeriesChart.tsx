@@ -38,6 +38,7 @@ export const TimeSeriesChart = ({
   timeSeriesQueryResult,
   startDate,
   endDate,
+  setSuccess,
   setError
 }: ChartProps) => {
   const [chartLines, setChartLines] = useState<React.ReactNode[]>([]);
@@ -211,8 +212,7 @@ export const TimeSeriesChart = ({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeSeriesQueryResult]);
 
-  const renderLegend = (props: LegendProps) => {
-    const { payload } = props;
+  const renderLegend = ({ payload }: LegendProps) => {
     if (legendRef.current) {
       setLegendHeight(legendRef.current.offsetHeight);
     }
@@ -251,8 +251,7 @@ export const TimeSeriesChart = ({
     );
   };
 
-  const renderTooltip = (props: TooltipProps) => {
-    const { active, payload, label } = props;
+  const renderTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && label) {
       const classes = tooltipClasses;
       const labelDate = moment.unix(parseInt(label.toString())).format('MMMM Do, YYYY');

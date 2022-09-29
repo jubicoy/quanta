@@ -4,19 +4,6 @@ import React, {
 } from 'react';
 
 import {
-  queryTimeSeries
-} from '../../client';
-
-import {
-  DataSeries,
-  QueryResult,
-  TimeSeriesQuery,
-  QUERY_SELECTOR_REGEX,
-  PaginationQuery
-} from '../../types';
-
-import {
-  Theme,
   createStyles,
   makeStyles,
   useTheme,
@@ -29,28 +16,33 @@ import {
   TableHead,
   TablePagination,
   Paper,
-  Fab
+  Fab,
+  IconButton
 } from '@material-ui/core';
-
-import IconButton from '@material-ui/core/IconButton';
 import FirstPageIcon from '@material-ui/icons/FirstPage';
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft';
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import RefreshIcon from '@material-ui/icons/Refresh';
-import { commonStyles } from '../common';
 
-const useStyles1 = makeStyles((theme: Theme) =>
+import { commonStyles } from '../common';
+import {
+  queryTimeSeries
+} from '../../client';
+import {
+  DataSeries,
+  QueryResult,
+  TimeSeriesQuery,
+  QUERY_SELECTOR_REGEX,
+  PaginationQuery
+} from '../../types';
+
+const useStyles = makeStyles(theme =>
   createStyles({
     root: {
       flexShrink: 0,
       marginLeft: theme.spacing(2.5)
-    }
-  })
-);
-
-const useStyles = makeStyles(theme =>
-  createStyles({
+    },
     paper: {
       margin: theme.spacing(2, 0)
     },
@@ -68,7 +60,7 @@ interface TablePaginationActionsProps {
 }
 
 function TablePaginationActions (props: TablePaginationActionsProps) {
-  const classes = useStyles1();
+  const classes = useStyles();
   const theme = useTheme();
   const { count, page, rowsPerPage, onPageChange } = props;
 
@@ -124,7 +116,6 @@ interface Props {
 
 export default ({ series }: Props) => {
   const [data, setData] = useState<QueryResult[]>([]);
-  const [refreshData, setRefreshData] = useState<boolean>(false);
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const classes = useStyles();
@@ -141,20 +132,17 @@ export default ({ series }: Props) => {
     setPage(0);
   };
 
-  useEffect(() => {
-    const getData = () => {
-      const selectors = series.columns.map(col => `series:${series.name}.${col.name}`);
-      const query: TimeSeriesQuery & PaginationQuery = {
-        selectors: selectors,
-        limit: rowsPerPage,
-        offset: page * rowsPerPage
-      };
-      queryTimeSeries(query).then((res) => {
-        setData(res);
-      });
+  const refreshData = () => {
+    const selectors = series.columns.map(col => `series:${series.name}.${col.name}`);
+    const query: TimeSeriesQuery & PaginationQuery = {
+      selectors: selectors,
+      limit: rowsPerPage,
+      offset: page * rowsPerPage
     };
-    getData();
-  }, [refreshData]);
+    queryTimeSeries(query).then((res) => {
+      setData(res);
+    });
+  };
 
   return (
     <>
@@ -162,7 +150,7 @@ export default ({ series }: Props) => {
         <Fab
           variant='extended'
           color='primary'
-          onClick={() => setRefreshData(!refreshData)}
+          onClick={refreshData}
         >
           <RefreshIcon />
           Refresh
@@ -181,32 +169,16 @@ export default ({ series }: Props) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(rowsPerPage > 0
-                    ? result.measurements.sort((a, b) => {
-                      if (new Date(a.time) < new Date(b.time)) {
-                        return 1;
-                      }
-                      else if (new Date(a.time) > new Date(b.time)) {
-                        return -1;
-                      }
-                      return 0;
-                    })
-                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    : result.measurements
-                  ).map(
-                    (item, index) =>
-                      (
+                  {result.measurements.sort((a, b) => Date.parse(b.time) - Date.parse(a.time))
+                    .map(
+                      (item, index) => (
                         <TableRow key={index}>
                           {
                             series.columns.map(col => {
                               const measurement = Object.entries(item.values).filter(
                                 val => {
                                   const matches = val[0].match(QUERY_SELECTOR_REGEX);
-                                  if (!matches) {
-                                    return null;
-                                  }
-                                  const column = matches[5];
-                                  return column === col.name;
+                                  return matches && matches[5] === col.name;
                                 });
                               return <TableCell>{measurement[0][1]}</TableCell>;
                             })
