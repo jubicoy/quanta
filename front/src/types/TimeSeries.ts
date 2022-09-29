@@ -10,6 +10,11 @@ export interface TimeSeriesQuery extends Record<string, any> {
   interval?: string;
 }
 
+export interface PaginationQuery extends Record<string, any> {
+  limit?: number;
+  offset?: number;
+}
+
 export interface Measurement {
   time: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

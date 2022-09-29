@@ -1,6 +1,6 @@
 import React, {
   useEffect,
-  useState,
+  useState
 } from 'react';
 
 import {
@@ -12,7 +12,7 @@ import {
   QueryResult,
   TimeSeriesQuery,
   QUERY_SELECTOR_REGEX,
-  columnSelectorToString
+  PaginationQuery
 } from '../../types';
 
 import {
@@ -29,7 +29,6 @@ import {
   TableHead,
   TablePagination,
   Paper,
-  Typography as T,
   Fab
 } from '@material-ui/core';
 
@@ -40,8 +39,6 @@ import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight';
 import LastPageIcon from '@material-ui/icons/LastPage';
 import RefreshIcon from '@material-ui/icons/Refresh';
 import { commonStyles } from '../common';
-
-
 
 const useStyles1 = makeStyles((theme: Theme) =>
   createStyles({
@@ -127,12 +124,11 @@ interface Props {
 
 export default ({ series }: Props) => {
   const [data, setData] = useState<QueryResult[]>([]);
-  const [refreshData, setRefreshData] = useState(false)
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [refreshData, setRefreshData] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const classes = useStyles();
-  const common = commonStyles(); 
-
+  const common = commonStyles();
 
   const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
     setPage(newPage);
@@ -145,33 +141,32 @@ export default ({ series }: Props) => {
     setPage(0);
   };
 
-  
-
   useEffect(() => {
     const getData = () => {
       const selectors = series.columns.map(col => `series:${series.name}.${col.name}`);
-      const query: TimeSeriesQuery = {
-        selectors: selectors
+      const query: TimeSeriesQuery & PaginationQuery = {
+        selectors: selectors,
+        limit: rowsPerPage,
+        offset: page * rowsPerPage
       };
       queryTimeSeries(query).then((res) => {
         setData(res);
       });
-    };   
+    };
     getData();
   }, [refreshData]);
 
-  
   return (
     <>
-      <div className={common.header} style={{display: 'flex', justifyContent:'flex-end'}}>
+      <div className={common.header} style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <Fab
-            variant='extended'
-            color='primary'
-            onClick={() => setRefreshData(!refreshData)}
-          >
-            <RefreshIcon />
-            Refresh
-          </Fab>
+          variant='extended'
+          color='primary'
+          onClick={() => setRefreshData(!refreshData)}
+        >
+          <RefreshIcon />
+          Refresh
+        </Fab>
       </div>
       <Paper className={classes.paper}>
         {
@@ -187,39 +182,38 @@ export default ({ series }: Props) => {
                 </TableHead>
                 <TableBody>
                   {(rowsPerPage > 0
-                    ? result.measurements.sort((a, b) => 
-                    {
+                    ? result.measurements.sort((a, b) => {
                       if (new Date(a.time) < new Date(b.time)) {
                         return 1;
-                      } else if (new Date(a.time) > new Date(b.time)) {
+                      }
+                      else if (new Date(a.time) > new Date(b.time)) {
                         return -1;
                       }
                       return 0;
-                    }
-                    ).slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    : result.measurements 
+                    })
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    : result.measurements
                   ).map(
                     (item, index) =>
                       (
                         <TableRow key={index}>
                           {
-                            series.columns.map(col => 
-                              {
+                            series.columns.map(col => {
                               const measurement = Object.entries(item.values).filter(
                                 val => {
-                                  const matches = val[0].match(QUERY_SELECTOR_REGEX)
+                                  const matches = val[0].match(QUERY_SELECTOR_REGEX);
                                   if (!matches) {
                                     return null;
                                   }
                                   const column = matches[5];
                                   return column === col.name;
-                                })
-                                return <TableCell>{measurement[0][1]}</TableCell>;
+                                });
+                              return <TableCell>{measurement[0][1]}</TableCell>;
                             })
                           }
                         </TableRow>
-                        ))}
-                      </TableBody>
+                      ))}
+                </TableBody>
                 <TableFooter>
                   <TableRow>
                     <TablePagination
@@ -230,7 +224,7 @@ export default ({ series }: Props) => {
                       page={page}
                       SelectProps={{
                         inputProps: { 'aria-label': 'rows per page' },
-                        native: true,
+                        native: true
                       }}
                       onPageChange={handleChangePage}
                       onRowsPerPageChange={handleChangeRowsPerPage}
