@@ -27,17 +27,6 @@ jobs:
             ${{ runner.os  }}-build-java-${{ env.cache-name }}-${{ matrix.java }}
             ${{ runner.os  }}-build-java-${{ env.cache-name }}
             ${{ runner.os  }}-build-java-
-      - name: Cache .npm
-        uses: actions/cache@v2
-        env:
-          cache-name: cache-npm
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-node-${{ env.cache-name}}-${{ matrix.java }}
-          restore-keys: |
-            ${{ runner.os  }}-build-node-${{ env.cache-name }}-${{ matrix.java }}
-            ${{ runner.os  }}-build-node-${{ env.cache-name }}
-            ${{ runner.os  }}-build-node-
       - name: Set up JDK
         uses: actions/setup-java@v1
         with:
@@ -46,5 +35,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: front/package-lock.json
       - name: Build with Maven
         run: mvn -B verify
