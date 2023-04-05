@@ -26,11 +26,11 @@ import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import fi.jubic.quanta.util.DateUtil;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

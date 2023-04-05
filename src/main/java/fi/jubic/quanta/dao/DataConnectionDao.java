@@ -10,6 +10,7 @@ import fi.jubic.quanta.models.DataConnectionQuery;
 import fi.jubic.quanta.models.DataConnectionType;
 import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.configuration.JsonIngestDataConnectionConfiguration;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.Condition;
 import org.jooq.Record;
 import org.jooq.exception.DataAccessException;
@@ -17,7 +18,6 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;

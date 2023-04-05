@@ -28,10 +28,10 @@ import fi.jubic.quanta.models.TimeSeriesResultOutputSelector;
 import fi.jubic.quanta.models.TimeSeriesSelector;
 import fi.jubic.quanta.models.WorkerDefColumn;
 import fi.jubic.quanta.models.WorkerDefColumnType;
+import jakarta.ws.rs.NotFoundException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;

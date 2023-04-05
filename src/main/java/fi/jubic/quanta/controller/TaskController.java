@@ -36,13 +36,13 @@ import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerQuery;
 import fi.jubic.quanta.models.WorkerStatus;
 import fi.jubic.quanta.util.DateUtil;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import org.jooq.Configuration;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;

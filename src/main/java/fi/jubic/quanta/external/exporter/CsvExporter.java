@@ -5,12 +5,12 @@ import fi.jubic.quanta.exception.ApplicationException;
 import fi.jubic.quanta.external.Exporter;
 import fi.jubic.quanta.models.QueryResult;
 import fi.jubic.quanta.models.TimeSeriesModifier;
+import jakarta.ws.rs.NotFoundException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

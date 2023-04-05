@@ -15,13 +15,13 @@ import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerDefColumn;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;

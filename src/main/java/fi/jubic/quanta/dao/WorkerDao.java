@@ -7,12 +7,12 @@ import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerQuery;
 import fi.jubic.quanta.models.WorkerStatus;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.Condition;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;

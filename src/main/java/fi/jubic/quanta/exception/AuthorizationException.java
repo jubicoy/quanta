@@ -1,6 +1,6 @@
 package fi.jubic.quanta.exception;
 
-import javax.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.NotAuthorizedException;
 
 public class AuthorizationException extends NotAuthorizedException {
     public AuthorizationException() {

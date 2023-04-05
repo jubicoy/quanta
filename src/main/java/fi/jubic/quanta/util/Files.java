@@ -1,10 +1,10 @@
 package fi.jubic.quanta.util;
 
+import jakarta.servlet.http.Part;
+import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import javax.servlet.http.Part;
-import javax.ws.rs.core.HttpHeaders;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;

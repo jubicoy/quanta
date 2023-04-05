@@ -12,6 +12,7 @@ import fi.jubic.quanta.models.Worker;
 import fi.jubic.quanta.models.WorkerDef;
 import fi.jubic.quanta.models.WorkerDefColumn;
 import fi.jubic.quanta.util.Sql;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.Record;
@@ -19,7 +20,6 @@ import org.jooq.impl.DSL;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

@@ -22,6 +22,7 @@ import fi.jubic.quanta.models.TimeSeriesResultOutputSelector;
 import fi.jubic.quanta.models.TimeSeriesSelector;
 import fi.jubic.quanta.models.Type;
 import fi.jubic.quanta.util.Sql;
+import jakarta.ws.rs.NotFoundException;
 import org.jooq.Condition;
 import org.jooq.Configuration;
 import org.jooq.Field;
@@ -32,7 +33,6 @@ import org.postgresql.core.BaseConnection;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
