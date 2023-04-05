@@ -11,10 +11,10 @@ import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TimeSeriesQuery;
+import jakarta.ws.rs.NotFoundException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 import java.util.Objects;
 

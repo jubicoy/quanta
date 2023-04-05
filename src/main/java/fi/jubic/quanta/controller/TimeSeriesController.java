@@ -28,10 +28,10 @@ import fi.jubic.quanta.models.TimeSeriesQuerySelector;
 import fi.jubic.quanta.models.TimeSeriesResultOutputFilter;
 import fi.jubic.quanta.models.TimeSeriesResultOutputSelector;
 import fi.jubic.quanta.models.TimeSeriesSelector;
+import jakarta.ws.rs.NotFoundException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;

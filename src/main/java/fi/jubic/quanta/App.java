@@ -20,9 +20,9 @@ import fi.jubic.snoozy.auth.implementation.HeaderParser;
 import fi.jubic.snoozy.filters.UrlRewrite;
 import fi.jubic.snoozy.staticfiles.StaticFiles;
 import fi.jubic.snoozy.undertow.UndertowServer;
+import jakarta.ws.rs.ApplicationPath;
 
 import javax.inject.Inject;
-import javax.ws.rs.ApplicationPath;
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;

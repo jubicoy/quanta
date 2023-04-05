@@ -1,7 +1,8 @@
 package fi.jubic.quanta.models;
 
+import jakarta.ws.rs.QueryParam;
+
 import javax.annotation.Nullable;
-import javax.ws.rs.QueryParam;
 import java.time.Instant;
 import java.util.Optional;
 

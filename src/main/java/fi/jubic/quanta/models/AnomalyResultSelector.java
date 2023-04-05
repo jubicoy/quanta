@@ -1,8 +1,8 @@
 package fi.jubic.quanta.models;
 
 import fi.jubic.easyvalue.EasyValue;
+import jakarta.ws.rs.NotFoundException;
 
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 
 @EasyValue

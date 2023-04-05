@@ -19,12 +19,12 @@ import fi.jubic.quanta.models.metadata.JdbcDataConnectionMetadata;
 import fi.jubic.quanta.models.typemetadata.JdbcTypeMetadata;
 import fi.jubic.quanta.models.typemetadata.TypeMetadata;
 import fi.jubic.quanta.util.DateUtil;
+import jakarta.ws.rs.NotAuthorizedException;
 import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotAuthorizedException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

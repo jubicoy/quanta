@@ -1,10 +1,10 @@
 package fi.jubic.quanta.exception;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.http.HttpStatus;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
 
 @Provider
 public class InputExceptionMapper implements ExceptionMapper<InputException> {

@@ -7,10 +7,10 @@ import fi.jubic.quanta.models.ExternalClient;
 import fi.jubic.quanta.models.ExternalClientQuery;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.User;
+import jakarta.ws.rs.NotFoundException;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.ws.rs.NotFoundException;
 import java.util.List;
 
 @Singleton
