@@ -2,8 +2,11 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Icon,
   Fab,
+  TextField,
   Typography as T
 } from '@material-ui/core';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 import clsx from 'clsx';
 
@@ -16,7 +19,8 @@ import {
   useNameCheck,
   useMultipleNamesCheck,
   useCronValidation,
-  useMultipleParametersValidation
+  useMultipleParametersValidation,
+  useTags
 } from '../../hooks';
 import { useAlerts } from '../../alert';
 import {
@@ -29,6 +33,7 @@ import {
 import { TaskConfiguration } from './TaskConfiguration';
 import { WorkerDefConfiguration } from './WorkerDefConfiguration';
 import { ColumnsConfiguration } from './ColumnsConfiguration';
+import { updateTask } from '../../client';
 
 const initialTask = {
   id: -1,
@@ -46,7 +51,8 @@ const initialTask = {
   cronTrigger: null,
   taskTrigger: null,
   taskType: TaskType.process,
-  parameters: undefined
+  parameters: undefined,
+  tags: []
 };
 
 interface Props {
@@ -78,6 +84,7 @@ export default ({
 
   const { create, tasks } = useTasks();
   const { history } = useRouter();
+  const { tags } = useTags();
 
   const alertContext = useAlerts('CREATE-TASK');
   const setError = useCallback(
@@ -182,6 +189,17 @@ export default ({
     }
   };
 
+  const updateTags = (res: Task) => {
+    if (task.tags.length > 0) {
+      updateTask({ ...task, id: res.id })
+        .catch((e: Error) => {
+          setError('Fail to add tags', e.toString());
+        });
+    }
+
+    history.push(`/task/${res.id}`);
+  };
+
   const onCreate = () => {
     if (validateTask()) {
       if (task.taskType === TaskType.sync) {
@@ -190,11 +208,11 @@ export default ({
           ...task,
           columnSelectors: columnsForSyncTask
         })
-          .then(res => history.push(`/task/${res.id}`));
+          .then(res => updateTags(res));
       }
       else {
         create(task)
-          .then(res => history.push(`/task/${res.id}`));
+          .then(res => updateTags(res));
       }
     }
   };
@@ -267,6 +285,27 @@ export default ({
           ...task,
           syncIntervalOffset
         })}
+      />
+      <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '20px', marginBottom: '20px' }}
+        options={tags || []}
+        freeSolo
+        onChange={(event, value) => setTask({ ...task, tags: value })}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+            placeholder='Tag'
+          />
+        )}
       />
       <WorkerDefConfiguration
         editable

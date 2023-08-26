@@ -40,6 +40,7 @@ export interface Task {
   deletedAt?: string;
   parameters?: Parameter[];
   syncIntervalOffset?: number;
+  tags: string[];
 }
 
 export interface TaskQuery {

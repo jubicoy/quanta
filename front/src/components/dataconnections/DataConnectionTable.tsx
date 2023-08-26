@@ -40,7 +40,7 @@ export default ({
     history.push(`/data-connections/${item.id}/${encodeURI(item.name)}`);
   };
 
-  if (connections === null) {
+  if (!connections) {
     return (
       <>
         <T>Loading data connections...</T>

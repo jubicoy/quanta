@@ -7,15 +7,20 @@ import {
   MenuItem,
   Paper,
   Select,
+  TextField,
   Typography as T
 } from '@material-ui/core';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+
 import clsx from 'clsx';
 
 import {
   useTasks,
   useDataConnections,
   useRouter,
-  useWorkerDefs
+  useWorkerDefs,
+  useTags
 } from '../../hooks';
 import { commonStyles } from '../common';
 import TaskTable from './TaskTable';
@@ -25,11 +30,13 @@ export default () => {
   const dataConnectionQuery = useMemo(() => ({ notDeleted: true }), []);
   const { dataConnections } = useDataConnections(dataConnectionQuery);
   const { history } = useRouter();
+  const { tags } = useTags();
   const workerDefQuery = useMemo(() => ({ notDeleted: true }), []);
   const { workerDefs } = useWorkerDefs(workerDefQuery);
   const [connectionId, setConnectionId] = useState<number|undefined>(undefined);
   const [workerDefId, setWorkerDefId] = useState<number|undefined>(undefined);
   const [filter, setFilter] = useState<string>('Active');
+  const [taskTags, setTaskTags] = useState<string[]>();
 
   const taskQuery = useMemo(
     () => ({
@@ -43,6 +50,15 @@ export default () => {
     tasks,
     refresh
   } = useTasks(taskQuery);
+
+  const filterTasksByTags = useMemo(() => {
+    if (tasks) {
+      if (taskTags && taskTags.length > 0) {
+        return tasks.filter(({ tags }) => taskTags.every(t => tags.includes(t)));
+      }
+      return tasks;
+    }
+  }, [tasks, taskTags]);
 
   const connectionOptions = [
     <MenuItem key={-1} value={-1}>All</MenuItem>,
@@ -74,6 +90,24 @@ export default () => {
         <MenuItem value='All'>All Tasks</MenuItem>
       </Select>
       <T variant='h4'>Tasks</T>
+      {tags && <Autocomplete
+        style={{ padding: '10px' }}
+        multiple
+        size='small'
+        options={tags}
+        getOptionLabel={(option) => option}
+        filterSelectedOptions
+        onChange={(event, value) => setTaskTags(value)}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Tags'
+            placeholder='Tag'
+          />
+        )}
+      />
+      }
       <Paper className={clsx(common.padding, common.topMargin, common.bottomMargin)}>
         <Grid container spacing={2}>
           <Grid item xs={6}>
@@ -123,7 +157,7 @@ export default () => {
         </Fab>
       </Paper>
       <TaskTable
-        tasks={tasks}
+        tasks={filterTasksByTags}
       />
       <Fab
         className={clsx(common.topMargin, common.floatRight)}

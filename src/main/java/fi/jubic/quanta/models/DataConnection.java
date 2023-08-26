@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
+import fi.jubic.easymapper.jooq.JooqFieldAccessor;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.DataConnectionRecord;
 import fi.jubic.quanta.models.configuration.ImportWorkerDataConnectionConfiguration;
@@ -16,6 +17,7 @@ import javax.annotation.Nullable;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static fi.jubic.quanta.db.tables.DataConnection.DATA_CONNECTION;
 
@@ -40,6 +42,9 @@ public abstract class DataConnection {
 
     @Nullable
     public abstract Instant getDeletedAt();
+
+    @Nullable
+    public abstract Set<String> getTags();
 
     public abstract Builder toBuilder();
 
@@ -76,7 +81,8 @@ public abstract class DataConnection {
                     .setName("")
                     .setDescription("")
                     .setDeletedAt(null)
-                    .setSeries(Collections.emptyList());
+                    .setSeries(Collections.emptyList())
+                    .setTags(Collections.emptySet());
         }
     }
 
@@ -100,6 +106,7 @@ public abstract class DataConnection {
                     DateUtil::toLocalDateTime,
                     DateUtil::toInstant
             )
+            .setTagsAccessor(new JooqFieldAccessor.NoOpAccessor<>())
             .build();
 
     private static final ObjectMapper configMapper = new ObjectMapper();

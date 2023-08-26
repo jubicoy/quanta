@@ -9,6 +9,7 @@ import {
   TableCell,
   Typography as T
 } from '@material-ui/core';
+import Chip from '@material-ui/core/Chip';
 
 import {
   JdbcDataSeriesConfiguration,
@@ -89,6 +90,9 @@ export const JdbcPreview = () => {
     <>
       <div className={classes.header}>
         <T component='span' variant='h5'>DataConnection configuration</T>
+        {dataSeries?.dataConnection?.tags.map((option: string, index: number) =>
+          <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
+        )}
       </div>
       <Paper>
         <Table>

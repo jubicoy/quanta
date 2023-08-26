@@ -5,6 +5,7 @@ import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.ImportWorkerDataSampleDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesResultDao;
+import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.dao.WorkerDao;
@@ -29,6 +30,7 @@ import fi.jubic.quanta.models.Pagination;
 import fi.jubic.quanta.models.SeriesResult;
 import fi.jubic.quanta.models.SeriesResultQuery;
 import fi.jubic.quanta.models.SeriesTable;
+import fi.jubic.quanta.models.Tag;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.TaskType;
@@ -65,6 +67,7 @@ public class TaskController {
     private final InvocationDao invocationDao;
     private final SeriesResultDao seriesResultDao;
     private final TaskDao taskDao;
+    private final TagDao tagDao;
     private final TimeSeriesDao timeSeriesDao;
     private final WorkerDao workerDao;
     private final ImportWorkerDataSampleDao importWorkerDataSampleDao;
@@ -83,6 +86,7 @@ public class TaskController {
             InvocationDao invocationDao,
             SeriesResultDao seriesResultDao,
             TaskDao taskDao,
+            TagDao tagDao,
             TimeSeriesDao timeSeriesDao,
             WorkerDao workerDao,
             ImportWorkerDataSampleDao importWorkerDataSampleDao,
@@ -98,6 +102,7 @@ public class TaskController {
         this.invocationDao = invocationDao;
         this.seriesResultDao = seriesResultDao;
         this.taskDao = taskDao;
+        this.tagDao = tagDao;
         this.timeSeriesDao = timeSeriesDao;
         this.workerDao = workerDao;
         this.importWorkerDataSampleDao = importWorkerDataSampleDao;
@@ -107,25 +112,33 @@ public class TaskController {
     }
 
     public List<Task> search(TaskQuery query) {
-        return taskDao.search(query);
+        List<Task> tasks = taskDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+
+        return tagDao.enrichTaskTags(tasks);
     }
 
     public Optional<Task> getDetails(Long taskId) {
-        return taskDao.getDetails(taskId);
+        return taskDao.getDetails(taskId)
+                .map(tagDao::enrichTaskTags);
     }
 
 
     public Task create(Task task) {
-        return taskDao.create(
+
+        Task newTask = taskDao.create(
                 taskDomain.create(task)
         );
+
+        return newTask;
     }
 
     public Task update(Task task) {
         taskDao.getDetails(task.getId())
                 .orElseThrow(() -> new ApplicationException("Task does not exist"));
 
-        return taskDao.update(
+        Task updatedTask = taskDao.update(
                 task.getId(),
                 optionalTask -> taskDomain.update(
                         optionalTask.orElseThrow(
@@ -134,6 +147,14 @@ public class TaskController {
                         task
                 )
         );
+
+        tagDao.updateTaskTags(
+                task.getId(),
+                Tag.validate(Objects.requireNonNull(task.getTags()))
+        );
+
+        return updatedTask.toBuilder().setTags(task.getTags()).build();
+
     }
 
     public List<Invocation> searchInvocations(InvocationQuery query) {

@@ -5,6 +5,7 @@ import fi.jubic.quanta.dao.DataConnectionDao;
 import fi.jubic.quanta.dao.DataSeriesDao;
 import fi.jubic.quanta.dao.InvocationDao;
 import fi.jubic.quanta.dao.SeriesTableDao;
+import fi.jubic.quanta.dao.TagDao;
 import fi.jubic.quanta.dao.TaskDao;
 import fi.jubic.quanta.dao.TimeSeriesDao;
 import fi.jubic.quanta.domain.DataDomain;
@@ -21,6 +22,7 @@ import fi.jubic.quanta.models.DataSeries;
 import fi.jubic.quanta.models.DataSeriesQuery;
 import fi.jubic.quanta.models.Invocation;
 import fi.jubic.quanta.models.SeriesTable;
+import fi.jubic.quanta.models.Tag;
 import fi.jubic.quanta.models.Task;
 import fi.jubic.quanta.models.TaskQuery;
 import fi.jubic.quanta.models.metadata.DataConnectionMetadata;
@@ -48,6 +50,7 @@ public class DataController {
     private final InvocationDao invocationDao;
     private final SeriesTableDao seriesTableDao;
     private final TaskDao taskDao;
+    private final TagDao tagDao;
     private final TimeSeriesDao timeSeriesDao;
 
     private final Importer importer;
@@ -66,6 +69,7 @@ public class DataController {
             InvocationDao invocationDao,
             SeriesTableDao seriesTableDao,
             TaskDao taskDao,
+            TagDao tagDao,
             TimeSeriesDao timeSeriesDao,
             Importer importer,
             Ingester ingester,
@@ -78,6 +82,7 @@ public class DataController {
         this.invocationDao = invocationDao;
         this.seriesTableDao = seriesTableDao;
         this.taskDao = taskDao;
+        this.tagDao = tagDao;
         this.timeSeriesDao = timeSeriesDao;
         this.importer = importer;
         this.ingester = ingester;
@@ -88,11 +93,16 @@ public class DataController {
     }
 
     public List<DataConnection> searchConnections(DataConnectionQuery query) {
-        return new ArrayList<>(dataConnectionDao.search(query));
+        List<DataConnection> dataConnections = dataConnectionDao.search(query)
+                .stream()
+                .collect(Collectors.toList());
+
+        return new ArrayList<>(tagDao.enrichDataConnectionTags(dataConnections));
     }
 
     public Optional<DataConnection> getConnectionDetails(Long connectionId) {
-        return dataConnectionDao.getDetails(connectionId);
+        return dataConnectionDao.getDetails(connectionId)
+                .map(tagDao::enrichDataConnectionTags);
     }
 
     public List<DataSeries> searchDataSeries(DataSeriesQuery query) {
@@ -163,7 +173,15 @@ public class DataController {
                         dataConnection
                 )
         );
-        return updatedDataConnection;
+
+        tagDao.updateDataConnectionTags(
+                dataConnection.getId(),
+                Tag.validate(Objects.requireNonNull(dataConnection.getTags()))
+        );
+
+        return updatedDataConnection.toBuilder()
+                .setTags(dataConnection.getTags())
+                .build();
     }
 
     public void sync(DataSeries dataSeries, Task task) {

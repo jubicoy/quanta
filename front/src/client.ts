@@ -22,7 +22,8 @@ import {
   ExternalClient,
   DataConnectionQuery,
   WorkerDefQuery,
-  DataSeriesQuery
+  DataSeriesQuery,
+  Tag
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -678,3 +679,18 @@ export const revokeSession = (): Promise<Response> => fetch(
   }
 )
   .then(checkResponse);
+
+// tag
+export const getTags = (): Promise<Tag[]> => window
+  .fetch(
+    `/api/tags`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': localStorage.getItem('token') || ''
+      }
+    }
+  )
+  .then(checkResponse)
+  .then((res) => res.json());

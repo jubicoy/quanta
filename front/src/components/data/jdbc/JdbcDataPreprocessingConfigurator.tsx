@@ -14,12 +14,17 @@ import {
 } from '@material-ui/core';
 
 import { _DataConnectionConfiguratorContext } from '../../context';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 import {
   sample,
-  getDataConnectionMetadata
+  getDataConnectionMetadata,
+  updateDataConnection
 } from '../../../client';
-import { useDataSeriesNameCheck } from '../../../hooks';
+import { useDataSeriesNameCheck,
+  useTags
+} from '../../../hooks';
 import StepperButtons from '../StepperButtons';
 import { dataStyles } from '../DataStyles';
 import {
@@ -27,6 +32,7 @@ import {
   SampleResponse,
   JdbcDataSeriesConfiguration
 } from '../../../types';
+
 import { SampleTable } from '..';
 
 export const JdbcDataPreprocessingConfigurator = () => {
@@ -47,6 +53,7 @@ export const JdbcDataPreprocessingConfigurator = () => {
   // States
   const [tables, setTables] = useState<string[]>([]);
   const [complete, setComplete] = useState<boolean>(false);
+  const { tags } = useTags();
 
   useEffect(() => {
     // Get tables at start
@@ -110,6 +117,24 @@ export const JdbcDataPreprocessingConfigurator = () => {
         .catch((e: Error) => {
           setError('Sample query failed to execute', e);
         });
+    }
+  };
+
+  const nextStep = () => {
+    if (dataSeries.dataConnection && dataSeries.dataConnection.tags.length > 0) {
+      updateDataConnection(dataSeries.dataConnection)
+        .catch((e: Error) => {
+          setError('Fail to add tags', e);
+        });
+    }
+
+    handleForward();
+  };
+
+  const addTags = (value: string[]) => {
+    if (dataSeries && dataSeries.dataConnection) {
+      dataSeries.dataConnection.tags = value;
+      setDataSeries(dataSeries);
     }
   };
 
@@ -223,8 +248,29 @@ export const JdbcDataPreprocessingConfigurator = () => {
           </Grid>
         </CardContent>
       </Card>
+      <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '15px' }}
+        options={tags || []}
+        freeSolo
+        onChange={(event, value) => addTags(value)}
+        renderTags={(value, getTagProps) =>
+          value.map((option, index) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+            placeholder='Tag'
+          />
+        )}
+      />
       <StepperButtons
-        onNextClick={handleForward}
+        onNextClick={nextStep}
         disableNext={!complete || !nameIsValid}
       />
     </>);

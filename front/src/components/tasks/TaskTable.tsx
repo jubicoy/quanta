@@ -55,7 +55,7 @@ export default ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {tasks?.map((item: Task) => (
+          {tasks.map((item: Task) => (
             <TableRow
               selected={item.deletedAt !== null}
               key={item.id}

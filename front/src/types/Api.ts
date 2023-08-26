@@ -46,3 +46,8 @@ export interface Authentication {
   expires: string;
   user: User;
 }
+
+export interface Tag {
+  id: number;
+  name: string;
+}

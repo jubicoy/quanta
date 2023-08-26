@@ -1,7 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
 import hljs from 'highlight.js';
-import { useDataConnection, useRouter, useDrivers } from '../../hooks';
+import {
+  useDataConnection,
+  useRouter,
+  useTags,
+  useDrivers
+} from '../../hooks';
+
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import Chip from '@material-ui/core/Chip';
 
 import {
   Table,
@@ -36,9 +44,6 @@ import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@material-ui/icons/KeyboardArrowUp';
-import EditIcon from '@material-ui/icons/EditOutlined';
-import DoneIcon from '@material-ui/icons/DoneAllTwoTone';
-import RevertIcon from '@material-ui/icons/NotInterestedOutlined';
 import FindReplaceIcon from '@material-ui/icons/FindReplace';
 import {
   JsonIngestDataConnectionConfiguration,
@@ -169,9 +174,8 @@ export default ({ match: { params } }: Props) => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showColumns, setShowColumns] = useState<number>(-1);
-
   const [isEditMode, setEditMode] = useState<boolean>(false);
-
+  const { tags } = useTags();
   const [previousConnection, setPreviousConnection] = useState<DataConnection | null>(dataConnection);
 
   useEffect(() => {
@@ -238,8 +242,10 @@ export default ({ match: { params } }: Props) => {
       });
     }
   };
+
   const saveEdit = () => {
     setEditMode(false);
+
     updateDataConnection(dataConnection).then((result) => {
       setPreviousConnection(result);
       setSuccess('Update data connection successfully!');
@@ -447,6 +453,15 @@ export default ({ match: { params } }: Props) => {
       <div className={common.header}>
         <T variant='h4'>Data connection details</T>
         <div className={common.toggle}>
+          <Fab
+            className={common.leftMargin}
+            variant='extended'
+            color='primary'
+            onClick={handleClickOpenDeleteDialog}
+          >
+            <Icon className={clsx(common.icon)}>{'delete'}</Icon>
+            Delete
+          </Fab>
           {isEditMode ? (
             <>
               <Fab
@@ -455,7 +470,9 @@ export default ({ match: { params } }: Props) => {
                 color='primary'
                 onClick={saveEdit}
               >
-                <DoneIcon />
+                <Icon className={clsx(common.icon)}>
+                  {'save'}
+                </Icon>
                 Save
               </Fab>
               <Fab
@@ -464,7 +481,9 @@ export default ({ match: { params } }: Props) => {
                 color='primary'
                 onClick={cancelEdit}
               >
-                <RevertIcon />
+                <Icon className={clsx(common.icon)}>
+                  {'cancel'}
+                </Icon>
                 Cancel
               </Fab>
             </>
@@ -475,21 +494,37 @@ export default ({ match: { params } }: Props) => {
               color='primary'
               onClick={() => setEditMode((prev) => !prev)}
             >
-              <EditIcon />
+              <Icon className={clsx(common.icon)}>
+                {'edit'}
+              </Icon>
+              Edit
             </Fab>
           )}
-
-          <Fab
-            className={common.leftMargin}
-            variant='extended'
-            color='primary'
-            onClick={handleClickOpenDeleteDialog}
-          >
-            <Icon className={clsx(common.icon)}>{'delete'}</Icon>
-            Delete
-          </Fab>
         </div>
       </div>
+      { !isEditMode ? (dataConnection && dataConnection.tags.map((option, index) =>
+        <Chip style={{ margin: '5px' }} key={index} variant='outlined' label={option} />
+      )) : <Autocomplete
+        multiple
+        size='small'
+        style={{ marginTop: '15px' }}
+        options={tags || []}
+        value={dataConnection.tags || []}
+        freeSolo
+        onChange={(event, value) => setDataConnection({ ...dataConnection, tags: value })}
+        renderTags={(value, getTagProps) =>
+          value.map((option: string, index: number) =>
+            <Chip key={index} variant='outlined' label={option} {...getTagProps({ index })} />
+          )
+        }
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            variant='outlined'
+            label='Add Tag'
+          />
+        )}
+      />}
       <div className={classes.wrapper}>
         <Paper className={classes.paper}>{renderDataConnectionDetails()}</Paper>
         <Link href={`/data-connections/${dataConnection.id}/${encodeURI(dataConnection.name)}/series/new`}>

@@ -15,6 +15,9 @@ import fi.jubic.quanta.db.tables.InvocationOutputColumn;
 import fi.jubic.quanta.db.tables.InvocationParameter;
 import fi.jubic.quanta.db.tables.SeriesResult;
 import fi.jubic.quanta.db.tables.SeriesTable;
+import fi.jubic.quanta.db.tables.Tag;
+import fi.jubic.quanta.db.tables.TagDataconnection;
+import fi.jubic.quanta.db.tables.TagTask;
 import fi.jubic.quanta.db.tables.Task;
 import fi.jubic.quanta.db.tables.TaskColumnSelector;
 import fi.jubic.quanta.db.tables.TaskOutputColumn;
@@ -86,6 +89,21 @@ public class Tables {
      * The table <code>series_table</code>.
      */
     public static final SeriesTable SERIES_TABLE = SeriesTable.SERIES_TABLE;
+
+    /**
+     * The table <code>tag</code>.
+     */
+    public static final Tag TAG = Tag.TAG;
+
+    /**
+     * The table <code>tag_dataconnection</code>.
+     */
+    public static final TagDataconnection TAG_DATACONNECTION = TagDataconnection.TAG_DATACONNECTION;
+
+    /**
+     * The table <code>tag_task</code>.
+     */
+    public static final TagTask TAG_TASK = TagTask.TAG_TASK;
 
     /**
      * The table <code>task</code>.

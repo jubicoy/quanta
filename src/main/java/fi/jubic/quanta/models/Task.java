@@ -2,6 +2,7 @@ package fi.jubic.quanta.models;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import fi.jubic.easymapper.annotations.EasyId;
+import fi.jubic.easymapper.jooq.JooqFieldAccessor;
 import fi.jubic.easyvalue.EasyValue;
 import fi.jubic.quanta.db.tables.records.TaskRecord;
 import fi.jubic.quanta.util.DateUtil;
@@ -13,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import static fi.jubic.quanta.db.tables.Task.TASK;
 
@@ -50,6 +52,9 @@ public abstract class Task {
 
     @Nullable
     public abstract List<Parameter> getParameters();
+
+    @Nullable
+    public abstract Set<String> getTags();
 
     public abstract Builder toBuilder();
 
@@ -102,7 +107,8 @@ public abstract class Task {
                     .setWorkerDef(null)
                     .setColumnSelectors(Collections.emptyList())
                     .setSeries(null)
-                    .setOutputColumns(Collections.emptyList());
+                    .setOutputColumns(Collections.emptyList())
+                    .setTags(Collections.emptySet());
         }
     }
 
@@ -123,5 +129,6 @@ public abstract class Task {
                     DateUtil::toLocalDateTime,
                     DateUtil::toInstant
             )
+            .setTagsAccessor(new JooqFieldAccessor.NoOpAccessor<>())
             .build();
 }
