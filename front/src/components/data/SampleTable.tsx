@@ -151,14 +151,15 @@ const SampleTableColumnHeaderCell = ({
         classes.headerRow,
         isEditing && classes.editMode)}>
       {editableType && setEditingIndex
-        ? <Button
-          onClick={() => setEditingIndex(isEditing ? -1 : columnIndex)}
-          disableRipple
-        >
-          {children}
-          <Icon>settings</Icon>
-        </Button>
-        : children
+        ? (
+          <Button
+            onClick={() => setEditingIndex(isEditing ? -1 : columnIndex)}
+            disableRipple
+          >
+            {children}
+            <Icon>settings</Icon>
+          </Button>
+        ) : children
       }
     </TableCell>
   );

@@ -49,6 +49,7 @@ export const ColumnsConfiguration = ({
   workerDef,
   setTaskColumnSelectors,
   setTaskOutputColumns,
+  setWorkerDef,
   task,
   setTask,
   dataConnectionParam,

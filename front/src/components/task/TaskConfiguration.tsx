@@ -144,22 +144,23 @@ export const TaskConfiguration = ({
             <TableRowItem
               title='Task Type'
               value={(editable && creatingTask)
-                ? <Select
-                  fullWidth
-                  value={taskType || 'process'}
-                  onChange={e => {
-                    const value = e.target.value as TaskType;
-                    setType(value);
-                  }}
-                  inputProps={{ id: 'task-type-select' }}
-                >
-                  {Object.values(TaskType)
-                    .map((type, idx) => (
-                      <MenuItem key={idx} value={type}>{type}</MenuItem>
-                    ))
-                  }
-                </Select>
-                : `${taskType || ''}`
+                ? (
+                  <Select
+                    fullWidth
+                    value={taskType || 'process'}
+                    onChange={e => {
+                      const value = e.target.value as TaskType;
+                      setType(value);
+                    }}
+                    inputProps={{ id: 'task-type-select' }}
+                  >
+                    {Object.values(TaskType)
+                      .map((type, idx) => (
+                        <MenuItem key={idx} value={type}>{type}</MenuItem>
+                      ))
+                    }
+                  </Select>
+                ) : `${taskType || ''}`
               }
             />
             <TableRowItem

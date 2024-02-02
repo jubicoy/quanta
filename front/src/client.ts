@@ -22,7 +22,8 @@ import {
   ExternalClient,
   DataConnectionQuery,
   WorkerDefQuery,
-  DataSeriesQuery
+  DataSeriesQuery,
+  PaginationQuery
 } from './types';
 import fetchProgress from 'fetch-progress';
 
@@ -421,7 +422,7 @@ export const deleteDataConnection = (id: number): Promise<DataConnection> => win
 
 // Query measurements from DataSeries/SeriesResult
 export const queryTimeSeries = (
-  query: TimeSeriesQuery
+  query: TimeSeriesQuery & PaginationQuery
 ): Promise<QueryResult[]> => window
   .fetch(
     `/api/query${queryEncode(query)}`,
